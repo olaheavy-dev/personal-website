@@ -129,9 +129,10 @@ export function MobileMenu() {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border-strong bg-bg-elevated px-4 text-sm font-medium"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-border-strong bg-bg-elevated text-sm font-medium sm:px-4"
       >
-        {open ? "Close" : "Menu"}
+        {/* Icon only on small phones so the header never squeezes the name. */}
+        <span className="sr-only sm:not-sr-only">{open ? "Close" : "Menu"}</span>
         <svg
           className="size-4"
           viewBox="0 0 24 24"

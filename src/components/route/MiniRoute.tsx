@@ -5,7 +5,7 @@ export function MiniRoute() {
   return (
     <svg
       viewBox="0 0 120 24"
-      className="mx-[0.12em] inline-block h-[0.5em] w-[2.4em] align-middle"
+      className="mx-(--mini-route-gap) inline-block h-(--mini-route-height) w-(--mini-route-width) align-middle"
       aria-hidden="true"
     >
       <line

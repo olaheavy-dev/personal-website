@@ -22,13 +22,13 @@ export function JourneyStations() {
         {/* Dotted connector: vertical on mobile, horizontal from md */}
         <span
           aria-hidden="true"
-          className="absolute top-3 bottom-3 left-[9px] border-l-2 border-dotted border-route-line md:top-[9px] md:right-3 md:bottom-auto md:left-3 md:border-t-2 md:border-l-0"
+          className="absolute top-3 bottom-3 left-[calc(var(--route-pin-size)/2-1px)] border-l-2 border-dotted border-route-line md:top-[calc(var(--route-pin-size)/2-1px)] md:right-3 md:bottom-auto md:left-3 md:border-t-2 md:border-l-0"
         />
         {stations.map((station, index) => (
           <li key={station.name} className="relative flex gap-4 md:flex-col md:gap-3">
             <span
               aria-hidden="true"
-              className={`relative z-10 mt-0.5 size-5 shrink-0 rounded-full border-2 border-border-strong md:mt-0 ${
+              className={`relative z-10 mt-0.5 size-(--route-pin-size) shrink-0 rounded-full border-2 border-border-strong md:mt-0 ${
                 index === stations.length - 1 ? "bg-route-pin" : index === 0 ? "bg-lilac" : "bg-bg-primary"
               }`}
             />
@@ -39,7 +39,7 @@ export function JourneyStations() {
                 </span>
                 {station.name}
               </p>
-              <p className="mt-1 max-w-[24ch] text-sm text-text-secondary">{station.note}</p>
+              <p className="mt-1 max-w-(--max-width-caption) text-sm text-text-secondary">{station.note}</p>
             </div>
           </li>
         ))}

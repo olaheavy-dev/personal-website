@@ -4,17 +4,17 @@
 // Copy follows the claims policy in .design/portfolio/DESIGN_BRIEF.md.
 export function HeroTickets() {
   return (
-    <div className="relative mx-auto w-full max-w-[22rem] pt-10 pb-6 lg:mx-0 lg:ml-auto">
+    <div className="relative mx-auto w-full max-w-(--ticket-max-width) pt-10 pb-6 lg:mx-0 lg:ml-auto">
       {/* Previous stop, peeking behind */}
-      <div className="ticket-drop absolute inset-x-6 top-0 -rotate-[5deg]" aria-hidden="true">
+      <div className="ticket-drop absolute inset-x-6 top-0 rotate-(--ticket-tilt-back)" aria-hidden="true">
         <div className="ticket bg-lilac px-5 pt-4 pb-16 text-text-on-accent">
           <p className="label-mono">Stop 02 · Optty · via Deimos</p>
         </div>
       </div>
 
       {/* Current stop */}
-      <article className="ticket-drop group relative rotate-[2deg] transition-transform duration-[var(--duration-normal)] ease-out-expo hover:rotate-0 motion-reduce:rotate-0">
-        <div className="ticket px-6 pt-5 pb-5 [--notch-y:calc(100%-5.6rem)]">
+      <article className="ticket-drop group relative rotate-(--ticket-tilt) transition-transform duration-(--duration-normal) ease-out-expo hover:rotate-0 motion-reduce:rotate-0">
+        <div className="ticket px-6 pt-5 pb-5 [--notch-y:calc(100%-var(--ticket-stub-offset))]">
           <div className="flex items-center justify-between gap-3">
             <p className="label-mono text-text-tertiary">Stop 01 · Now</p>
             <p className="label-mono rounded-full bg-teal-soft px-2.5 py-1 text-teal-text">HBK</p>

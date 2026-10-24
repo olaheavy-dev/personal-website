@@ -323,6 +323,29 @@
   --route-dash: 2 8; /* SVG stroke-dasharray, round caps → dots */
   --route-pin-size: 1.25rem;
 
+  /* Optical details — deliberate em-relative tweaks that scale with the type
+     they sit in (hero name highlight, inline portrait, dotted mini-route) */
+  --highlight-radius: 0.18em;
+  --highlight-pad-x: 0.14em;
+  --highlight-pad-bottom: 0.04em;
+  --highlight-tilt: -1.5deg;
+  --inline-portrait-size: 0.86em;
+  --inline-portrait-gap: 0.18em;
+  --inline-portrait-tilt: 3deg;
+  --inline-portrait-border: 3px;
+  --inline-portrait-baseline: -0.08em;
+  --mini-route-width: 2.4em;
+  --mini-route-height: 0.5em;
+  --mini-route-gap: 0.12em;
+  --line-height-display-sub: 1.05; /* hero's second, smaller display line */
+  --max-width-lead: 56ch; /* lead paragraph measure */
+  --max-width-caption: 24ch; /* short notes under labels */
+  --ticket-tilt: 2deg;
+  --ticket-tilt-back: -5deg;
+  --ticket-max-width: 22rem;
+  --ticket-stub-offset: 5.6rem; /* distance from the bottom to the notch line */
+  --z-skip-link: 100;
+
   /* Motion */
   --duration-instant: 50ms;
   --duration-fast: 150ms; /* colour, border */

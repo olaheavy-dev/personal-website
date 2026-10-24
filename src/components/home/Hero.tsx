@@ -23,13 +23,13 @@ export function Hero() {
               width={128}
               height={128}
               fetchPriority="high"
-              className="mx-[0.18em] inline-block size-[0.86em] rotate-[3deg] rounded-full border-[3px] border-border-strong bg-bg-tertiary object-cover object-top align-[-0.08em]"
+              className="mx-(--inline-portrait-gap) inline-block size-(--inline-portrait-size) rotate-(--inline-portrait-tilt) rounded-full border-(length:--inline-portrait-border) border-border-strong bg-bg-tertiary object-cover object-top align-(--inline-portrait-baseline)"
             />{" "}
-            <span className="inline-block -rotate-[1.5deg] rounded-[0.18em] bg-lilac px-[0.14em] pb-[0.04em] text-text-on-accent transition-transform duration-[var(--duration-normal)] ease-bounce hover:rotate-0 motion-reduce:rotate-0">
+            <span className="inline-block rotate-(--highlight-tilt) rounded-(--highlight-radius) bg-lilac px-(--highlight-pad-x) pb-(--highlight-pad-bottom) text-text-on-accent transition-transform duration-(--duration-normal) ease-bounce hover:rotate-0 motion-reduce:rotate-0">
               {site.firstName}
             </span>
           </span>
-          <span className="mt-3 block text-display-md leading-[1.05] text-text-secondary md:mt-4">
+          <span className="mt-3 block text-display-md leading-(--line-height-display-sub) text-text-secondary md:mt-4">
             I take products from{" "}
             <span className="whitespace-nowrap">
               idea
@@ -40,7 +40,7 @@ export function Hero() {
           </span>
         </h1>
 
-        <p className="mt-5 max-w-[56ch] text-md leading-relaxed text-text-secondary">
+        <p className="mt-5 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
           Full-stack &amp; AI engineer in the UK. For ten years I&rsquo;ve shipped software where failure is
           expensive&nbsp;&mdash; banking, cross-border payments, edtech. Today at HBK I build a sensor-data
           analytics platform and the AI inside it: RAG, AI agents and the product engineers rely on. I design

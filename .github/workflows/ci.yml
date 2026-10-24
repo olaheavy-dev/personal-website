@@ -115,6 +115,7 @@ jobs:
       image: mcr.microsoft.com/playwright@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
     env:
       HOME: /root
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -130,8 +131,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # The Playwright image has no make, so these steps call what the make targets run.
       - name: Install dependencies
-        run: make install
+        run: pnpm install --frozen-lockfile
 
       # The image ships the browsers for one Playwright version. Ask the installed
       # @playwright/test where it expects its browsers (a dry run downloads nothing) and
@@ -150,11 +152,11 @@ jobs:
           exit "$missing"
 
       - name: Build for production
-        run: make build
+        run: pnpm build
 
       - name: Compare screenshots with the baselines
         id: compare
-        run: make visual
+        run: pnpm test:e2e --grep @visual
 
       # Everything below runs only if the comparison failed. The artifacts let a person
       # review the diffs and accept them with `make visual-accept RUN=<run id>`.

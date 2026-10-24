@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The Docker image ships the minimal standalone server (decision 0003).
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

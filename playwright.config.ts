@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// End-to-end and accessibility checks run against a production build
-// (`next build` then `next start`), the same artefact that ships.
+// End-to-end and accessibility checks run against the standalone server from
+// `next build` (`pnpm serve`), the same artefact the Docker image ships.
 const port = Number(process.env.E2E_PORT ?? 3210);
 const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
 
@@ -23,7 +23,8 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: `pnpm start --port ${port}`,
+        command: "pnpm serve",
+        env: { PORT: String(port), HOSTNAME: "127.0.0.1" },
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,

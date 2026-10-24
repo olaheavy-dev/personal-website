@@ -23,6 +23,7 @@ AGENTS.md                the rulebook for how work is done (CLAUDE.md links to i
 | [Build tasks](../.design/portfolio/TASKS.md)                                 | Ordered build checklist; each task becomes an issue                                    | Current |
 | [Decision register](decisions/README.md)                                     | Every decision's status and record                                                     | Current |
 | [Third-party references](references/third-party.md)                          | Pinned versions and official docs                                                      | Current |
+| [Deploy runbook](deploy.md)                                                  | How a merge reaches staging, rollback, local image checks                              | Current |
 | [AGENTS.md](../AGENTS.md)                                                    | Planning, building, reviewing, merging, dependencies                                   | Current |
 
 Accepted decision records override anything in other documents that contradicts them. For process, `AGENTS.md` is the single current rulebook (decision 0011).

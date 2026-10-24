@@ -1,9 +1,15 @@
-// Placeholder until the hero slice lands (see .design/portfolio/TASKS.md).
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { Hero } from "@/components/home/Hero";
+import { JourneyStations } from "@/components/home/JourneyStations";
+
 export default function Home() {
   return (
-    <main id="main">
-      <h1>Sunkanmi Olawuwo</h1>
-      <p>Full-stack and AI engineer. Site under construction.</p>
-    </main>
+    <>
+      <SiteHeader />
+      <main id="main">
+        <Hero />
+        <JourneyStations />
+      </main>
+    </>
   );
 }

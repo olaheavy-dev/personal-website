@@ -130,6 +130,7 @@
   --shadow-lg:     0 20px 40px -16px rgb(20 20 24 / 0.22), 0 2px 6px rgb(20 20 24 / 0.06);
   --shadow-ticket: 4px 4px 0 0 var(--ink-900);   /* hard offset, tactile */
   --shadow-ticket-hover: 6px 8px 0 0 var(--ink-900);
+  --ticket-drop: drop-shadow(4px 4px 0 var(--ink-900)); /* filter form of --shadow-ticket: masks clip box-shadow */
   --shadow-focus:  0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
 }
 
@@ -190,6 +191,7 @@
   --shadow-lg:     0 24px 48px -16px rgb(0 0 0 / 0.7);
   --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
   --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
+  --ticket-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
   --shadow-focus:  0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
 }
 
@@ -213,6 +215,7 @@
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4); --shadow-md: 0 6px 18px -6px rgb(0 0 0 / 0.55); --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
     --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
     --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
+    --ticket-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
   }
 }
 
@@ -290,6 +293,29 @@
   --route-stroke: 2px;
   --route-dash: 2 8;               /* SVG stroke-dasharray, round caps → dots */
   --route-pin-size: 1.25rem;
+
+  /* Optical details — deliberate em-relative tweaks that scale with the type
+     they sit in (hero name highlight, inline portrait, dotted mini-route) */
+  --highlight-radius: 0.18em;
+  --highlight-pad-x: 0.14em;
+  --highlight-pad-bottom: 0.04em;
+  --highlight-tilt: -1.5deg;
+  --inline-portrait-size: 0.86em;
+  --inline-portrait-gap: 0.18em;
+  --inline-portrait-tilt: 3deg;
+  --inline-portrait-border: 3px;
+  --inline-portrait-baseline: -0.08em;
+  --mini-route-width: 2.4em;
+  --mini-route-height: 0.5em;
+  --mini-route-gap: 0.12em;
+  --line-height-display-sub: 1.05; /* hero's second, smaller display line */
+  --max-width-lead: 56ch; /* lead paragraph measure */
+  --max-width-caption: 24ch; /* short notes under labels */
+  --ticket-tilt: 2deg;
+  --ticket-tilt-back: -5deg;
+  --ticket-max-width: 22rem;
+  --ticket-stub-offset: 5.6rem; /* distance from the bottom to the notch line */
+  --z-skip-link: 100;
 
   /* Motion */
   --duration-instant: 50ms;

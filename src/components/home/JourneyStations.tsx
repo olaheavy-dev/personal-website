@@ -36,12 +36,7 @@ export function JourneyStations() {
               }`}
             />
             <div>
-              <p className="font-display text-lg tracking-tight">
-                <span className="label-mono mr-2 align-middle text-text-tertiary">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                {station.name}
-              </p>
+              <p className="font-display text-lg tracking-tight">{station.name}</p>
               <p className="mt-1 max-w-(--max-width-caption) text-sm text-text-secondary">{station.note}</p>
             </div>
           </li>

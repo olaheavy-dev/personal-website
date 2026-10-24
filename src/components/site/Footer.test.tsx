@@ -26,6 +26,13 @@ describe("Footer", () => {
     expect(within(footer).queryByRole("link", { name: "Work" })).toBeNull();
   });
 
+  it("ends the route at Scale instead of numbering a sixth stop", () => {
+    renderFooter();
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).not.toHaveTextContent(/Stop\s*06/);
+    expect(within(footer).getByText("Availability")).toBeInTheDocument();
+  });
+
   it("shows only the profiles that are configured", () => {
     renderFooter();
     const profiles = screen.getByRole("list", { name: "Profiles" });

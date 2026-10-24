@@ -38,14 +38,14 @@ export function HeroTickets() {
             ))}
           </ul>
           <div className="ticket-perforation -mx-6 mt-5" aria-hidden="true" />
-          <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-            <span className="inline-flex items-center gap-2 font-medium">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 text-sm">
+            <span className="inline-flex items-center gap-2 font-medium whitespace-nowrap">
               <span className="size-2 rounded-full bg-live" aria-hidden="true" />
               Aiana live since 2025 R4
             </span>
             <a
               href="https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights"
-              className="inline-flex min-h-11 items-center gap-1 text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
+              className="inline-flex min-h-11 items-center gap-1 whitespace-nowrap text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
               rel="noopener"
               target="_blank"
             >

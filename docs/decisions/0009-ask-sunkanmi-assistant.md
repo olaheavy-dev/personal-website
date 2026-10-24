@@ -1,0 +1,25 @@
+# 0009: Ask Sunkanmi assistant
+
+**Status:** Accepted  
+**Date:** 2026-10-24  
+**Decided by:** the owner, in the design-flow grill session
+
+## Context
+
+The site's signature should prove AI-to-production craft, not be a gimmick chatbot.
+
+## Options
+
+- Supabase pgvector + Claude
+- Reuse Foresight's gateway
+- Gemini / OpenAI
+- Phase 2
+
+## Decision
+
+A grounded assistant: published content ingested into pgvector, hybrid search + rerank, Claude with citations that deep-link to section anchors, third-person voice, scope and prompt-injection guards, per-IP rate limit, monthly spend cap, traces, and an eval set run in CI.
+
+## Consequences
+
+- Never auto-opens; a "How this works" view shows sources, latency and cost.
+- Spend caps are owner decisions.

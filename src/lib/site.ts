@@ -17,7 +17,7 @@ export const site = {
   url: "https://olaheavy.dev",
   oneLiner: "I take products from idea to production, with AI built in.",
   description:
-    "Full-stack & AI engineer in the UK. Designing, building and shipping products end to end, from HBK's sensor-data analytics platform with RAG and AI agents to a decade of banking and payments systems.",
+    "Full-stack & AI engineer based in the UK. Ten years of software across banking, cross-border payments and edtech; today helping build HBK's sensor-data analytics platform and the human-centred AI inside it.",
   availability: "Open to senior & staff AI roles · consulting",
   timeZone: "Europe/London",
   timeZoneLabel: "UK",

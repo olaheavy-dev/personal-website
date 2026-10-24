@@ -23,9 +23,9 @@ export function HeroTickets() {
             Advantage Insights
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            HBK&rsquo;s sensor-data analytics platform for test and durability engineers. I build the product
-            and the AI across it, from Aiana, the docs assistant, to newer features for code, voice and file
-            analysis.
+            HBK&rsquo;s sensor-data analytics platform for test and durability engineers. I help build the
+            product and the AI across it, from Aiana, the docs assistant, to newer features for code, voice
+            and file analysis.
           </p>
           <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="What I build here">
             {["Analytics platform", "AI agents", "RAG"].map((chip) => (

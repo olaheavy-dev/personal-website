@@ -23,3 +23,4 @@ Fable 5.1 runs the pre-push review (the `deep-reviewer` agent) for owner-only pu
 - The live site's Ask Sunkanmi assistant does not run on Fable: per-question cost and latency matter there; its model is chosen against its evaluation set (decision 0009).
 - Codex stays the independent second reviewer on every pull request.
 - If a Fable review blocks an owner-only change, the owner decides, as for any disputed finding.
+- This choice is revisited whenever Anthropic releases a new Claude model, following "Reviewing the model roster" in `AGENTS.md`.

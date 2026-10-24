@@ -56,6 +56,15 @@ This file is the single current rulebook for planning, building, reviewing, merg
 
 Project agents are in `.claude/agents/`; permission rules are in `.claude/settings.json`.
 
+### Reviewing the model roster
+
+The roster above follows the Claude models available today. **Whenever Anthropic releases a new Claude model**, open an issue labelled `decision` and review it against this table:
+
+1. Read the model's announcement and migration notes: capabilities, price per million tokens, speed, context size, and any breaking API changes.
+2. For each row (planner, implementer, verifier, reviewer, deep reviewer), decide whether the new model should take it, considering quality, cost and speed. Try it on one real task before switching.
+3. Check the site's own model use too (the Ask Sunkanmi assistant, decision 0009) against its evaluation set before changing it.
+4. Record the outcome in a decision record (or a line in the register if nothing changes), then update this table, `.claude/agents/`, decision 0015 and `docs/references/third-party.md` in one pull request.
+
 ## Planning
 
 - **Every feature gets a plan** in its GitHub issue before building (use the "Build task" template). Small changes get a short plan.

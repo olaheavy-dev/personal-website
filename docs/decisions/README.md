@@ -20,6 +20,7 @@ Every significant product, technical and working decision gets a record here, na
 | [0012](0012-dependencies-and-pre-approved-packages.md) | Dependencies and pre-approved packages     | Accepted | 2026-10-24 |
 | [0013](0013-quality-gate.md)                           | Quality gate                               | Accepted | 2026-10-24 |
 | [0014](0014-no-dashes-between-words.md)                | No dashes between words                    | Accepted | 2026-10-24 |
+| [0015](0015-fable-for-highest-stakes-reviews.md)       | Fable 5.1 for the highest-stakes reviews   | Accepted | 2026-10-24 |
 
 ## Easily reversible defaults
 

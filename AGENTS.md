@@ -2,7 +2,7 @@
 
 Shared instructions for every AI agent on this repository. `CLAUDE.md` is a symbolic link to this file, so Claude Code and OpenAI Codex read the same text. Edit **this** file only.
 
-Who does what is in **"How work flows"**: Opus 5.5 plans and reviews, Sonnet 5.5 builds and verifies, Codex reviews every pull request except small dependency updates, and Claude Code merges. Builders follow "When building"; every reviewer follows "When reviewing"; merging follows "When merging".
+Who does what is in **"How work flows"**: Opus 5.5 plans and reviews, Fable 5.1 reviews only the highest-stakes changes, Sonnet 5.5 builds and verifies, Codex reviews every pull request except small dependency updates, and Claude Code merges. Builders follow "When building"; every reviewer follows "When reviewing"; merging follows "When merging".
 
 ## What this project is
 
@@ -43,15 +43,16 @@ Read before working:
 
 This file is the single current rulebook for planning, building, reviewing, merging and dependencies.
 
-| Step                                                                | Who               | Model      |
-| ------------------------------------------------------------------- | ----------------- | ---------- |
-| 1. Plan the feature (issue plan + acceptance criteria)              | Planner agent     | Opus 5.5   |
-| 2. Build each task                                                  | Implementer agent | Sonnet 5.5 |
-| 3. Run `make check` (+ `make e2e` for UI) and map criteria to tests | Verifier agent    | Sonnet 5.5 |
-| 4. Pre-push review (fresh context, "When reviewing")                | Reviewer agent    | Opus 5.5   |
-| 5. Open the pull request; Codex reviews the latest commit           | Codex             | n/a        |
-| 6. Handle review comments                                           | Review handler    | Opus 5.5   |
-| 7. Merge when the conditions below are met; post a one-line summary | Claude Code       | n/a        |
+| Step                                                                            | Who                 | Model      |
+| ------------------------------------------------------------------------------- | ------------------- | ---------- |
+| 1. Plan the feature (issue plan + acceptance criteria)                          | Planner agent       | Opus 5.5   |
+| 2. Build each task                                                              | Implementer agent   | Sonnet 5.5 |
+| 3. Run `make check` (+ `make e2e` for UI) and map criteria to tests             | Verifier agent      | Sonnet 5.5 |
+| 4. Pre-push review (fresh context, "When reviewing")                            | Reviewer agent      | Opus 5.5   |
+| 4a. Instead of step 4 for owner-only PRs and stage-gate reviews (decision 0015) | Deep reviewer agent | Fable 5.1  |
+| 5. Open the pull request; Codex reviews the latest commit                       | Codex               | n/a        |
+| 6. Handle review comments                                                       | Review handler      | Opus 5.5   |
+| 7. Merge when the conditions below are met; post a one-line summary             | Claude Code         | n/a        |
 
 Project agents are in `.claude/agents/`; permission rules are in `.claude/settings.json`.
 
@@ -74,7 +75,7 @@ Project agents are in `.claude/agents/`; permission rules are in `.claude/settin
 - PR description: use the template (what and why, how tested, assumptions, claims and content, pre-flight check, noticed-not-changed).
 - **Pre-flight check:** search the repository for every term, decision ID, token and figure the change touches, and fix any contradiction or stale statement in the same PR. Check new facts against their sources.
 - **Run `make check` before pushing**, and `make e2e` for any UI change.
-- **Pre-push review:** run the reviewer agent (fresh context) and fix its findings first.
+- **Pre-push review:** run the reviewer agent (fresh context) and fix its findings first. For owner-only PRs (infrastructure, deploy, CI permissions, security, running costs) and stage-gate or pre-launch reviews, run the deep reviewer (Fable 5.1) instead (decision 0015).
 - Ask the owner before installing packages not on the pre-approved list, changing infrastructure, hosting, Supabase projects, model spend, or repository settings. **Never push to `main`.**
 
 <!-- BEGIN:nextjs-agent-rules -->
@@ -139,7 +140,7 @@ P0/P1 findings always block. After merging, post a one-line summary for the owne
 
 ## Keeping agent cost down
 
-- Opus 5.5 plans and reviews; Sonnet 5.5 does everything else.
+- Opus 5.5 plans and reviews; Sonnet 5.5 does everything else. Fable 5.1 costs 2.5 times Opus per token and a hard review can run for minutes, so use it only where decision 0015 says; never for routine feature PRs, building, or the live site's assistant.
 - Keep PRs focused on one topic; group small related documentation changes.
 - Read only the files a task needs.
 - Run `make check` and the pre-push review before pushing, so Codex rounds are rare.

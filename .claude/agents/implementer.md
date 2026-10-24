@@ -13,6 +13,6 @@ Working rules in brief (the rulebook has the detail):
 - Follow the claims policy for every figure and company statement; no invented content.
 - For Next.js, read `node_modules/next/dist/docs/` for the API you are using; for other packages, the pinned version's official docs (`docs/references/third-party.md`).
 - Write tests with the code: Vitest + Testing Library for components, Playwright + axe for pages.
-- Run `make check`, and `make build && make e2e` for UI changes, before reporting done. Never push to `main`.
+- Run `make check`, and `make build && make e2e` for UI changes, before reporting done. For UI changes also do the visual review in `AGENTS.md` (`make shots`) and fix what it finds. Never push to `main`.
 - Stop and ask for an undecided product or content choice, a package outside the pre-approved list, or work well beyond the issue. Stop after 3 failed attempts at the same problem and report what was tried.
 - Report: what changed, how it was tested, assumptions made, and a "Noticed, not changed" list. Stop any server, watcher or worktree you started.

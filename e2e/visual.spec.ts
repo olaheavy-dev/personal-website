@@ -16,12 +16,14 @@ test.describe("visual @visual", () => {
     test(`${route.name} looks the same`, async ({ page }) => {
       await page.goto(route.path);
       await page.evaluate(() => document.fonts.ready);
-      // Wait for every image to finish, so lazy ones cannot arrive mid screenshot.
+      // Load every image now (lazy ones below the fold would otherwise never start)
+      // and wait for them, so none can arrive mid screenshot.
       await page.evaluate(() =>
         Promise.all(
-          Array.from(document.images).map((img) =>
-            img.complete ? undefined : new Promise((done) => (img.onload = img.onerror = done)),
-          ),
+          Array.from(document.images).map((img) => {
+            img.loading = "eager";
+            return img.complete ? undefined : new Promise((done) => (img.onload = img.onerror = done));
+          }),
         ),
       );
       await expect(page).toHaveScreenshot(`${route.name}.png`, {

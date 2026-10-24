@@ -112,6 +112,7 @@
   --color-route-active: var(--lilac-500);
   --color-route-pin: var(--teal-500);
   --color-route-pin-ring: var(--ink-900);
+  --color-plane-paper: var(--paper-50); /* hero paper plane wings: white paper in both themes */
 
   /* Status */
   --color-status-success: var(--green-600);

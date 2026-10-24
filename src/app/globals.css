@@ -64,7 +64,7 @@
   .mini-route-plane {
     transform-box: view-box;
     transform-origin: 0 0;
-    transform: translate(106px, 8px) rotate(-14deg);
+    transform: translate(102px, 9px) rotate(-12deg);
     animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--duration-slow) both;
   }
   .mini-route-reveal {
@@ -98,11 +98,11 @@
     transform: translate(34px, 13px) rotate(3deg) scale(0.85);
   }
   65% {
-    transform: translate(82px, 12px) rotate(0deg) scale(1);
+    transform: translate(76px, 12px) rotate(0deg) scale(1);
   }
   100% {
     opacity: 1;
-    transform: translate(106px, 8px) rotate(-14deg) scale(1);
+    transform: translate(102px, 9px) rotate(-12deg) scale(1);
   }
 }
 

@@ -22,7 +22,7 @@ export function MiniRoute() {
         </mask>
       </defs>
       <path
-        d="M10 12 H78 Q90 12 96 9"
+        d="M10 12 H64 Q76 12 84 10"
         fill="none"
         stroke="var(--color-route-line)"
         strokeWidth="5"
@@ -42,17 +42,17 @@ export function MiniRoute() {
         <g className="mini-route-plane-hover">
           {/* Top wing, keel (teal, the colour of "production") and the fold */}
           <path
-            d="M12 0 L-12 -8 L-4 1 Z"
-            fill="var(--color-bg-elevated)"
+            d="M16 0 L-16 -11 L-6 2 Z"
+            fill="var(--color-plane-paper)"
             stroke="var(--color-border-strong)"
-            strokeWidth="2.5"
+            strokeWidth="2.25"
             strokeLinejoin="round"
           />
           <path
-            d="M12 0 L-4 1 L-9 7 Z"
+            d="M16 0 L-6 2 L-12 10 Z"
             fill="var(--color-route-pin)"
             stroke="var(--color-border-strong)"
-            strokeWidth="2.5"
+            strokeWidth="2.25"
             strokeLinejoin="round"
           />
         </g>

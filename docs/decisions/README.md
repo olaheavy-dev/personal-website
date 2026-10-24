@@ -19,6 +19,7 @@ Every significant product, technical and working decision gets a record here, na
 | [0011](0011-ways-of-working.md)                        | Ways of working                            | Accepted | 2026-10-24 |
 | [0012](0012-dependencies-and-pre-approved-packages.md) | Dependencies and pre-approved packages     | Accepted | 2026-10-24 |
 | [0013](0013-quality-gate.md)                           | Quality gate                               | Accepted | 2026-10-24 |
+| [0014](0014-no-dashes-between-words.md)                | No dashes between words                    | Accepted | 2026-10-24 |
 
 ## Easily reversible defaults
 

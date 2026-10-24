@@ -1,6 +1,6 @@
 # olaheavy.dev
 
-The personal site of **Sunkanmi Olawuwo** — full-stack and AI engineer. _I take products from idea to production — with AI built in._
+The personal site of **Sunkanmi Olawuwo**, full-stack and AI engineer. _I take products from idea to production, with AI built in._
 
 Built with Next.js 16, TypeScript and Tailwind CSS v4, backed by Supabase, and deployed to my own VPS. The design process (brief, information architecture, tokens, tasks) lives in [`.design/portfolio/`](.design/portfolio/); decisions in [`docs/decisions/`](docs/decisions/README.md); how work is done in [`AGENTS.md`](AGENTS.md).
 

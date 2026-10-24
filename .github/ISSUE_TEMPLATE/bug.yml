@@ -20,7 +20,7 @@ body:
     attributes:
       label: Severity
       options:
-        - P0/P1 — wrong content or claim, broken page, accessibility or security problem
-        - P2/P3 — visual polish, wording, minor gap
+        - "P0/P1: wrong content or claim, broken page, accessibility or security problem"
+        - "P2/P3: visual polish, wording, minor gap"
     validations:
       required: true

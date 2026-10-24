@@ -1,5 +1,5 @@
 /* ==========================================================================
-   olaheavy.dev — Design Tokens
+   olaheavy.dev: Design Tokens
    Philosophy: "Journey / transit editorial" (see DESIGN_BRIEF.md)
      warm paper + warm ink, one dotted route, ticket cards, pill UI,
      tight Bricolage display, Geist body, Geist Mono station labels.
@@ -20,7 +20,7 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Raw palette (do not use directly in components — use semantic tokens)
+   1. Raw palette (do not use directly in components; use semantic tokens)
    -------------------------------------------------------------------------- */
 :root {
   /* Paper (warm off-white) */
@@ -69,7 +69,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Semantic tokens — LIGHT (default)
+   2. Semantic tokens: LIGHT (default)
    -------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
@@ -84,7 +84,7 @@
   /* Text */
   --color-text-primary: var(--ink-900);
   --color-text-secondary: var(--ink-500);
-  --color-text-tertiary: var(--ink-400); /* meta, placeholders — ≥4.69:1 on every light bg */
+  --color-text-tertiary: var(--ink-400); /* meta, placeholders: ≥4.69:1 on every light bg */
   --color-text-inverse: var(--paper-100);
   --color-text-link: var(--lilac-600);
   --color-text-on-accent: var(--ink-900); /* on lilac or teal fills */
@@ -138,7 +138,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. Semantic tokens — DARK "night route"
+   3. Semantic tokens: DARK "night route"
    Not an inversion: deep violet-ink ground, softer text, lilac/teal glow,
    hard ticket shadows become lilac outlines + soft glow.
    -------------------------------------------------------------------------- */
@@ -252,18 +252,18 @@
    4. Theme-independent tokens
    -------------------------------------------------------------------------- */
 :root {
-  /* Typography — families (loaded via next/font: Bricolage Grotesque, Geist, Geist Mono) */
+  /* Typography: families (loaded via next/font: Bricolage Grotesque, Geist, Geist Mono) */
   --font-family-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-family-body: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-family-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Type ramp — body is 17px; display scales fluidly between 375px and 1440px
+  /* Type ramp: body is 17px; display scales fluidly between 375px and 1440px
      (brief: tracking −0.03 to −0.05em at ≥64px). */
-  --font-size-xs: 0.75rem; /* 12 — mono labels, station names */
-  --font-size-sm: 0.875rem; /* 14 — meta, chips */
-  --font-size-base: 1.0625rem; /* 17 — body */
-  --font-size-md: 1.1875rem; /* 19 — lead paragraph */
-  --font-size-lg: 1.5rem; /* 24 — h4, ticket title (compact) */
+  --font-size-xs: 0.75rem; /* 12: mono labels, station names */
+  --font-size-sm: 0.875rem; /* 14: meta, chips */
+  --font-size-base: 1.0625rem; /* 17: body */
+  --font-size-md: 1.1875rem; /* 19: lead paragraph */
+  --font-size-lg: 1.5rem; /* 24: h4, ticket title (compact) */
   --font-size-xl: clamp(1.75rem, 1.5rem + 1vw, 2.25rem); /* 28→36 h3 */
   --font-size-2xl: clamp(2.25rem, 1.8rem + 2vw, 3.5rem); /* 36→56 h2 */
   --font-size-3xl: clamp(2.75rem, 2rem + 3.5vw, 4.75rem); /* 44→76 page titles */
@@ -276,7 +276,7 @@
   --font-weight-black: 800; /* Bricolage display */
 
   --line-height-tight: 0.95; /* hero/display */
-  --line-height-snug: 1.15; /* h2–h4 */
+  --line-height-snug: 1.15; /* h2 to h4 */
   --line-height-normal: 1.55; /* UI text */
   --line-height-relaxed: 1.7; /* long-form body (case studies, posts) */
 
@@ -285,7 +285,7 @@
   --letter-spacing-normal: 0;
   --letter-spacing-wide: 0.08em; /* mono uppercase labels */
 
-  /* Spacing — 4px base, editorial-generous upper steps */
+  /* Spacing: 4px base, editorial-generous upper steps */
   --space-0: 0;
   --space-1: 0.25rem; /*   4 */
   --space-2: 0.5rem; /*   8 */
@@ -296,7 +296,7 @@
   --space-7: 3rem; /*  48 */
   --space-8: 4rem; /*  64 */
   --space-9: 6rem; /*  96 */
-  --space-10: 8rem; /* 128 — section rhythm desktop */
+  --space-10: 8rem; /* 128: section rhythm desktop */
   --space-11: 12rem; /* 192 */
   --space-12: 16rem; /* 256 */
   --section-gap: clamp(4rem, 2.5rem + 6vw, 8rem);
@@ -304,16 +304,16 @@
 
   /* Layout */
   --max-width-content: 68ch; /* reading measure */
-  --max-width-wide: 75rem; /* 1200 — main container */
+  --max-width-wide: 75rem; /* 1200: main container */
   --max-width-page: 90rem; /* 1440 */
   --nav-height: 4.5rem;
   --dock-height: 4rem;
 
   /* Radius */
-  --border-radius-sm: 0.375rem; /*  6 — inputs, code */
-  --border-radius-md: 0.75rem; /* 12 — cards, images */
-  --border-radius-lg: 1.25rem; /* 20 — panels, sheets, tickets */
-  --border-radius-xl: 2rem; /* 32 — hero media */
+  --border-radius-sm: 0.375rem; /*  6: inputs, code */
+  --border-radius-md: 0.75rem; /* 12: cards, images */
+  --border-radius-lg: 1.25rem; /* 20: panels, sheets, tickets */
+  --border-radius-xl: 2rem; /* 32: hero media */
   --border-radius-full: 9999px; /* pills, chips, avatar */
   --ticket-notch: 0.875rem; /* radius of the ticket side cut-outs */
   --ticket-perforation: 6px; /* dash length of the stub divider */
@@ -323,7 +323,7 @@
   --route-dash: 2 8; /* SVG stroke-dasharray, round caps → dots */
   --route-pin-size: 1.25rem;
 
-  /* Optical details — deliberate em-relative tweaks that scale with the type
+  /* Optical details: deliberate em-relative tweaks that scale with the type
      they sit in (hero name highlight, inline portrait, dotted mini-route) */
   --highlight-radius: 0.18em;
   --highlight-pad-x: 0.14em;
@@ -368,7 +368,7 @@
   --z-palette: 80;
   --z-toast: 90;
 
-  /* Breakpoints (reference — Tailwind breakpoints set in @theme below) */
+  /* Breakpoints (reference: Tailwind breakpoints set in @theme below) */
   --breakpoint-sm: 375px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -377,7 +377,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   5. Tailwind v4 mapping — utilities resolve to the CSS variables above,
+   5. Tailwind v4 mapping: utilities resolve to the CSS variables above,
       so they switch with the theme automatically.
       Note: where a utility key matches a semantic variable name (e.g.
       --color-bg-primary) Tailwind also emits a self-reference inside

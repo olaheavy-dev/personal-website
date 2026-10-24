@@ -1,4 +1,4 @@
-<!-- Title: conventional commit style, e.g. "feat: hero slice" — it becomes the squash commit title. -->
+<!-- Title: conventional commit style, e.g. "feat: hero slice". It becomes the squash commit title. No dashes between words in the title or description (decision 0014); CI checks both. -->
 
 Closes #
 

@@ -7,11 +7,11 @@
 
 Every public page sits behind a feature flag (see *Feature flags & discoverability*). Flag key in brackets.
 
-- Home `/` [`page.home` — always on]
+- Home `/` [`page.home`, always on]
 - Work `/work` [`page.work`]
-  - Case study: HBK — Advantage Aiana `/work/hbk-aiana` [`case.hbk-aiana`]
-  - Case study: Optty — payments orchestration `/work/optty` [`case.optty`]
-  - Case study: Access Bank — QuickBucks & Instant Account `/work/access-bank` [`case.access-bank`]
+  - Case study for HBK: Advantage Aiana `/work/hbk-aiana` [`case.hbk-aiana`]
+  - Case study for Optty: payments orchestration `/work/optty` [`case.optty`]
+  - Case study for Access Bank: QuickBucks & Instant Account `/work/access-bank` [`case.access-bank`]
   - Case study: Foresight `/work/foresight` [`case.foresight`] (also surfaced from Lab)
   - Compact stops (no page; inline-expanding tickets with anchors on `/work`):
     `/work#mukuru` · `/work#ulesson` · `/work#stanbic-ibtc` · `/work#galooli`
@@ -22,30 +22,30 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
   - Post `/writing/[slug]` (Hashnode slug, canonical to olaheavy.dev)
   - Tag `/writing/tag/[tag]` (only when ≥ 3 posts share a tag)
 - Travel `/travel` [`page.travel`]
-  - Country `/travel/[country]` (ISO-name slug, e.g. `/travel/albania`) — globe flies to country, gallery sheet open
-  - Trip `/travel/[country]/[trip]` (e.g. `/travel/albania/tirana-2026`) — gallery filtered + lightbox deep-link via `?photo=[id]`
+  - Country `/travel/[country]` (ISO-name slug, e.g. `/travel/albania`): globe flies to country, gallery sheet open
+  - Trip `/travel/[country]/[trip]` (e.g. `/travel/albania/tirana-2026`): gallery filtered + lightbox deep-link via `?photo=[id]`
 - About `/about` [`page.about`]
 - Résumé `/resume.pdf` (served from Supabase Storage via stable redirect; admin replaces file)
 - Utility & system
-  - Not found (“Wrong turn”) — any unknown URL
+  - Not found (“Wrong turn”): any unknown URL
   - `/colophon` → redirect to `/about#colophon`
   - `/sitemap.xml`, `/robots.txt`, `/rss.xml` (writing), `/og/[...]` (dynamic OG images)
   - `/api/ask` (assistant streaming), `/api/hashnode/webhook`, `/api/revalidate`, `/healthz` (SoloForge/App Registry)
 - Admin `/admin` (owner only; `noindex`; Supabase Auth + MFA; never in nav/sitemap)
   - Overview `/admin`
-  - Content `/admin/content` — case studies, compact stops, Lab projects, About copy, home selections
+  - Content `/admin/content`: case studies, compact stops, Lab projects, About copy, home selections
     - Item editor `/admin/content/[type]/[id]`
   - Media library `/admin/media`
-  - Travel `/admin/travel` — countries, trips, journey order
+  - Travel `/admin/travel`: countries, trips, journey order
     - Trip editor `/admin/travel/[tripId]`
-  - Writing sync `/admin/writing` — Hashnode status, last sync, manual resync, per-post visibility
-  - Assistant `/admin/assistant` — knowledge sources, re-index, eval runs, conversation samples, spend cap
+  - Writing sync `/admin/writing`: Hashnode status, last sync, manual resync, per-post visibility
+  - Assistant `/admin/assistant`: knowledge sources, re-index, eval runs, conversation samples, spend cap
   - Feature flags `/admin/flags`
-  - Settings `/admin/settings` — availability text, email, résumé file, socials, SEO defaults
+  - Settings `/admin/settings`: availability text, email, résumé file, socials, SEO defaults
 
 ## Navigation Model
 
-- **Primary navigation (floating pill, centred):** Work · Lab · Writing · Travel · About — 5 items maximum. Active item has a lilac pill that slides between items. Items whose flag is off are removed (no gaps, no disabled states).
+- **Primary navigation (floating pill, centred):** Work · Lab · Writing · Travel · About (5 items maximum). Active item has a lilac pill that slides between items. Items whose flag is off are removed (no gaps, no disabled states).
 - **Brand (left pill):** illustrated avatar (small) + "Sunkanmi Olawuwo" → `/`.
 - **Utility (right cluster):** ⌘K icon button · theme toggle icon button · **Email me** solid ink pill (primary CTA, copies email + opens mailto menu).
 - **Assistant launcher:** avatar bubble fixed bottom-right on every public page (except when its flag is off); opens the Ask Sunkanmi panel. Not in the nav.
@@ -63,16 +63,16 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 ## Content Hierarchy
 
 ### Home `/` (≤ 5 viewports at 1440×900)
-1. **Hero** — "Hi, I'm [Sunkanmi]" (name as lilac object) + one-liner "I take AI products from idea to production — designed, built and shipped end to end." + **Email me** + "Ask me anything" (opens assistant) + availability chip (role openness + live UK time) + illustrated avatar (wave). *Answers the 5-second test.*
-2. **Logo rail** — HBK, Optty, Mukuru, uLesson, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
-3. **Journey stations** — Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
-4. **Selected stops** — 3 large tickets: HBK Aiana (production AI), Optty (payments), Foresight (AI product end-to-end), each with a sourced chip. "See the whole route →" `/work`. *Depth on the three strongest proofs.*
-5. **Lab & Writing (two-up)** — Lab strip: Foresight / FastPilot / HomeScout mini cards; Latest writing: 3 Hashnode posts. Each half collapses if its flag is off. *Shows ongoing craft.*
-6. **Next stop (contact band)** — "Next stop: your product." Email (copy + mailto) and résumé. *Closes on the primary CTA.*
+1. **Hero:** "Hi, I'm [Sunkanmi]" (name as lilac object) + one-liner "I take products from idea to production, with AI built in." + **Email me** + "Ask me anything" (opens assistant) + availability chip (role openness + live UK time) + illustrated avatar (wave). *Answers the 5-second test.*
+2. **Logo rail:** HBK, Optty, Mukuru, uLesson, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
+3. **Journey stations:** Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
+4. **Selected stops:** 3 large tickets: HBK Aiana (production AI), Optty (payments), Foresight (AI product end-to-end), each with a sourced chip. "See the whole route →" `/work`. *Depth on the three strongest proofs.*
+5. **Lab & Writing (two-up):** Lab strip: Foresight / FastPilot / HomeScout mini cards; Latest writing: 3 Hashnode posts. Each half collapses if its flag is off. *Shows ongoing craft.*
+6. **Next stop (contact band):** "Next stop: your product." Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 
 ### Work `/work`
 1. Title + one-line framing ("Ten years of production, from Lagos to the UK") + filter chips.
-2. Vertical route, newest first: HBK (2024–now) → Deimos clients: Optty, Mukuru, uLesson (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
+2. Vertical route, newest first: HBK (2024 to now) → Deimos clients: Optty, Mukuru, uLesson (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
 3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy), stack.
 4. Cross-link band: "Building on my own time → Lab" (Foresight).
 5. Next stop contact band.
@@ -85,7 +85,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 *HBK variant: architecture shown as a non-confidential conceptual diagram (sources → ingestion → retrieval → LLM → cited answer → evals/monitoring); no internals.*
 
 ### Lab `/lab`
-1. Title + framing ("Things I build to learn — most of them shipped").
+1. Title + framing ("Things I build to learn. Most of them shipped.").
 2. Foresight (feature card, GIF, Live badge, link to case study + live site).
 3. FastPilot (screenshots/Loom, eval stats from repo, repo link; demo link when redeployed).
 4. HomeScout (In progress badge, decision-records angle; AI concept images captioned).
@@ -124,7 +124,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 
 ## User Flows
 
-### 1. Hiring manager — 60-second screen
+### 1. Hiring manager: 60-second screen
 1. Lands on `/` from a LinkedIn/CV link.
 2. Hero: reads role + one-liner, sees availability chip → understands "production AI engineer who designs".
 3. Scans logo rail and Selected stops.
@@ -133,7 +133,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
    - If wants proof of ownership → clicks Foresight → live site / case study.
 4. Optional: downloads résumé from footer or nav ⌘K.
 
-### 2. Founder — consulting enquiry
+### 2. Founder: consulting enquiry
 1. Lands on `/` or a Writing post from search/social.
 2. Opens assistant → asks "Can he build an AI MVP for us?" → answer cites Foresight + HBK sections + availability.
 3. Follows citation → `/work/foresight#architecture` (section highlighted).
@@ -159,16 +159,16 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 2. Progress visible in footer mini-indicator and ⌘K → "Open passport".
 3. All six stamps (+ optional secret station via ⌘K) → unlocks a personal note card; reset available.
 
-### 6. Owner — add a trip with photos
+### 6. Owner: add a trip with photos
 1. `/admin/travel` → Add trip (country, city, dates, story).
 2. Drag photos → upload → processing (EXIF/GPS strip, blurhash, variants) → require alt text → set cover + order.
 3. Save as draft → preview → publish → `/travel/[country]/[trip]` revalidated; journey arcs update.
 
-### 7. Owner — publish writing
+### 7. Owner: publish writing
 1. Publishes on Hashnode → webhook hits `/api/hashnode/webhook` → post synced + `/writing` revalidated → assistant knowledge re-index queued.
    - If webhook fails → `/admin/writing` shows stale warning → manual "Resync".
 
-### 8. Owner — toggle a page
+### 8. Owner: toggle a page
 1. `/admin/flags` → set `page.travel` to Off / Owner preview / On.
 2. On save: nav, footer, ⌘K, sitemap, assistant citations and home sections recompute; disabled URLs return 404 (owner-preview shows a banner when signed in).
 
@@ -189,7 +189,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | A job / engagement / project on the route | **Stop** (e.g. "Stop 03 · Optty") | Route metaphor; "Project" only in Lab |
 | Card representing a stop | **Ticket** (internal name) | UI shows the stop name, not "ticket" |
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
-| Short inline write-up | (no label) — expanding ticket | "Read more" / "Show less" |
+| Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |
 | Personal projects section | **Lab** | Not "Playground" or "Side quests" |
 | Project status | **Live · In progress · Coming soon** | Exactly these three |
 | Blog | **Writing** | Posts are "posts", not "articles" |
@@ -241,4 +241,4 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 - **Query parameters:** `?filter=ai|payments|platform` (Work), `?page=n` (Writing), `?photo=[id]` (lightbox), `?ref=` (assistant citation highlight). Filters are shareable; default state has no params.
 - **Canonical & SEO:** every page has its own canonical, title, description and dynamic OG image (`/og/...`); Hashnode posts canonical to `/writing/[slug]`; flagged-off pages 404 and are excluded from the sitemap.
 - **Redirects:** slugs are permanent; renames create 308 redirects managed in admin. `/blog/*` → `/writing/*`, `/projects` → `/lab`, `/cv` → `/resume.pdf`.
-- **Hard refresh safety:** all routes are server-rendered/ISR — no client-only routes (avoids the SPA 404s seen in the inspiration set).
+- **Hard refresh safety:** all routes are server-rendered/ISR, with no client-only routes (avoids the SPA 404s seen in the inspiration set).

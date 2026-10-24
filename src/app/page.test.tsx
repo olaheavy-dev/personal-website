@@ -6,7 +6,7 @@ describe("Home", () => {
     render(<Home />);
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent(/Hi, I.m\s*Sunkanmi/);
-    expect(heading).toHaveTextContent(/from idea\s*to production — with AI built in\./);
+    expect(heading).toHaveTextContent(/from idea\s*to production, with AI built in\./);
   });
 
   it("offers the email call to action inside the hero", () => {

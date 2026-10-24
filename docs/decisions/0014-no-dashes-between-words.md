@@ -20,7 +20,7 @@ Everything public. No em dash, en dash or spaced hyphen used as punctuation betw
 
 ## Consequences
 
-- `scripts/check-dashes.mjs` runs in `make check` over every tracked text file (Markdown inline code and code blocks are skipped). CI also checks the PR title and description, and re-runs when they are edited, because the squash commit message on `main` is built from them.
+- `scripts/check-dashes.mjs` runs in `make check` over every tracked text file. Em and en dashes are checked everywhere. Spaced hyphens are checked in Markdown and YAML, and in source files in the parts that are words (string literals, JSX text and comments), so subtraction like `a - b` is left alone. Markdown inline code and code blocks are skipped. `scripts/check-dashes.test.ts` covers these cases. CI also checks the PR title and description, and re-runs when they are edited, because the squash commit message on `main` is built from them.
 - The Next.js block in `AGENTS.md` between the `nextjs-agent-rules` markers is skipped: `next dev` regenerates that text, so editing it would only leave the working tree dirty.
 - Commit history from before this decision keeps its original wording.
 - Existing docs, comments and site copy were rewritten by hand in the pull request that introduced this rule.

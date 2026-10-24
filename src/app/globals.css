@@ -1,1 +1,59 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Theme-dependent icon swap (no JS needed to show the right icon on first paint) */
+.icon-when-dark {
+  display: none;
+}
+[data-theme="dark"] .icon-when-dark {
+  display: block;
+}
+[data-theme="dark"] .icon-when-light {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-when-dark {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .icon-when-light {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Ticket: side notches cut with a mask; the hard shadow lives on a wrapper
+     (.ticket-drop) because masks clip box-shadow. */
+  .ticket {
+    --n: var(--ticket-notch);
+    background: var(--color-bg-elevated);
+    border-radius: var(--border-radius-lg);
+    mask:
+      radial-gradient(circle var(--n) at 0 var(--notch-y, 62%), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle var(--n) at 100% var(--notch-y, 62%), #0000 97%, #000) right / 51% 100% no-repeat;
+  }
+  .ticket-drop {
+    filter: drop-shadow(4px 4px 0 var(--color-border-strong));
+    transition:
+      filter var(--duration-normal) var(--easing-out),
+      transform var(--duration-normal) var(--easing-out);
+  }
+  [data-theme="dark"] .ticket-drop {
+    filter: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .ticket-drop {
+      filter: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
+    }
+  }
+  .ticket-perforation {
+    border-top: 2px dashed var(--color-border-primary);
+  }
+
+  /* Mono station label */
+  .label-mono {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+  }
+}

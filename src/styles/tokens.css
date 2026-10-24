@@ -1,0 +1,500 @@
+/* ==========================================================================
+   olaheavy.dev — Design Tokens
+   Philosophy: "Journey / transit editorial" (see DESIGN_BRIEF.md)
+     warm paper + warm ink, one dotted route, ticket cards, pill UI,
+     tight Bricolage display, Geist body, Geist Mono station labels.
+   Format: Tailwind CSS v4 (CSS-first). In the Next.js app this file becomes
+     src/app/globals.css (after `@import "tailwindcss";`). Semantic tokens are
+     plain CSS variables (themeable); `@theme inline` maps them to utilities
+     e.g. bg-bg-primary, text-text-secondary, border-border-primary,
+     font-display, text-display-xl, rounded-ticket, shadow-ticket, ease-out-expo.
+   Themes: light (default), dark "night route" via [data-theme="dark"] and
+     prefers-color-scheme (unless the user chose light). Persist choice in
+     localStorage + set data-theme before paint (no flash).
+   Contrast (WCAG 2.2, verified with a script on 2026-10-24):
+     light  ink/paper 17.3 · text-secondary 8.6 · text-tertiary ≥4.6 on bg-primary/secondary
+            teal-text 6.1 · lilac-text 7.0 · ink on lilac 10.4 · ink on teal 6.0
+     dark   text 15.7 · secondary 8.7 · tertiary 5.5 · lilac 10.6 · teal 8.7
+   Rule: lilac #CDB8FF and teal #1FA59A are FILLS (ink text on top), never text
+     on paper. For text/links use --color-accent-*-text tokens.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Raw palette (do not use directly in components — use semantic tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Paper (warm off-white) */
+  --paper-50: #fdfcfa;
+  --paper-100: #faf8f5; /* page */
+  --paper-200: #f3efe8; /* cards / sections */
+  --paper-300: #eae4da; /* wells, inputs, ticket stubs */
+  --paper-400: #ddd5c8; /* borders */
+
+  /* Ink (warm near-black with a violet undertone) */
+  --ink-900: #141418;
+  --ink-800: #1c1b22;
+  --ink-700: #24222b;
+  --ink-600: #2f2c37;
+  --ink-500: #4a4752;
+  --ink-400: #66626f;
+  --ink-300: #8e8999;
+  --ink-200: #b3afbd;
+  --ink-100: #edeaf2;
+
+  /* Lilac (route, highlights, selected states) */
+  --lilac-50: #f6f2ff;
+  --lilac-100: #e9e0ff;
+  --lilac-200: #cdb8ff; /* brand lilac */
+  --lilac-300: #b79bfa;
+  --lilac-500: #6a4fc9;
+  --lilac-600: #5b3fb8; /* lilac text on paper (7.0:1) */
+  --lilac-700: #47309a;
+
+  /* Teal (stations, success-adjacent accents, live states) */
+  --teal-50: #e8f7f5;
+  --teal-100: #c7eee9;
+  --teal-300: #5fd3c7;
+  --teal-400: #3cc4b7;
+  --teal-500: #1fa59a; /* brand teal */
+  --teal-700: #0b6a62; /* teal text on paper (6.1:1) */
+  --teal-800: #08524c;
+
+  /* Status */
+  --green-600: #15803d;
+  --green-400: #4ade80;
+  --amber-700: #b45309;
+  --amber-400: #f59e0b;
+  --red-700: #b91c1c;
+  --red-400: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   2. Semantic tokens — LIGHT (default)
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Backgrounds */
+  --color-bg-primary: var(--paper-100);
+  --color-bg-secondary: var(--paper-200);
+  --color-bg-tertiary: var(--paper-300);
+  --color-bg-elevated: var(--paper-50); /* nav pill, panels, popovers */
+  --color-bg-inverse: var(--ink-900);
+
+  /* Text */
+  --color-text-primary: var(--ink-900);
+  --color-text-secondary: var(--ink-500);
+  --color-text-tertiary: var(--ink-400); /* meta, placeholders — ≥4.69:1 on every light bg */
+  --color-text-inverse: var(--paper-100);
+  --color-text-link: var(--lilac-600);
+  --color-text-on-accent: var(--ink-900); /* on lilac or teal fills */
+
+  /* Borders */
+  --color-border-primary: var(--paper-400);
+  --color-border-secondary: #ece6dc;
+  --color-border-strong: var(--ink-900); /* outlined pills, tickets */
+  --color-border-focus: var(--lilac-600);
+
+  /* Accents */
+  --color-accent-primary: var(--ink-900); /* primary CTA = solid ink pill */
+  --color-accent-primary-hover: var(--ink-700);
+  --color-accent-primary-active: var(--ink-600);
+  --color-accent-lilac: var(--lilac-200);
+  --color-accent-lilac-soft: var(--lilac-100);
+  --color-accent-lilac-text: var(--lilac-600);
+  --color-accent-teal: var(--teal-500);
+  --color-accent-teal-soft: var(--teal-50);
+  --color-accent-teal-text: var(--teal-700);
+  --color-accent-secondary: var(--lilac-200); /* secondary pill fill */
+
+  /* Route (signature) */
+  --color-route-line: var(--ink-300);
+  --color-route-active: var(--lilac-500);
+  --color-route-pin: var(--teal-500);
+  --color-route-pin-ring: var(--ink-900);
+
+  /* Status */
+  --color-status-success: var(--green-600);
+  --color-status-warning: var(--amber-700);
+  --color-status-error: var(--red-700);
+  --color-status-info: var(--lilac-600);
+  --color-status-live: var(--teal-500);
+
+  /* Overlays */
+  --color-surface-overlay: rgb(20 20 24 / 0.45);
+  --color-selection-bg: var(--lilac-200);
+  --color-highlight: var(--lilac-200); /* "Hi, I'm [Sunkanmi]" object word */
+
+  /* Shadows (warm, ink-tinted) */
+  --shadow-sm: 0 1px 2px rgb(20 20 24 / 0.06);
+  --shadow-md: 0 4px 14px -4px rgb(20 20 24 / 0.12), 0 1px 3px rgb(20 20 24 / 0.06);
+  --shadow-lg: 0 20px 40px -16px rgb(20 20 24 / 0.22), 0 2px 6px rgb(20 20 24 / 0.06);
+  --shadow-ticket: 4px 4px 0 0 var(--ink-900); /* hard offset, tactile */
+  --shadow-ticket-hover: 6px 8px 0 0 var(--ink-900);
+  --shadow-focus: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
+}
+
+/* --------------------------------------------------------------------------
+   3. Semantic tokens — DARK "night route"
+   Not an inversion: deep violet-ink ground, softer text, lilac/teal glow,
+   hard ticket shadows become lilac outlines + soft glow.
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg-primary: #131217;
+  --color-bg-secondary: var(--ink-800);
+  --color-bg-tertiary: var(--ink-700);
+  --color-bg-elevated: #1f1d26;
+  --color-bg-inverse: var(--paper-100);
+
+  --color-text-primary: var(--ink-100);
+  --color-text-secondary: var(--ink-200);
+  --color-text-tertiary: var(--ink-300);
+  --color-text-inverse: var(--ink-900);
+  --color-text-link: var(--lilac-200);
+  --color-text-on-accent: #131217;
+
+  --color-border-primary: #2f2c37;
+  --color-border-secondary: #24222b;
+  --color-border-strong: var(--ink-200);
+  --color-border-focus: var(--lilac-200);
+
+  --color-accent-primary: var(--lilac-200); /* CTA becomes lilac pill w/ ink text */
+  --color-accent-primary-hover: var(--lilac-300);
+  --color-accent-primary-active: var(--lilac-100);
+  --color-accent-lilac: var(--lilac-200);
+  --color-accent-lilac-soft: rgb(205 184 255 / 0.12);
+  --color-accent-lilac-text: var(--lilac-200);
+  --color-accent-teal: var(--teal-400);
+  --color-accent-teal-soft: rgb(60 196 183 / 0.12);
+  --color-accent-teal-text: var(--teal-300);
+  --color-accent-secondary: var(--teal-400);
+
+  --color-route-line: #4a4752;
+  --color-route-active: var(--lilac-200);
+  --color-route-pin: var(--teal-400);
+  --color-route-pin-ring: #131217;
+
+  --color-status-success: var(--green-400);
+  --color-status-warning: var(--amber-400);
+  --color-status-error: var(--red-400);
+  --color-status-info: var(--lilac-200);
+  --color-status-live: var(--teal-400);
+
+  --color-surface-overlay: rgb(5 5 8 / 0.65);
+  --color-selection-bg: rgb(205 184 255 / 0.35);
+  --color-highlight: var(--lilac-200);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 18px -6px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
+  --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
+  --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
+  --shadow-focus: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg-primary: #131217;
+    --color-bg-secondary: var(--ink-800);
+    --color-bg-tertiary: var(--ink-700);
+    --color-bg-elevated: #1f1d26;
+    --color-bg-inverse: var(--paper-100);
+    --color-text-primary: var(--ink-100);
+    --color-text-secondary: var(--ink-200);
+    --color-text-tertiary: var(--ink-300);
+    --color-text-inverse: var(--ink-900);
+    --color-text-link: var(--lilac-200);
+    --color-text-on-accent: #131217;
+    --color-border-primary: #2f2c37;
+    --color-border-secondary: #24222b;
+    --color-border-strong: var(--ink-200);
+    --color-border-focus: var(--lilac-200);
+    --color-accent-primary: var(--lilac-200);
+    --color-accent-primary-hover: var(--lilac-300);
+    --color-accent-primary-active: var(--lilac-100);
+    --color-accent-lilac: var(--lilac-200);
+    --color-accent-lilac-soft: rgb(205 184 255 / 0.12);
+    --color-accent-lilac-text: var(--lilac-200);
+    --color-accent-teal: var(--teal-400);
+    --color-accent-teal-soft: rgb(60 196 183 / 0.12);
+    --color-accent-teal-text: var(--teal-300);
+    --color-accent-secondary: var(--teal-400);
+    --color-route-line: #4a4752;
+    --color-route-active: var(--lilac-200);
+    --color-route-pin: var(--teal-400);
+    --color-route-pin-ring: #131217;
+    --color-status-success: var(--green-400);
+    --color-status-warning: var(--amber-400);
+    --color-status-error: var(--red-400);
+    --color-status-info: var(--lilac-200);
+    --color-status-live: var(--teal-400);
+    --color-surface-overlay: rgb(5 5 8 / 0.65);
+    --color-selection-bg: rgb(205 184 255 / 0.35);
+    --color-highlight: var(--lilac-200);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 6px 18px -6px rgb(0 0 0 / 0.55);
+    --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
+    --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
+    --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Theme-independent tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* Typography — families (loaded via next/font: Bricolage Grotesque, Geist, Geist Mono) */
+  --font-family-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Type ramp — body is 17px; display scales fluidly between 375px and 1440px
+     (brief: tracking −0.03 to −0.05em at ≥64px). */
+  --font-size-xs: 0.75rem; /* 12 — mono labels, station names */
+  --font-size-sm: 0.875rem; /* 14 — meta, chips */
+  --font-size-base: 1.0625rem; /* 17 — body */
+  --font-size-md: 1.1875rem; /* 19 — lead paragraph */
+  --font-size-lg: 1.5rem; /* 24 — h4, ticket title (compact) */
+  --font-size-xl: clamp(1.75rem, 1.5rem + 1vw, 2.25rem); /* 28→36 h3 */
+  --font-size-2xl: clamp(2.25rem, 1.8rem + 2vw, 3.5rem); /* 36→56 h2 */
+  --font-size-3xl: clamp(2.75rem, 2rem + 3.5vw, 4.75rem); /* 44→76 page titles */
+  --font-size-4xl: clamp(3.25rem, 2.2rem + 5vw, 6.5rem); /* 52→104 hero */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 800; /* Bricolage display */
+
+  --line-height-tight: 0.95; /* hero/display */
+  --line-height-snug: 1.15; /* h2–h4 */
+  --line-height-normal: 1.55; /* UI text */
+  --line-height-relaxed: 1.7; /* long-form body (case studies, posts) */
+
+  --letter-spacing-display: -0.045em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.08em; /* mono uppercase labels */
+
+  /* Spacing — 4px base, editorial-generous upper steps */
+  --space-0: 0;
+  --space-1: 0.25rem; /*   4 */
+  --space-2: 0.5rem; /*   8 */
+  --space-3: 0.75rem; /*  12 */
+  --space-4: 1rem; /*  16 */
+  --space-5: 1.5rem; /*  24 */
+  --space-6: 2rem; /*  32 */
+  --space-7: 3rem; /*  48 */
+  --space-8: 4rem; /*  64 */
+  --space-9: 6rem; /*  96 */
+  --space-10: 8rem; /* 128 — section rhythm desktop */
+  --space-11: 12rem; /* 192 */
+  --space-12: 16rem; /* 256 */
+  --section-gap: clamp(4rem, 2.5rem + 6vw, 8rem);
+  --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem); /* 16 mobile → 32 desktop */
+
+  /* Layout */
+  --max-width-content: 68ch; /* reading measure */
+  --max-width-wide: 75rem; /* 1200 — main container */
+  --max-width-page: 90rem; /* 1440 */
+  --nav-height: 4.5rem;
+  --dock-height: 4rem;
+
+  /* Radius */
+  --border-radius-sm: 0.375rem; /*  6 — inputs, code */
+  --border-radius-md: 0.75rem; /* 12 — cards, images */
+  --border-radius-lg: 1.25rem; /* 20 — panels, sheets, tickets */
+  --border-radius-xl: 2rem; /* 32 — hero media */
+  --border-radius-full: 9999px; /* pills, chips, avatar */
+  --ticket-notch: 0.875rem; /* radius of the ticket side cut-outs */
+  --ticket-perforation: 6px; /* dash length of the stub divider */
+
+  /* Route */
+  --route-stroke: 2px;
+  --route-dash: 2 8; /* SVG stroke-dasharray, round caps → dots */
+  --route-pin-size: 1.25rem;
+
+  /* Motion */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms; /* colour, border */
+  --duration-normal: 250ms; /* hovers, chips */
+  --duration-slow: 400ms; /* reveals, sheets */
+  --duration-slower: 600ms; /* route drawing segments, camera moves start */
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0.22, 1, 0.36, 1); /* expo-out: signature */
+  --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* stamps, chips pop */
+
+  /* Z-index */
+  --z-base: 0;
+  --z-sticky: 20;
+  --z-nav: 40;
+  --z-dock: 40;
+  --z-launcher: 50;
+  --z-sheet: 60;
+  --z-overlay: 70;
+  --z-palette: 80;
+  --z-toast: 90;
+
+  /* Breakpoints (reference — Tailwind breakpoints set in @theme below) */
+  --breakpoint-sm: 375px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* --------------------------------------------------------------------------
+   5. Tailwind v4 mapping — utilities resolve to the CSS variables above,
+      so they switch with the theme automatically.
+      Note: where a utility key matches a semantic variable name (e.g.
+      --color-bg-primary) Tailwind also emits a self-reference inside
+      @layer theme; the unlayered :root/[data-theme] definitions above
+      always win, so values resolve correctly.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-inverse: var(--color-bg-inverse);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-text-link: var(--color-text-link);
+  --color-text-on-accent: var(--color-text-on-accent);
+  --color-border-primary: var(--color-border-primary);
+  --color-border-secondary: var(--color-border-secondary);
+  --color-border-strong: var(--color-border-strong);
+  --color-border-focus: var(--color-border-focus);
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-primary-hover: var(--color-accent-primary-hover);
+  --color-accent-primary-active: var(--color-accent-primary-active);
+  --color-lilac: var(--color-accent-lilac);
+  --color-lilac-soft: var(--color-accent-lilac-soft);
+  --color-lilac-text: var(--color-accent-lilac-text);
+  --color-teal: var(--color-accent-teal);
+  --color-teal-soft: var(--color-accent-teal-soft);
+  --color-teal-text: var(--color-accent-teal-text);
+  --color-route-line: var(--color-route-line);
+  --color-route-active: var(--color-route-active);
+  --color-route-pin: var(--color-route-pin);
+  --color-success: var(--color-status-success);
+  --color-warning: var(--color-status-warning);
+  --color-error: var(--color-status-error);
+  --color-info: var(--color-status-info);
+  --color-live: var(--color-status-live);
+  --color-overlay: var(--color-surface-overlay);
+
+  --font-display: var(--font-family-display);
+  --font-sans: var(--font-family-body);
+  --font-mono: var(--font-family-mono);
+
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-md: var(--font-size-md);
+  --text-lg: var(--font-size-lg);
+  --text-display-sm: var(--font-size-xl);
+  --text-display-md: var(--font-size-2xl);
+  --text-display-lg: var(--font-size-3xl);
+  --text-display-xl: var(--font-size-4xl);
+
+  --tracking-display: var(--letter-spacing-display);
+  --tracking-tight: var(--letter-spacing-tight);
+  --tracking-wide: var(--letter-spacing-wide);
+  --leading-display: var(--line-height-tight);
+  --leading-snug: var(--line-height-snug);
+  --leading-relaxed: var(--line-height-relaxed);
+
+  --radius-sm: var(--border-radius-sm);
+  --radius-md: var(--border-radius-md);
+  --radius-lg: var(--border-radius-lg);
+  --radius-xl: var(--border-radius-xl);
+  --radius-ticket: var(--border-radius-lg);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-ticket: var(--shadow-ticket);
+  --shadow-ticket-hover: var(--shadow-ticket-hover);
+  --shadow-focus: var(--shadow-focus);
+
+  --ease-out-expo: var(--easing-out);
+  --ease-bounce: var(--easing-bounce);
+
+  --container-content: var(--max-width-content);
+  --container-wide: var(--max-width-wide);
+  --container-page: var(--max-width-page);
+
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Base layer
+   -------------------------------------------------------------------------- */
+@layer base {
+  html {
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-body);
+    font-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--nav-height) + var(--space-5));
+  }
+  body {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    min-height: 100dvh;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-family-display);
+    font-weight: var(--font-weight-black);
+    letter-spacing: var(--letter-spacing-display);
+    line-height: var(--line-height-snug);
+    text-wrap: balance;
+  }
+  h1 {
+    line-height: var(--line-height-tight);
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--color-selection-bg);
+    color: var(--color-text-primary);
+  }
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-radius: var(--border-radius-sm);
+  }
+  a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+}
+
+/* Reduced motion: kill non-essential motion everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

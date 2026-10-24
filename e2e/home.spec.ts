@@ -5,6 +5,7 @@ test.describe("home", () => {
   test("renders a single main heading", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Sunkanmi");
   });
 
   test("has no detectable accessibility violations", async ({ page }) => {
@@ -21,5 +22,38 @@ test.describe("home", () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("shows an email call to action in the first viewport", async ({ page }) => {
+    await page.goto("/");
+    // Header CTA on wider screens, hero CTA on phones: at least one is visible without scrolling.
+    const visible = await page.getByRole("link", { name: /Email me/ }).evaluateAll((links) =>
+      links.some((link) => {
+        const box = link.getBoundingClientRect();
+        return box.width > 0 && box.top >= 0 && box.bottom <= window.innerHeight;
+      }),
+    );
+    expect(visible).toBe(true);
+  });
+
+  test("theme toggle persists across reloads without a flash", async ({ page }) => {
+    await page.goto("/");
+    const before = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
+    await page.getByRole("button", { name: "Toggle colour theme" }).click();
+    const after = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
+    expect(after).not.toBe(before);
+
+    await page.reload();
+    // The saved theme is applied by an inline script before first paint.
+    const reloaded = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
+    expect(reloaded).toBe(after);
+  });
+
+  test("skip link moves focus to the main content", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("Tab");
+    const skip = page.getByRole("link", { name: "Skip to content" });
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
   });
 });

@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install clean
+.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install docker-build docker-check clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -46,6 +46,12 @@ e2e-install: ## Install the Playwright browser once
 
 e2e: ## Browser journeys + axe accessibility against a production build
 	pnpm test:e2e
+
+docker-build: ## Build the production image locally as personal-website:local
+	docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) -t personal-website:local .
+
+docker-check: ## Check the local image for private files and a root user
+	bash scripts/check-image.sh personal-website:local
 
 clean: ## Remove build and test output
 	rm -rf .next .artifacts coverage playwright-report test-results

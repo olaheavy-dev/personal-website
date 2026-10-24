@@ -1,0 +1,33 @@
+# Production Compose file for the SoloForge VPS (decision 0003). Owned by this
+# repository and copied to /home/apps/personal-website by the infra repository's
+# deploy helper; it is not duplicated there.
+#
+# Public traffic enters only through Caddy on caddy_net: no host ports.
+# Watchtower (instance watchtower-personal-website, scope personal-website-staging)
+# swaps in each new :main image published after CI passes on main.
+services:
+  web:
+    image: ghcr.io/olaheavy-dev/personal-website:main
+    container_name: personal-website
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    networks:
+      - caddy_net
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=personal-website-staging
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  caddy_net:
+    external: true

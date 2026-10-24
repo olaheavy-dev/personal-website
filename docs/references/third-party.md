@@ -29,3 +29,13 @@ Before using a package's API, read the official documentation for the **pinned**
 | actions/dependency-review-action | v5.0.0                   |
 | zizmorcore/zizmor-action         | v0.8.0 (zizmor 1.31.1)   |
 | rhysd/actionlint (Docker image)  | 1.7.12, pinned by digest |
+| docker/setup-buildx-action       | v4.4.1                   |
+| docker/build-push-action         | v7.4.0                   |
+| docker/login-action              | v4.7.0                   |
+
+## Runtime image
+
+| Item                      | Pinned                                                                       | Official documentation                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Base image                | `node:24-alpine`, pinned by digest in the `Dockerfile` (Dependabot bumps it) | https://hub.docker.com/_/node                                                               |
+| Next.js standalone output | 16.4.3                                                                       | `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md` |

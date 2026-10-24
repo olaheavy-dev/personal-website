@@ -1,0 +1,26 @@
+# Only what `next build` needs enters the build context. Private material and
+# local state never do (decisions 0003 and 0010); scripts/check-image.sh
+# double-checks the finished image.
+.git
+.github
+.claude
+.design
+.local
+supporting-documents
+node_modules
+.next
+.artifacts
+coverage
+playwright-report
+test-results
+blob-report
+e2e
+docs
+deploy
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.md
+Dockerfile
+.dockerignore

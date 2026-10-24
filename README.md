@@ -26,6 +26,8 @@ make e2e-install        # once: Playwright browser
 make build && make e2e  # browser journeys + axe accessibility (light, dark, mobile)
 ```
 
+Merges to `main` publish a checked Docker image that rolls out to `staging.olaheavy.dev` automatically; see [`docs/deploy.md`](docs/deploy.md).
+
 Every pull request runs the same checks in CI, plus dependency review, actionlint and zizmor. `main` is protected; changes land through reviewed, squash-merged pull requests.
 
 ## Licence

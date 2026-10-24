@@ -34,7 +34,7 @@ export function SiteHeader() {
       >
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center gap-2.5 rounded-full border border-border-strong bg-bg-elevated py-1 pr-4 pl-1 text-sm font-semibold"
+          className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-full border border-border-strong bg-bg-elevated py-1 pr-4 pl-1 text-sm font-semibold"
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- 16KB pre-optimised asset */}
           <img

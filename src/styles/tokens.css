@@ -339,7 +339,7 @@
   --mini-route-gap: 0.12em;
   --line-height-display-sub: 1.05; /* hero's second, smaller display line */
   --max-width-lead: 56ch; /* lead paragraph measure */
-  --max-width-caption: 24ch; /* short notes under labels */
+  --max-width-caption: 32ch; /* short notes under labels */
   --ticket-tilt: 2deg;
   --ticket-tilt-back: -5deg;
   --ticket-max-width: 22rem;

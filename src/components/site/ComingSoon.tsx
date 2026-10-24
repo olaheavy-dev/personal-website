@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { EmailButton } from "./EmailButton";
 
 // Shared placeholder for sections whose real page hasn't shipped. Each section
-// task replaces its page (see src/lib/nav.ts).
+// task replaces its page (see src/lib/nav.ts). Contact lives in the footer
+// right below, so the page doesn't repeat it.
 export function ComingSoon({ title, line }: { title: string; line: string }) {
   return (
     <section
@@ -36,7 +36,6 @@ export function ComingSoon({ title, line }: { title: string; line: string }) {
           </svg>
           Back to the start
         </Link>
-        <EmailButton size="lg" />
       </div>
     </section>
   );

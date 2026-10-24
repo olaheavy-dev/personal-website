@@ -16,7 +16,7 @@ export function JourneyStations() {
     <section
       id="journey"
       aria-labelledby="journey-title"
-      className="mx-auto w-full max-w-wide px-(--gutter) pt-8 pb-(--section-gap)"
+      className="mx-auto w-full max-w-wide px-(--gutter) pt-8"
     >
       <h2 id="journey-title" className="label-mono text-text-tertiary">
         The route, every time

@@ -1,13 +1,14 @@
 # Next.js standalone server. Built in CI, never on the server (decision 0003).
-# Versions: Node 24 (.nvmrc) and the pnpm version pinned in package.json.
+# Versions: Node 24 (.nvmrc), pinned by digest (Dependabot bumps it), and the pnpm
+# version pinned in package.json.
 
-FROM node:24-alpine AS deps
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS deps
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
-FROM node:24-alpine AS build
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 WORKDIR /app
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
@@ -17,10 +18,10 @@ ARG BUILD_SHA=dev
 ENV BUILD_SHA=$BUILD_SHA NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-FROM node:24-alpine AS runtime
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime
 WORKDIR /app
 ARG BUILD_SHA=dev
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 BUILD_SHA=$BUILD_SHA
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 LABEL org.opencontainers.image.source="https://github.com/olaheavy-dev/personal-website" \
       org.opencontainers.image.description="olaheavy.dev, the personal site of Sunkanmi Olawuwo" \
       org.opencontainers.image.revision=$BUILD_SHA

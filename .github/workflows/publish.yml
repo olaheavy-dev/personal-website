@@ -69,9 +69,13 @@ jobs:
             if [ -n "$body" ]; then break; fi
             sleep 1
           done
-          docker rm -f candidate >/dev/null
           echo "healthz: $body"
-          echo "$body" | grep -q "\"sha\":\"$CHECKED_SHA\""
+          if ! echo "$body" | grep -q "\"sha\":\"$CHECKED_SHA\""; then
+            docker logs candidate
+            docker rm -f candidate >/dev/null
+            exit 1
+          fi
+          docker rm -f candidate >/dev/null
 
       - name: Log in to GHCR
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0

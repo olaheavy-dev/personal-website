@@ -35,7 +35,7 @@ Before using a package's API, read the official documentation for the **pinned**
 
 ## Runtime image
 
-| Item                      | Pinned           | Official documentation                                                                      |
-| ------------------------- | ---------------- | ------------------------------------------------------------------------------------------- |
-| Base image                | `node:24-alpine` | https://hub.docker.com/_/node                                                               |
-| Next.js standalone output | 16.4.3           | `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md` |
+| Item                      | Pinned                                                                       | Official documentation                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Base image                | `node:24-alpine`, pinned by digest in the `Dockerfile` (Dependabot bumps it) | https://hub.docker.com/_/node                                                               |
+| Next.js standalone output | 16.4.3                                                                       | `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/output.md` |

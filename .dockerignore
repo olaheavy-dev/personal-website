@@ -17,10 +17,10 @@ blob-report
 e2e
 docs
 deploy
-.env
-.env.*
-*.pem
-*.key
-*.md
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.md
 Dockerfile
 .dockerignore

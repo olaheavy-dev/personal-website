@@ -1,7 +1,7 @@
 // Health check for Docker, the SoloForge App Registry and the post-deploy smoke.
-// BUILD_SHA is baked into the image at build time (see Dockerfile), so this
-// response is prerendered and reports exactly which commit is running. It is
-// never set at runtime, so the deployed commit can't be disguised.
+// BUILD_SHA is only set in the Dockerfile's build stage, so this response is
+// prerendered with the commit baked in and reports exactly which commit is
+// running. The runtime image doesn't set it, so it can't be overridden there.
 export function GET() {
   return Response.json(
     { status: "ok", sha: process.env.BUILD_SHA ?? "dev" },

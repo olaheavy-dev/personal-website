@@ -33,6 +33,21 @@ flowchart LR
 | Compose file   | `deploy/docker-compose.prod.yml` (owned here, copied to the server by the infra helper) |
 | Watchtower     | instance `watchtower-personal-website`, scope `personal-website-staging`                |
 
+## First deploy (owner, once)
+
+GitHub creates a new package as private, and Watchtower can't pull a private image without credentials, so the first rollout needs three manual steps:
+
+1. **DNS:** in Cloudflare, add an `A` record `staging` pointing at the retained VPS IPv4, **DNS only**, TTL Auto (the same as `foresight`).
+2. **Make the image public:** after the first **Publish image** run on `main`, open the `personal-website` package in GitHub's package settings and set its visibility to public.
+3. **Start it on the server:** over WireGuard, run the infra repository's `deploy-personal-website.sh` (dry run first, then apply) and deploy `watchtower-personal-website` with scope `personal-website-staging`. The steps are in the infra wiki page Personal Website Deployment.
+
+After that, every merge to `main` rolls out on its own.
+
+## Expected red runs
+
+- **Publish image: "main moved on".** When two merges land close together, the older commit's publish run fails on purpose, because `main` no longer points at it. The newer commit's run publishes, so nothing is lost.
+- **Post-deploy smoke: notice, not failure.** If a newer commit reaches the site before an older commit's smoke sees its own, that smoke stops with a notice and the newer commit's smoke does the testing.
+
 ## Build and check the image locally
 
 ```bash

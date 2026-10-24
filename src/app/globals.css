@@ -41,6 +41,22 @@
     border-top: 2px dashed var(--color-border-primary);
   }
 
+  /* A wide "pass" ticket with a tear-off stub on the right (md and up): the
+     notches sit top and bottom on the perforation instead of on the sides.
+     Below md the stub stacks under a dashed tear line, so no notches. */
+  .ticket.ticket-pass {
+    mask: none;
+  }
+  @media (min-width: 48rem) {
+    .ticket.ticket-pass {
+      mask:
+        radial-gradient(circle var(--n) at calc(100% - var(--ticket-stub-width)) 0, #0000 97%, #000) top /
+          100% 51% no-repeat,
+        radial-gradient(circle var(--n) at calc(100% - var(--ticket-stub-width)) 100%, #0000 97%, #000)
+          bottom / 100% 51% no-repeat;
+    }
+  }
+
   /* Mono station label */
   .label-mono {
     font-family: var(--font-family-mono);

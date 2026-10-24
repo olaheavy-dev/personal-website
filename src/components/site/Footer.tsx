@@ -3,9 +3,9 @@ import { configuredProfiles, site } from "@/lib/site";
 import { CopyEmailButton } from "./CopyEmailButton";
 import { EmailButton } from "./EmailButton";
 
-// The route's last stop. After Idea, Design, Build, Ship and Scale comes the
-// visitor's own product: a wide ticket with the contact actions and a tear-off
-// stub, then one slim line. The header already carries the name and the
+// The route ends at Scale; the footer is the invitation to start the visitor's
+// own: a wide ticket with the contact actions and a tear-off stub holding the
+// availability, then one slim line. The header already carries the name and the
 // sections, so the footer doesn't repeat them.
 export function Footer() {
   const profiles = configuredProfiles();
@@ -32,10 +32,7 @@ export function Footer() {
 
             <div aria-hidden="true" className="border-t-2 border-dashed border-border-primary md:hidden" />
             <div className="flex flex-row items-end justify-between gap-6 px-6 py-6 md:w-(--ticket-stub-width) md:flex-col md:items-start md:justify-between md:border-l-2 md:border-dashed md:border-border-primary md:px-8 md:py-10">
-              <div>
-                <p className="label-mono text-text-tertiary">Stop</p>
-                <p className="font-display text-display-lg leading-display">06</p>
-              </div>
+              <p className="label-mono text-text-tertiary">Availability</p>
               <p className="flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-live" aria-hidden="true" />
                 {site.availability}

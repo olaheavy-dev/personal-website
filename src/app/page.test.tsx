@@ -31,8 +31,14 @@ describe("Home", () => {
     const route = screen.getByRole("region", { name: /The route, every time/ });
     const names = within(route)
       .getAllByRole("listitem")
-      .map((item) => item.textContent?.replace(/^\d+/, "").match(/^[A-Z][a-z]+/)?.[0]);
+      .map((item) => item.textContent?.match(/^[A-Z][a-z]+/)?.[0]);
     expect(names).toEqual(["Idea", "Design", "Build", "Ship", "Scale"]);
+  });
+
+  it("does not number the stations", () => {
+    render(<Home />);
+    const route = screen.getByRole("region", { name: /The route, every time/ });
+    expect(route).not.toHaveTextContent(/\d/);
   });
 
   it("describes how each station adds value rather than listing the stack", () => {

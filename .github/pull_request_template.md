@@ -8,7 +8,7 @@ Closes #
 
 - [ ] `make check` passes locally
 - [ ] `make e2e` passes locally (UI changes)
-- [ ] Checked at 375 / 768 / 1280 px, light and dark (UI changes)
+- [ ] Visual review with `make shots`: every changed route at 360 / 768 / 1440 px, light and dark, against the checklist in AGENTS.md (UI changes)
 
 ## Assumptions made
 

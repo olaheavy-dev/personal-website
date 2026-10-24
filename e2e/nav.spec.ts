@@ -27,11 +27,12 @@ test.describe("sections and navigation", () => {
     });
   }
 
-  test("footer shows on every page with only configured profiles", async ({ page }) => {
+  test("footer shows on every page with the profiles in the ticket", async ({ page }) => {
     await page.goto("/lab");
-    const footer = page.getByRole("contentinfo");
-    await expect(footer.getByRole("link", { name: /GitHub/ })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /LinkedIn/ })).toHaveCount(0);
+    const profiles = page.getByRole("contentinfo").getByRole("list", { name: "Profiles" });
+    for (const name of [/GitHub/, /LinkedIn/, /Hashnode/, /^X/]) {
+      await expect(profiles.getByRole("link", { name })).toBeVisible();
+    }
   });
 });
 

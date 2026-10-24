@@ -344,7 +344,7 @@
   --ticket-tilt-back: -5deg;
   --ticket-max-width: 22rem;
   --ticket-stub-offset: 5.6rem; /* distance from the bottom to the notch line */
-  --ticket-stub-width: 15rem; /* tear-off stub of the wide "pass" ticket */
+  --ticket-stub-width: 18rem; /* tear-off stub of the wide "pass" ticket */
   --z-skip-link: 100;
 
   /* Motion */

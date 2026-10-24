@@ -54,6 +54,19 @@ test.describe("desktop pill nav", () => {
       expect(marker && link && Math.abs(marker.x - link.x)).toBeLessThan(2);
       expect(marker && link && Math.abs(marker.width - link.width)).toBeLessThan(2);
     }).toPass();
+
+    // The on-accent label copy inside the indicator lines up with the real labels,
+    // so text keeps its contrast at every frame of the slide.
+    await expect(async () => {
+      const offsets = await nav.evaluate((element) => {
+        const links = [...element.querySelectorAll("a")];
+        const copies = [...element.querySelectorAll("li[aria-hidden=true] > span > span")];
+        return links.map((link, index) =>
+          Math.abs(link.getBoundingClientRect().x - (copies[index]?.getBoundingClientRect().x ?? NaN)),
+        );
+      });
+      for (const offset of offsets) expect(offset).toBeLessThan(1);
+    }).toPass();
   });
 });
 

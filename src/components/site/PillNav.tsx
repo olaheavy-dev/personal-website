@@ -5,10 +5,15 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { activeNavItem, navItems } from "@/lib/nav";
 
-type Indicator = { left: number; width: number } | null;
+// left/width: the active item's box; origin: where the first item starts (the
+// list's padding), so the label copy inside the pill lines up with the real labels.
+type Indicator = { left: number; width: number; origin: number } | null;
 
 // Desktop: the five sections in a pill, with a lilac indicator that slides to
-// the active item. Before hydration (and with JavaScript off) the active link
+// the active item. The indicator carries its own copy of the labels in the
+// on-accent colour, clipped to its shape, so every label keeps AA contrast at
+// every frame of the slide: dark on lilac inside the pill, light on dark
+// outside it. Before hydration (and with JavaScript off) the active link
 // carries the lilac itself, so the server HTML is already correct.
 export function PillNav() {
   const pathname = usePathname();
@@ -19,8 +24,12 @@ export function PillNav() {
   const measure = useCallback(() => {
     // Measure the link's list item: each item is positioned, so the link's own
     // offsetLeft would always be 0.
-    const item = listRef.current?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')?.parentElement;
-    setIndicator(item ? { left: item.offsetLeft, width: item.offsetWidth } : null);
+    const list = listRef.current;
+    const item = list?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')?.parentElement;
+    const first = list?.querySelector<HTMLElement>("li[data-nav-item]");
+    setIndicator(
+      item && first ? { left: item.offsetLeft, width: item.offsetWidth, origin: first.offsetLeft } : null,
+    );
   }, []);
 
   useLayoutEffect(measure, [measure, pathname]);
@@ -36,24 +45,20 @@ export function PillNav() {
         data-indicator={indicator ? "ready" : undefined}
         className="relative flex items-center gap-1 rounded-full border border-border-strong bg-bg-elevated p-1"
       >
-        {indicator ? (
-          <li
-            aria-hidden="true"
-            className="absolute top-1 bottom-1 rounded-full bg-lilac transition-[left,width] duration-(--duration-normal) ease-out-expo motion-reduce:transition-none"
-            style={{ left: indicator.left, width: indicator.width }}
-          />
-        ) : null}
         {navItems.map((item) => {
           const isActive = item.href === active?.href;
+          // Once the indicator is ready it shows the active state; the real
+          // links keep one colour, so nothing changes colour mid-slide.
+          const ownActiveStyle = isActive && !indicator;
           return (
-            <li key={item.href} className="relative">
+            <li key={item.href} data-nav-item className="relative">
               <Link
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium transition-colors duration-150 ${
-                  isActive
-                    ? `text-text-on-accent ${indicator ? "" : "bg-lilac"}`
-                    : "text-text-secondary hover:text-text-primary"
+                className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap ${
+                  ownActiveStyle
+                    ? "bg-lilac text-text-on-accent"
+                    : "text-text-secondary transition-colors duration-150 hover:text-text-primary"
                 }`}
               >
                 {item.label}
@@ -61,6 +66,27 @@ export function PillNav() {
             </li>
           );
         })}
+        {indicator ? (
+          <li
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1 bottom-1 z-10 overflow-hidden rounded-full bg-lilac transition-[left,width] duration-(--duration-normal) ease-out-expo motion-reduce:transition-none"
+            style={{ left: indicator.left, width: indicator.width }}
+          >
+            <span
+              className="absolute top-0 flex h-full gap-1 transition-[left] duration-(--duration-normal) ease-out-expo motion-reduce:transition-none"
+              style={{ left: indicator.origin - indicator.left }}
+            >
+              {navItems.map((item) => (
+                <span
+                  key={item.href}
+                  className="inline-flex min-h-10 items-center px-4 text-sm font-medium whitespace-nowrap text-text-on-accent"
+                >
+                  {item.label}
+                </span>
+              ))}
+            </span>
+          </li>
+        ) : null}
       </ul>
     </nav>
   );

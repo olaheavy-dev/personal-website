@@ -19,6 +19,21 @@ export default defineConfig({
     { name: "desktop-light", use: { ...devices["Desktop Chrome"], colorScheme: "light" } },
     { name: "desktop-dark", use: { ...devices["Desktop Chrome"], colorScheme: "dark" } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
+    // Smallest common phone width; the brief's floor is 375 px, so 360 leaves margin.
+    {
+      name: "small-phone",
+      use: { ...devices["Pixel 7"], viewport: { width: 360, height: 740 } },
+    },
+    // Tablet portrait: the md breakpoint, where the pill nav replaces the Menu button.
+    {
+      name: "tablet",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 768, height: 1024 },
+        hasTouch: true,
+        isMobile: false,
+      },
+    },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

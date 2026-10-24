@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Footer } from "@/components/site/Footer";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { ToastProvider } from "@/components/site/Toast";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -23,7 +26,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: `${site.name} | Products from idea to production, with AI built in`,
+  title: {
+    default: `${site.name} | Products from idea to production, with AI built in`,
+    template: `%s | ${site.name}`,
+  },
   description: site.description,
 };
 
@@ -57,7 +63,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        {children}
+        <ToastProvider>
+          <SiteHeader />
+          {children}
+          <Footer />
+        </ToastProvider>
       </body>
     </html>
   );

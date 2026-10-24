@@ -18,7 +18,7 @@ export function Footer() {
             <div className="flex-1 px-6 pt-8 pb-8 md:px-10 md:pt-10">
               <p className="label-mono text-text-tertiary">Next stop</p>
               <h2 id="next-stop-title" className="mt-3 text-display-lg leading-display">
-                Your product.
+                Your team, or your product.
               </h2>
               <p className="mt-4 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
                 Hiring for a senior or staff AI role, or building something that has to hold up with real

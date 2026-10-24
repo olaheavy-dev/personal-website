@@ -1,0 +1,26 @@
+name: Bug
+description: Something on the site behaves wrongly, looks broken or fails a quality bar.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what should have happened
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: URL, viewport width, theme (light/dark), browser, and steps.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - P0/P1 — wrong content or claim, broken page, accessibility or security problem
+        - P2/P3 — visual polish, wording, minor gap
+    validations:
+      required: true

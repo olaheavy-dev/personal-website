@@ -1,0 +1,36 @@
+name: Build task
+description: One vertical slice from .design/portfolio/TASKS.md, or a new piece of work with a plan.
+labels: ["task"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What to build and what "done" looks like, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan
+      description: Components created or reused, data contract, files touched. Small changes get a short plan.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Each criterion with the test that proves it (unit, e2e, axe, budget). Include mobile, keyboard and edge states.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: input
+    id: flag
+    attributes:
+      label: Feature flag
+      description: The flag key this ships behind, if any (e.g. page.lab).
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and open questions

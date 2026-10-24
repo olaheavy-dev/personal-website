@@ -33,7 +33,6 @@ describe("check-dashes", () => {
     expect(fails("<p>Idea - production</p>", ".tsx")).toBe(true);
     expect(fails('  description: "Idea - production",', ".ts")).toBe(true);
     expect(fails("  title: `Sunkanmi - ${role}`,", ".ts")).toBe(true);
-    expect(fails("            Idea - production, with AI built in.", ".tsx")).toBe(true);
     expect(fails("// spacing - see tokens", ".ts")).toBe(true);
     expect(fails("/* palette - light */", ".css")).toBe(true);
   });
@@ -44,6 +43,17 @@ describe("check-dashes", () => {
     expect(fails("const label = `${count - 1} left`;", ".ts")).toBe(false);
     expect(fails("  width: calc(100% - var(--gutter));", ".css")).toBe(false);
     expect(fails('<a href="https://example.com/a-b">Link</a>', ".tsx")).toBe(false);
+  });
+
+  it("leaves multi-line subtraction alone, in TS and TSX", () => {
+    const sum = "const remaining = (\n  total - offset\n);";
+    expect(fails(sum, ".tsx")).toBe(false);
+    expect(fails(sum, ".ts")).toBe(false);
+    expect(fails("return (\n  <p>\n    {total\n      - offset}\n  </p>\n);", ".tsx")).toBe(false);
+  });
+
+  it("reads multi-line JSX text as copy", () => {
+    expect(fails("return (\n  <p>\n    Idea - production\n  </p>\n);", ".tsx")).toBe(true);
   });
 
   it("follows block comments across lines", () => {

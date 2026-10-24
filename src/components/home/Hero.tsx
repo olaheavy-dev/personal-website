@@ -41,10 +41,10 @@ export function Hero() {
         </h1>
 
         <p className="mt-5 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
-          Full-stack &amp; AI engineer in the UK. For ten years I&rsquo;ve shipped software where failure is
-          expensive: banking, cross-border payments, edtech. Today at HBK I build a sensor-data analytics
-          platform and the AI inside it: RAG, AI agents and the product engineers rely on. I design it, build
-          it and keep it running.
+          Full-stack &amp; AI engineer based in the UK. For ten years, I&rsquo;ve built and shipped software
+          across banking, cross-border payments and edtech, where security, user satisfaction and reliability
+          matter. Today at HBK, I help build a sensor-data analytics platform and the human-centred AI that
+          helps engineers find answers and work with their data.
         </p>
 
         <div className="mt-7 flex flex-wrap items-center gap-3">

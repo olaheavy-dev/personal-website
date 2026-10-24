@@ -43,16 +43,16 @@ Read before working:
 
 This file is the single current rulebook for planning, building, reviewing, merging and dependencies.
 
-| Step                                                                                 | Who                 | Model      |
-| ------------------------------------------------------------------------------------ | ------------------- | ---------- |
-| 1. Plan the feature (issue plan + acceptance criteria)                               | Planner agent       | Opus 5.5   |
-| 2. Build each task                                                                   | Implementer agent   | Sonnet 5.5 |
-| 3. Run `make check` (+ `make e2e` and `make shots` for UI) and map criteria to tests | Verifier agent      | Sonnet 5.5 |
-| 4. Pre-push review (fresh context, "When reviewing")                                 | Reviewer agent      | Opus 5.5   |
-| 4a. Instead of step 4 for owner-only PRs and stage-gate reviews (decision 0015)      | Deep reviewer agent | Fable 5.1  |
-| 5. Open the pull request; Codex reviews the latest commit                            | Codex               | n/a        |
-| 6. Handle review comments                                                            | Review handler      | Opus 5.5   |
-| 7. Merge when the conditions below are met; post a one-line summary                  | Claude Code         | n/a        |
+| Step                                                                            | Who                 | Model      |
+| ------------------------------------------------------------------------------- | ------------------- | ---------- |
+| 1. Plan the feature (issue plan + acceptance criteria)                          | Planner agent       | Opus 5.5   |
+| 2. Build each task                                                              | Implementer agent   | Sonnet 5.5 |
+| 3. Run `make check` (+ `make e2e` for UI) and map criteria to tests             | Verifier agent      | Sonnet 5.5 |
+| 4. Pre-push review (fresh context, "When reviewing")                            | Reviewer agent      | Opus 5.5   |
+| 4a. Instead of step 4 for owner-only PRs and stage-gate reviews (decision 0015) | Deep reviewer agent | Fable 5.1  |
+| 5. Open the pull request; Codex reviews the latest commit                       | Codex               | n/a        |
+| 6. Handle review comments                                                       | Review handler      | Opus 5.5   |
+| 7. Merge when the conditions below are met; post a one-line summary             | Claude Code         | n/a        |
 
 Project agents are in `.claude/agents/`; permission rules are in `.claude/settings.json`.
 
@@ -84,13 +84,6 @@ The roster above follows the Claude models available today. **Whenever Anthropic
 - PR description: use the template (what and why, how tested, assumptions, claims and content, pre-flight check, noticed-not-changed).
 - **Pre-flight check:** search the repository for every term, decision ID, token and figure the change touches, and fix any contradiction or stale statement in the same PR. Check new facts against their sources.
 - **Run `make check` before pushing**, and `make e2e` for any UI change.
-- **Visual review for any UI change.** Tests prove behaviour, not taste. Run `make build && make shots`, then look at every screenshot in `.artifacts/screenshots/` (each route, light and dark, 360, 768 and 1440 px) and judge it against the brief's quality bar, not just "nothing is broken". Check the small things a visitor notices:
-  - **Both themes equally finished:** edges, outlines, notches and shadows read as clearly in light as in dark.
-  - **Text:** no orphan words, split figures or names ("2025 / R4"), links separated from their icons, or labels touching their container's edge.
-  - **Layout:** alignment between neighbouring elements, even spacing, nothing squeezed or wrapping at 360 px.
-  - **Content:** nothing repeated from elsewhere on the page, headings that fit the voice around them, every element earning its place.
-  - **Polish:** if a section looks merely acceptable, propose a better design to the owner instead of shipping it (the footer redesign in #48 is the standard).
-    Fix what you find in the same PR, and list what you checked under "How tested".
 - **Pre-push review:** run the reviewer agent (fresh context) and fix its findings first. For owner-only PRs (infrastructure, deploy, CI permissions, security, running costs) and stage-gate or pre-launch reviews, run the deep reviewer (Fable 5.1) instead (decision 0015).
 - Ask the owner before installing packages not on the pre-approved list, changing infrastructure, hosting, Supabase projects, model spend, or repository settings. **Never push to `main`.**
 
@@ -115,7 +108,7 @@ Check in priority order:
 
 1. **Correctness:** bugs, wrong logic, unhandled states (loading, empty, error, flag off, JavaScript off where it matters).
 2. **Breaches of the rules above**, especially the claims policy, employer confidentiality, personal data and tokens-only.
-3. **Spec match:** the issue's acceptance criteria and the design brief, including 375 px, keyboard, focus, reduced motion, and light and dark themes looking equally finished (see "Visual review" under "When building").
+3. **Spec match:** the issue's acceptance criteria and the design brief, including 375 px, keyboard, focus, reduced motion and dark mode.
 4. **Quality bar:** accessibility (contrast, names, landmarks, focus order), performance (budgets, image sizes, client JS added), SEO (metadata, one `h1`).
 5. **Tests:** important behaviour and edge states covered.
 6. **Clarity:** could the owner understand and maintain this? Flag unnecessary complexity.
@@ -171,7 +164,6 @@ Run from the repository root. Needs Node 24 (`.nvmrc`) and pnpm via Corepack (`c
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `make check`                              | Everything CI's `make check` job runs, in order: `install` (frozen lockfile), `lint` (ESLint, zero warnings), `dashes` (no dashes between words, decision 0014), `format-check` (Prettier), `typecheck` (Next route types + strict `tsc`), `coverage` (Vitest with coverage in `.artifacts/coverage/`), `build` (production), `budget` (page transfer budgets). Run before pushing. |
 | `make e2e`                                | Playwright journeys + axe accessibility in desktop-light, desktop-dark and mobile, against a production build. Run `make build` first; `make e2e-install` once for the browser.                                                                                                                                                                                                     |
-| `make shots`                              | Full-page screenshots of every route in light and dark at 360, 768 and 1440 px into `.artifacts/screenshots/`, for the visual review. Run `make build` first. `SHOTS_BASE_URL=https://staging.olaheavy.dev` shoots staging instead.                                                                                                                                                 |
 | `make test`                               | Unit and component tests only.                                                                                                                                                                                                                                                                                                                                                      |
 | `make format`                             | Rewrite files with Prettier.                                                                                                                                                                                                                                                                                                                                                        |
 | `make docker-build` / `make docker-check` | Build the production image locally and check it for private files and a root user (see `docs/deploy.md`).                                                                                                                                                                                                                                                                           |

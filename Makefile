@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install shots docker-build docker-check clean
+.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install docker-build docker-check clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -46,9 +46,6 @@ e2e-install: ## Install the Playwright browser once
 
 e2e: ## Browser journeys + axe accessibility against a production build
 	pnpm test:e2e
-
-shots: ## Full-page screenshots of every route, light and dark, at 360, 768 and 1440 px (after build)
-	node scripts/screenshots.mjs
 
 docker-build: ## Build the production image locally as personal-website:local
 	docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) -t personal-website:local .

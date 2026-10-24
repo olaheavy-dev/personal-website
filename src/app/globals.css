@@ -57,11 +57,60 @@
     }
   }
 
+  /* Hero paper plane (MiniRoute). The plane flies from the idea dot to its
+     resting pose, climbing, while the dotted trail is revealed behind it.
+     Transforms are in SVG user units (viewBox 0 0 120 24). The resting pose
+     is the base style, so reduced motion and no animation both show it. */
+  .mini-route-plane {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    transform: translate(106px, 8px) rotate(-14deg);
+    animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+  }
+  .mini-route-reveal {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: mini-route-trail var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+  }
+  .mini-route-plane-hover {
+    transition: transform var(--duration-slow) var(--easing-bounce);
+  }
+  :hover > .mini-route .mini-route-plane-hover {
+    transform: translate(2px, -3px) rotate(-8deg);
+  }
+
   /* Mono station label */
   .label-mono {
     font-family: var(--font-family-mono);
     font-size: var(--font-size-xs);
     letter-spacing: var(--letter-spacing-wide);
     text-transform: uppercase;
+  }
+}
+
+@keyframes mini-route-flight {
+  0% {
+    opacity: 0;
+    transform: translate(12px, 13px) rotate(6deg) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(34px, 13px) rotate(3deg) scale(0.85);
+  }
+  65% {
+    transform: translate(82px, 12px) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(106px, 8px) rotate(-14deg) scale(1);
+  }
+}
+
+@keyframes mini-route-trail {
+  0% {
+    transform: scaleX(0.05);
+  }
+  100% {
+    transform: scaleX(1);
   }
 }

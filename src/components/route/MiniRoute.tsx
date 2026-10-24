@@ -1,22 +1,34 @@
-// Inline dotted route used inside the hero sentence ("from idea ●···● to
-// production"). The full Route component (vertical/horizontal variants with
-// scroll drawing) is built in the "Route signature component" task.
+// Inline route inside the hero sentence ("from idea ●···✈ to production"): a
+// paper plane leaves the lilac idea dot, draws the dotted trail behind it and
+// climbs away towards "production". An idea is a sheet of paper; folded into
+// shape, it flies. CSS only (keyframes in globals.css): it plays once on load,
+// lifts a little on hover, and with reduced motion it simply rests in flight.
+// The full Route component (vertical/horizontal variants with scroll drawing)
+// is built in the "Route signature component" task.
+import { useId } from "react";
+
 export function MiniRoute() {
+  const maskId = useId();
   return (
     <svg
       viewBox="0 0 120 24"
-      className="mx-(--mini-route-gap) inline-block h-(--mini-route-height) w-(--mini-route-width) align-middle"
+      overflow="visible"
+      className="mini-route mx-(--mini-route-gap) inline-block h-(--mini-route-height) w-(--mini-route-width) align-middle"
       aria-hidden="true"
     >
-      <line
-        x1="10"
-        y1="12"
-        x2="110"
-        y2="12"
+      <defs>
+        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="24">
+          <rect className="mini-route-reveal" x="0" y="0" width="120" height="24" fill="white" />
+        </mask>
+      </defs>
+      <path
+        d="M10 12 H78 Q90 12 96 9"
+        fill="none"
         stroke="var(--color-route-line)"
         strokeWidth="5"
         strokeLinecap="round"
         strokeDasharray="0.1 14"
+        mask={`url(#${maskId})`}
       />
       <circle
         cx="10"
@@ -26,14 +38,25 @@ export function MiniRoute() {
         stroke="var(--color-border-strong)"
         strokeWidth="3"
       />
-      <circle
-        cx="110"
-        cy="12"
-        r="8"
-        fill="var(--color-route-pin)"
-        stroke="var(--color-border-strong)"
-        strokeWidth="3"
-      />
+      <g className="mini-route-plane">
+        <g className="mini-route-plane-hover">
+          {/* Top wing, keel (teal, the colour of "production") and the fold */}
+          <path
+            d="M12 0 L-12 -8 L-4 1 Z"
+            fill="var(--color-bg-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 0 L-4 1 L-9 7 Z"
+            fill="var(--color-route-pin)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+          />
+        </g>
+      </g>
     </svg>
   );
 }

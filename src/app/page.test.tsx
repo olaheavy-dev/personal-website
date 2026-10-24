@@ -34,4 +34,13 @@ describe("Home", () => {
       .map((item) => item.textContent?.replace(/^\d+/, "").match(/^[A-Z][a-z]+/)?.[0]);
     expect(names).toEqual(["Idea", "Design", "Build", "Ship", "Scale"]);
   });
+
+  it("describes how each station adds value rather than listing the stack", () => {
+    render(<Home />);
+    const route = screen.getByRole("region", { name: /The route, every time/ });
+    expect(within(route).getByText(/human-centred AI built in/)).toBeInTheDocument();
+    expect(within(route).getByText(/usability testing/)).toBeInTheDocument();
+    expect(within(route).getByText(/user feedback and continuous evaluation/)).toBeInTheDocument();
+    expect(route).not.toHaveTextContent(/\.NET|Python|TypeScript/);
+  });
 });

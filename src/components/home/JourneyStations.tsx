@@ -1,11 +1,14 @@
 // Idea → Design → Build → Ship → Scale. Static in the hero slice; in the
 // "Home page complete" task each station links to evidence in a case study.
 const stations = [
-  { name: "Idea", note: "Frame the problem with the people who have it" },
-  { name: "Design", note: "Flows, prototypes and the UX of uncertainty" },
-  { name: "Build", note: "Full-stack: .NET, Python, TypeScript, RAG" },
-  { name: "Ship", note: "CI/CD, evals and guardrails before launch day" },
-  { name: "Scale", note: "Tracing, cost and reliability in production" },
+  { name: "Idea", note: "Understand the problem with the people who face it." },
+  { name: "Design", note: "Shape the experience through flows, prototypes and usability testing." },
+  { name: "Build", note: "Full-stack engineering with human-centred AI built in." },
+  { name: "Ship", note: "Launch with automated delivery, evaluations and guardrails." },
+  {
+    name: "Scale",
+    note: "Improve quality, reliability and cost through user feedback and continuous evaluation.",
+  },
 ] as const;
 
 export function JourneyStations() {

@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    # "edited" re-runs the checks when a PR title or description changes (dash check below).
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main]
 
@@ -39,6 +41,14 @@ jobs:
 
       - name: Run every automated check
         run: make check
+
+      # After make check, which installs the dependencies the checker needs (TypeScript).
+      - name: Check the PR title and description for dashes (decision 0014)
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/check-dashes.mjs --env PR_TITLE,PR_BODY
 
       - name: Upload the coverage report
         if: ${{ !cancelled() }}

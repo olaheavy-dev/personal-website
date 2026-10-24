@@ -17,7 +17,7 @@ Every page and delight should ship dark and be switched on from the admin withou
 
 ## Decision
 
-A `feature_flags` table with three states — **On**, **Preview** (owner only), **Off** — read server-side with tag-based revalidation.
+A `feature_flags` table with three states (**On**, **Preview** for the owner only, and **Off**), read server-side with tag-based revalidation.
 
 ## Consequences
 

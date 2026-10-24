@@ -14,7 +14,7 @@ let failed = false;
 
 for (const { route, file, maxBytes } of budgets) {
   if (!existsSync(file)) {
-    console.error(`budget: ${file} not found — run \`next build\` first, and keep ${route} prerendered.`);
+    console.error(`budget: ${file} not found. Run \`next build\` first, and keep ${route} prerendered.`);
     process.exit(1);
   }
   const html = readFileSync(file);

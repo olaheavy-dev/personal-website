@@ -1,27 +1,27 @@
-# Design Brief: olaheavy.dev — Sunkanmi Olawuwo's Personal Site
+# Design Brief: olaheavy.dev, Sunkanmi Olawuwo's Personal Site
 
 > Owner: Sunkanmi Olawuwo · Date: 2026-10-24 · Status: Approved direction (Phase 2 of design flow)
-> Sources: grill session (Q1–Q27 + open items), `supporting-documents/` (CV, project notes, photos, logos),
+> Sources: grill session (Q1 to Q27 + open items), `supporting-documents/` (CV, project notes, photos, logos),
 > `supporting-documents/research/` (hbk.md, deimos-clients.md, banking-and-galooli.md, personal-projects.md, inspiration-teardown.md).
 
 ## Problem
 
 A hiring manager at an AI or product company opens a link to a candidate's site between meetings. They have under a minute to answer three questions: *what does this person do, can they really ship AI to production, and should I email them?* Most engineering portfolios make that hard. They either show a grid of screenshots with no proof of engineering depth, or a terse list of repos with no sense of product judgement or personality. AI claims are everywhere and rarely backed by evidence.
 
-Sunkanmi's real story — ten years from IoT in Lagos, through regulated banking and cross-border payments, to shipping a production RAG assistant at HBK — is strong but currently lives in a CV. A secondary visitor, a founder looking for help building an AI product, has the same problem: they need to trust that he can take their idea all the way to production, not just a demo.
+Sunkanmi's real story (ten years from IoT in Lagos, through regulated banking and cross-border payments, to shipping a production RAG assistant at HBK) is strong but currently lives in a CV. A secondary visitor, a founder looking for help building an AI product, has the same problem: they need to trust that he can take their idea all the way to production, not just a demo.
 
 ## Solution
 
-A warm, confident, personal site that reads like a journey: **idea → design → build → ship → scale**. A single dotted route runs through the site; each piece of work is a "stop" presented as a ticket, and each case study proves one leg of the journey with real, sourced evidence — architecture, trade-offs, results. The first screen says who he is in one sentence and offers one action: email him.
+A warm, confident, personal site that reads like a journey: **idea → design → build → ship → scale**. A single dotted route runs through the site; each piece of work is a "stop" presented as a ticket, and each case study proves one leg of the journey with real, sourced evidence: architecture, trade-offs, results. The first screen says who he is in one sentence and offers one action: email him.
 
-Personality comes from three concentrated delights, not decoration: an illustrated Sunkanmi who *is* the "Ask Sunkanmi" assistant (grounded, cited, and transparent about how it works — the site proving his AI craft), a ⌘K route palette, and passport stamps collected as visitors explore. The same route language becomes literal on the Travel page, where a 3D globe draws his journey from Lagos to the UK and beyond.
+Personality comes from three concentrated delights, not decoration: an illustrated Sunkanmi who *is* the "Ask Sunkanmi" assistant (grounded, cited, and transparent about how it works, so the site proves his AI craft), a ⌘K route palette, and passport stamps collected as visitors explore. The same route language becomes literal on the Travel page, where a 3D globe draws his journey from Lagos to the UK and beyond.
 
-Behind the public site sits his own admin: image pipeline, Hashnode sync, assistant knowledge base and per-page feature flags — itself a demonstration of full-stack product thinking.
+Behind the public site sits his own admin: image pipeline, Hashnode sync, assistant knowledge base and per-page feature flags. The admin is itself a demonstration of full-stack product thinking.
 
 ## Positioning & Content Strategy
 
-- **One line:** "I take products from idea to production — with AI built in." (Products first, AI as the multiplier — not AI alone; updated 2026-10-24 after hero review.)
-- **HBK framing:** he builds the Advantage Insights sensor-data analytics platform *and* the AI inside it — RAG (Aiana), AI agents and the analytics product itself.
+- **One line:** "I take products from idea to production, with AI built in." (Products first, with AI as the multiplier rather than the whole story; updated 2026-10-24 after the hero review.)
+- **HBK framing:** he builds the Advantage Insights sensor-data analytics platform *and* the AI inside it: RAG (Aiana), AI agents and the analytics product itself.
 - **Narrative:** AI-led. HBK (Aiana) and personal AI projects up front; banking and payments (Access, Stanbic, Optty, Mukuru) as proof of years of high-stakes, regulated production; uLesson and Galooli as range.
 - **Primary CTA:** Email me. Secondary: Résumé (PDF), Ask Sunkanmi.
 - **Audiences:** 1) hiring managers / eng leaders (senior, staff, founding roles); 2) founders seeking consulting.
@@ -30,7 +30,7 @@ Behind the public site sits his own admin: image pipeline, Hashnode sync, assist
 
 | Claim | How it appears |
 |---|---|
-| HBK / Aiana | Named publicly; launched in Advantage Insights 2025 R4 (public, HBK). Stack named (C#/.NET, Python, Azure AI Foundry, RAG, evals) — no internal diagrams, prompts, models or metrics. Later HBK AI features (code suggestions, voice, file analysis) described generically, not named. |
+| HBK / Aiana | Named publicly; launched in Advantage Insights 2025 R4 (public, HBK). Stack named (C#/.NET, Python, Azure AI Foundry, RAG, evals), with no internal diagrams, prompts, models or metrics. Later HBK AI features (code suggestions, voice, file analysis) described generically, not named. |
 | RagLab | Not listed as a personal project; its evaluation approach is referenced generically inside the HBK case study. |
 | Access QuickBucks | Public figure only: **1M+ Google Play downloads**. No internal revenue or user counts. |
 | Stanbic EZ Cash | Reliability work described qualitatively; no failure-rate number. |
@@ -44,13 +44,13 @@ Every number on the site carries a source (public link, repo link, or "own measu
 
 ## Experience Principles
 
-1. **Proof over polish** — Every claim is backed by something a visitor can inspect: a sourced metric, a diagram, a live link, a citation. When a section has to choose between another animation and another piece of evidence, evidence wins.
-2. **Warm, not cute** — Personality through a real person (illustrated self, voice, journey, travel) and a few crafted moments, never through clutter. Three delights, each excellent; nothing blocks reading or navigation.
-3. **Fast is the first impression** — The site is itself a production artefact. No intro loaders, no scroll-jacking, content in under a second, heavy experiences (globe, assistant) loaded only on intent.
+1. **Proof over polish.** Every claim is backed by something a visitor can inspect: a sourced metric, a diagram, a live link, a citation. When a section has to choose between another animation and another piece of evidence, evidence wins.
+2. **Warm, not cute.** Personality through a real person (illustrated self, voice, journey, travel) and a few crafted moments, never through clutter. Three delights, each excellent; nothing blocks reading or navigation.
+3. **Fast is the first impression.** The site is itself a production artefact. No intro loaders, no scroll-jacking, content in under a second, heavy experiences (globe, assistant) loaded only on intent.
 
 ## Aesthetic Direction
 
-- **Philosophy:** *Journey / transit editorial* — warm paper and ink, a single dotted route as the narrative spine, ticket-like cards for work, pill UI, bold tight grotesk type, and mono "station labels" for data.
+- **Philosophy:** *Journey / transit editorial*: warm paper and ink, a single dotted route as the narrative spine, ticket-like cards for work, pill UI, bold tight grotesk type, and mono "station labels" for data.
 - **Tone:** warm, confident, curious, quietly playful; credible enough for a staff-level hiring panel.
 - **Palette:** paper `#FAF8F5`, ink `#141418`, lilac `#CDB8FF`, teal `#1FA59A` (exact tints, contrast-safe text variants and a designed dark "night route" theme defined in Phase 4).
 - **Type:** Bricolage Grotesque (display, 700–800, tracking −0.03 to −0.05em), Geist (body, ≥17px), Geist Mono (labels, route stations, data).
@@ -60,12 +60,12 @@ Every number on the site carries a source (public link, repo link, or "own measu
 
 ## Existing Patterns
 
-Greenfield — the repository contains only `README.md` and `supporting-documents/`. No tokens, components, Tailwind config, fonts or routes exist. Decided foundations to build on:
+Greenfield: the repository contains only `README.md` and `supporting-documents/`. No tokens, components, Tailwind config, fonts or routes exist. Decided foundations to build on:
 
 - **Framework:** Next.js (App Router, TypeScript), Docker image deployed via SoloForge (GitHub Actions → GHCR → Watchtower → Caddy behind Cloudflare) at **olaheavy.dev**.
 - **Data/Auth/Storage:** hosted Supabase (Postgres + pgvector, Auth, Storage with image transforms).
 - **Infra conventions to respect:** `.env.example` only in repo; immutable `sha-<commit>` image tags + `main`; no public host ports; health endpoint for the App Registry; secrets server-side (`/home/apps/<app>/.env`).
-- **Assets available:** company logos (`supporting-documents/logo/`: HBK, Deimos, Optty, Mukuru, uLesson, Stanbic, Access, Galooli), two portrait photos (studio, grey background), Foresight GIF + 9 screenshots, FastPilot 4 screenshots + Loom, HomeScout concept images (AI-generated — must be captioned).
+- **Assets available:** company logos (`supporting-documents/logo/`: HBK, Deimos, Optty, Mukuru, uLesson, Stanbic, Access, Galooli), two portrait photos (studio, grey background), Foresight GIF + 9 screenshots, FastPilot 4 screenshots + Loom, HomeScout concept images (AI-generated, so they must be captioned).
 
 ## Information Scope (pages)
 
@@ -75,9 +75,9 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 |---|---|
 | Home | 5-second answer + journey + selected stops + email CTA (≤ 5 viewports at 1440×900) |
 | Work index + Case studies | HBK Aiana (flagship), Optty, Access QuickBucks / Instant Account, Foresight (flagship personal), plus shorter entries for Mukuru, uLesson, Stanbic, Galooli |
-| Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (coming soon) — GIF/screenshot-led cards |
+| Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (coming soon); GIF and screenshot-led cards |
 | Writing | Hashnode posts rendered natively at `/writing/<slug>`, canonical to olaheavy.dev |
-| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, UK 2022–now, Albania 2026) |
+| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, UK 2022 to now, Albania 2026) |
 | About | Story, portrait, career-as-route, certifications, education, colophon (perf/a11y badges) |
 | Admin (`/admin`) | Content, images, travel, Hashnode sync, assistant knowledge + evals, feature flags |
 
@@ -138,7 +138,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 - `prefers-reduced-motion`: disables route drawing, avatar wave, stamp pops, globe auto-rotation and arcs animation.
 - Every route has a stable URL that works on hard refresh; images have meaningful alt text (admin requires it on upload).
 
-## Quality Bar — "Better than all seven"
+## Quality Bar: "Better than all seven"
 
 1. **Speed:** home ≤ 600KB initial transfer (globe excluded); LCP ≤ 1.5s (mobile 4G); CLS < 0.05; no blocking loader; Lighthouse Performance ≥ 95 mobile.
 2. **Accessibility:** Lighthouse 100; AA contrast in all states; keyboard + reduced-motion verified.
@@ -165,7 +165,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 
 ## Open Items
 
-- Travel photos and trip stories — supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), UK 2022–now, Albania 2026).
+- Travel photos and trip stories: supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), UK 2022 to now, Albania 2026).
 - Illustrated avatar production (illustrator or image model) from `Andela_Profile.jpeg` and `GeneralProfilepic.jpeg`; poses: wave (hero), thinking (assistant loading), pointing (CTA), travelling (globe), lost (404).
-- FastPilot demo is down (Railway 404) — redeploy via SoloForge or link the Loom until then.
+- FastPilot demo is down (Railway 404). Redeploy via SoloForge or link the Loom until then.
 - Hashnode publication host/handle needed for the integration.

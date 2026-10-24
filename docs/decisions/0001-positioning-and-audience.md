@@ -17,7 +17,7 @@ The site must win a hiring manager in under a minute, and give consulting founde
 
 ## Decision
 
-AI-led with fintech as depth; primary audience hiring managers for senior/staff AI and founding roles, consulting founders second. One line: **"I take products from idea to production — with AI built in."** (products first, AI as the multiplier; revised after the hero review). Primary call to action: **Email me**.
+AI-led with fintech as depth; primary audience hiring managers for senior/staff AI and founding roles, consulting founders second. One line: **"I take products from idea to production, with AI built in."** (products first, AI as the multiplier; revised after the hero review). Primary call to action: **Email me**.
 
 ## Consequences
 

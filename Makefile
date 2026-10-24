@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint format format-check typecheck test coverage build budget e2e e2e-install clean
+.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -12,10 +12,13 @@ help: ## List the available commands
 install: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
 
-check: install lint format-check typecheck coverage build budget ## Every gate CI runs on a pull request (except e2e)
+check: install lint dashes format-check typecheck coverage build budget ## Every gate CI runs on a pull request (except e2e)
 
 lint: ## ESLint, zero warnings allowed
 	pnpm lint
+
+dashes: ## Fail on dashes used between words in any public text (decision 0014)
+	node scripts/check-dashes.mjs
 
 format: ## Rewrite files with Prettier
 	pnpm format

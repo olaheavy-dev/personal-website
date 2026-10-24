@@ -21,5 +21,5 @@ Next.js 16 App Router with Cache Components, TypeScript strict, Tailwind CSS v4,
 
 ## Consequences
 
-- Read `node_modules/next/dist/docs/` before using a Next.js API — this version differs from older habits.
+- Read `node_modules/next/dist/docs/` before using a Next.js API, because this version differs from older habits.
 - Exact versions are pinned (`.npmrc` `save-exact`); Dependabot proposes updates weekly with a 7-day cooldown.

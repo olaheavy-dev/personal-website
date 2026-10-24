@@ -35,16 +35,16 @@ export function Hero() {
               idea
               <MiniRoute />
             </span>{" "}
-            to <span className="whitespace-nowrap text-text-primary">production&nbsp;&mdash;</span>{" "}
+            to <span className="whitespace-nowrap text-text-primary">production,</span>{" "}
             <span className="text-text-primary">with AI built&nbsp;in.</span>
           </span>
         </h1>
 
         <p className="mt-5 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
           Full-stack &amp; AI engineer in the UK. For ten years I&rsquo;ve shipped software where failure is
-          expensive&nbsp;&mdash; banking, cross-border payments, edtech. Today at HBK I build a sensor-data
-          analytics platform and the AI inside it: RAG, AI agents and the product engineers rely on. I design
-          it, build it and keep it running.
+          expensive: banking, cross-border payments, edtech. Today at HBK I build a sensor-data analytics
+          platform and the AI inside it: RAG, AI agents and the product engineers rely on. I design it, build
+          it and keep it running.
         </p>
 
         <div className="mt-7 flex flex-wrap items-center gap-3">

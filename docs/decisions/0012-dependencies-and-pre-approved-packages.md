@@ -21,3 +21,4 @@ Pre-approved (add without asking, exact versions): `next`, `react`, `react-dom`,
 
 - Dependency review fails a PR on any vulnerability or a non-permissive licence.
 - Adding a package updates `docs/references/third-party.md` in the same PR.
+- Recorded licence exception (2026-10-24): `sharp`'s prebuilt libvips packages (`@img/sharp-libvips-*`, `@img/sharp-wasm32`, `@img/sharp-win32-*`) are LGPL-3.0-or-later. Next.js installs them for image optimisation; they are used unmodified and dynamically linked, which the LGPL permits. They are listed by name in `dependency-review.yml`; any other LGPL package still fails review.

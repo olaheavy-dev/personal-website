@@ -7,6 +7,9 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Screenshot baselines (visual.spec.ts). {platform} keeps Linux images, made in the
+  // CI container, apart from local macOS ones, which are git-ignored.
+  snapshotPathTemplate: "{testDir}/__screenshots__/{arg}-{projectName}-{platform}{ext}",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

@@ -27,7 +27,12 @@ describe("configuredProfiles", () => {
     ).toEqual(["github", "x"]);
   });
 
-  it("starts with GitHub set and the other profiles empty", () => {
-    expect(configuredProfiles(site.profiles).map((profile) => profile.key)).toEqual(["github"]);
+  it("shows every profile, GitHub first", () => {
+    expect(configuredProfiles(site.profiles).map((profile) => profile.key)).toEqual([
+      "github",
+      "linkedin",
+      "hashnode",
+      "x",
+    ]);
   });
 });

@@ -18,7 +18,7 @@ export const site = {
   oneLiner: "I take products from idea to production, with AI built in.",
   description:
     "Full-stack & AI engineer based in the UK. Ten years of software across banking, cross-border payments and edtech; today helping build HBK's sensor-data analytics platform and the human-centred AI inside it.",
-  availability: "Open to senior & staff AI roles · consulting",
+  availability: "Open to senior & staff AI roles\u00a0· consulting",
   timeZone: "Europe/London",
   timeZoneLabel: "UK",
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "sunkanmiolawuwo@gmail.com",
@@ -26,9 +26,11 @@ export const site = {
   copyrightSince: 2026,
   profiles: [
     { key: "github", label: "GitHub", url: "https://github.com/olaheavy-dev" },
-    { key: "linkedin", label: "LinkedIn", url: null },
-    { key: "hashnode", label: "Hashnode", url: null },
-    { key: "x", label: "X", url: null },
+    // Placeholders: each platform's home page until the owner shares the real
+    // profile URLs. Set one to null to hide it.
+    { key: "linkedin", label: "LinkedIn", url: "https://www.linkedin.com/" },
+    { key: "hashnode", label: "Hashnode", url: "https://hashnode.com/" },
+    { key: "x", label: "X", url: "https://x.com/" },
   ] satisfies Profile[] as Profile[],
 };
 

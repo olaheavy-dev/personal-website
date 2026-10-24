@@ -5,7 +5,7 @@ import { EmailButton } from "./EmailButton";
 
 // The route ends at Scale; the footer is the invitation to start the visitor's
 // own: a wide ticket with the contact actions and a tear-off stub holding the
-// availability, then one slim line. The header already carries the name and the
+// availability and profiles, then one slim line. The header already carries the name and the
 // sections, so the footer doesn't repeat them.
 export function Footer() {
   const profiles = configuredProfiles();
@@ -18,7 +18,7 @@ export function Footer() {
             <div className="flex-1 px-6 pt-8 pb-8 md:px-10 md:pt-10">
               <p className="label-mono text-text-tertiary">Next stop</p>
               <h2 id="next-stop-title" className="mt-3 text-display-lg leading-display">
-                Your team, or your product.
+                Yours.
               </h2>
               <p className="mt-4 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
                 Hiring for a senior or staff AI role, or building something that has to hold up with real
@@ -31,12 +31,42 @@ export function Footer() {
             </div>
 
             <div aria-hidden="true" className="border-t-2 border-dashed border-border-primary md:hidden" />
-            <div className="flex flex-row items-end justify-between gap-6 px-6 py-6 md:w-(--ticket-stub-width) md:flex-col md:items-start md:justify-between md:border-l-2 md:border-dashed md:border-border-primary md:px-8 md:py-10">
-              <p className="label-mono text-text-tertiary">Availability</p>
-              <p className="flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
-                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-live" aria-hidden="true" />
-                {site.availability}
-              </p>
+            <div className="flex flex-col gap-6 px-6 py-6 md:w-(--ticket-stub-width) md:justify-between md:border-l-2 md:border-dashed md:border-border-primary md:px-7 md:py-10">
+              <div>
+                <p className="label-mono text-text-tertiary">Availability</p>
+                <p className="mt-3 flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
+                  <span className="mt-1.5 size-2 shrink-0 rounded-full bg-live" aria-hidden="true" />
+                  {site.availability}
+                </p>
+              </div>
+              {profiles.length || site.resumeUrl ? (
+                <ul aria-label="Profiles" className="flex flex-wrap items-center gap-2">
+                  {profiles.map((profile) => (
+                    <li key={profile.key}>
+                      <a
+                        href={profile.url ?? undefined}
+                        rel="noopener me"
+                        target="_blank"
+                        aria-label={`${profile.label} (opens in a new tab)`}
+                        title={profile.label}
+                        className="grid size-12 place-items-center rounded-full border border-border-strong text-text-primary transition-colors duration-150 hover:bg-bg-secondary"
+                      >
+                        <ProfileIcon kind={profile.key} />
+                      </a>
+                    </li>
+                  ))}
+                  {site.resumeUrl ? (
+                    <li>
+                      <a
+                        href={site.resumeUrl}
+                        className="inline-flex min-h-12 items-center rounded-full border border-border-strong px-5 text-sm font-medium transition-colors duration-150 hover:bg-bg-secondary"
+                      >
+                        Résumé
+                      </a>
+                    </li>
+                  ) : null}
+                </ul>
+              ) : null}
             </div>
           </div>
         </div>
@@ -47,34 +77,6 @@ export function Footer() {
           <p>
             © {site.copyrightSince} {site.name}
           </p>
-          {profiles.length ? (
-            <ul aria-label="Profiles" className="flex items-center gap-1">
-              {profiles.map((profile) => (
-                <li key={profile.key}>
-                  <a
-                    href={profile.url ?? undefined}
-                    rel="noopener me"
-                    target="_blank"
-                    aria-label={`${profile.label} (opens in a new tab)`}
-                    title={profile.label}
-                    className="grid size-11 place-items-center rounded-full text-text-secondary transition-colors duration-150 hover:bg-bg-secondary hover:text-text-primary"
-                  >
-                    <ProfileIcon kind={profile.key} />
-                  </a>
-                </li>
-              ))}
-              {site.resumeUrl ? (
-                <li>
-                  <a
-                    href={site.resumeUrl}
-                    className="inline-flex min-h-11 items-center px-3 text-text-secondary hover:text-text-primary"
-                  >
-                    Résumé
-                  </a>
-                </li>
-              ) : null}
-            </ul>
-          ) : null}
           <p>Designed, built and deployed by me, on my own server.</p>
         </div>
       </div>
@@ -83,7 +85,7 @@ export function Footer() {
 }
 
 function ProfileIcon({ kind }: { kind: ProfileKey }) {
-  const common = { className: "size-5", viewBox: "0 0 24 24", "aria-hidden": true } as const;
+  const common = { className: "size-6", viewBox: "0 0 24 24", "aria-hidden": true } as const;
   switch (kind) {
     case "github":
       return (

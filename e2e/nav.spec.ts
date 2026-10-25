@@ -27,6 +27,12 @@ test.describe("sections and navigation", () => {
     });
   }
 
+  test("the header offers email at every width", async ({ page }) => {
+    await page.goto("/");
+    const email = page.getByRole("banner").getByRole("link", { name: "Email me" });
+    await expect(email.filter({ visible: true })).toHaveCount(1);
+  });
+
   test("footer shows on every page with the profiles in the ticket", async ({ page }) => {
     await page.goto("/lab");
     const profiles = page.getByRole("contentinfo").getByRole("list", { name: "Profiles" });

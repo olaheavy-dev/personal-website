@@ -53,7 +53,7 @@ export function SiteHeader() {
           <span className="hidden lg:inline-flex">
             <EmailButton />
           </span>
-          <span className="inline-flex md:hidden">
+          <span className="inline-flex lg:hidden">
             <EmailButton size="icon" />
           </span>
           <MobileMenu />

@@ -169,11 +169,12 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      # Regenerates every baseline from this commit. This step cannot make the job pass:
+      # Regenerates only the baselines that failed (passing ones keep their committed
+      # bytes, so accepting brings no churn). This step cannot make the job pass:
       # the compare step already failed, so the job stays red whatever happens here.
       - name: Propose new baselines
         if: ${{ failure() && steps.compare.outcome == 'failure' }}
-        run: pnpm exec playwright test --grep @visual --update-snapshots=all
+        run: pnpm exec playwright test --grep @visual --update-snapshots=changed
 
       - name: Upload the proposed baselines
         if: ${{ failure() && steps.compare.outcome == 'failure' }}

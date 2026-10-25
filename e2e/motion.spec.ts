@@ -198,7 +198,11 @@ test.describe("footer stub lift", () => {
     await emailMe(page).hover();
     await expect.poll(() => stubRotate(page)).not.toBe("none");
     expect(await layoutBoxes(page)).toEqual(before);
-    expect(await emailMe(page).boundingBox()).toEqual(buttonBefore);
+    // Sub-pixel scroll settling can move the button by a hundredth of a pixel; a layout shift would be whole pixels.
+    const buttonAfter = await emailMe(page).boundingBox();
+    for (const key of ["x", "y", "width", "height"] as const) {
+      expect(buttonAfter![key]).toBeCloseTo(buttonBefore![key], 0);
+    }
   });
 
   test.describe("reduced motion", () => {

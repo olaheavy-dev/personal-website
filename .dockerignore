@@ -27,3 +27,10 @@ Dockerfile
 .dockerignore
 # Test-only config: it imports e2e fixtures, which are not in the build context.
 playwright.config.ts
+# Tests are never part of the image, and some import e2e fixtures that are not in the context.
+**/*.test.ts
+**/*.test.tsx
+**/*.test.mts
+**/*.test.mjs
+vitest*.config.ts
+vitest.server-only-stub.ts

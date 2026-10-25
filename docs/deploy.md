@@ -87,9 +87,11 @@ Every published commit keeps its `:sha-<commit>` tag. To roll back, pin the Comp
 
 **The publish build fails without them.** The check refuses a missing URL, a URL that is not `https://<20 lowercase letters>.supabase.co`, and a key that does not start with `sb_publishable_`. Its message names the variable, never the value. Pull request builds in `ci.yml` have no such values on purpose: the app treats them as unconfigured. Only a local smoke build may skip the check, with `SUPABASE_OPTIONAL=1`.
 
-`src/lib/db/env.ts` must keep reading these with the full literal name (`process.env.NEXT_PUBLIC_SUPABASE_URL`), because Next only inlines literal names. `scripts/env-inlining.test.ts` builds a small app with dummy values, starts it without them and checks they are still read.
+`src/lib/db/env.ts` must keep reading these with the full literal name (`process.env.NEXT_PUBLIC_SUPABASE_URL`), because Next only inlines literal names. `NEXT_PUBLIC_CONTACT_EMAIL` is also a build value, but the Dockerfile and `publish.yml` do not pass it, so images use the fallback in `site.ts` unless it is passed the same way.
 
-`keep-alive.yml` reads one public row from `feature_flags` every day (06:17 UTC) with the publishable key, so the hosted project is never paused for inactivity. It fails if the row is missing, and can be run by hand from the Actions tab.
+`scripts/env-inlining.test.ts` builds a small app with dummy values, starts it without them and checks they are still read.
+
+`keep-alive.yml` reads one public row from `feature_flags` every day (06:17 UTC) with the publishable key, so the hosted project is never paused for inactivity. It fails if the row is missing, and can be run by hand from the Actions tab. GitHub disables scheduled workflows on a public repository after 60 days without activity (and only the default branch's schedule runs); it emails a warning, and the owner re-enables the workflow from the Actions tab or runs it by hand.
 
 ### Runtime secrets (server only)
 

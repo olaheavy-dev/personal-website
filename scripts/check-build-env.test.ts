@@ -1,4 +1,6 @@
 import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { checkBuildEnv } from "./check-build-env.mjs";
 
@@ -56,6 +58,14 @@ describe("checkBuildEnv", () => {
     }
   });
 
+  it("rejects a key containing whitespace or a newline", () => {
+    for (const bad of ["sb_publishable_abc\nEVIL=1", "sb_publishable_ab c", "sb_publishable_"]) {
+      expect(
+        checkBuildEnv({ NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: bad }),
+      ).toHaveLength(1);
+    }
+  });
+
   it("never prints a value in its messages", () => {
     const bad = "wrong_topsecretvalue";
     const problems = checkBuildEnv({
@@ -83,6 +93,21 @@ describe("check-build-env command", () => {
     });
     expect(result.status).toBe(1);
     expect(result.stderr + result.stdout).not.toContain("topsecretvalue");
+  });
+
+  it("still exits 1 when run from a path with a space in it", () => {
+    const dir = mkdtempSync(join(tmpdir(), "check build env "));
+    try {
+      const copy = join(dir, "check-build-env.mjs");
+      copyFileSync(script, copy);
+      const result = spawnSync("node", [copy], {
+        env: { PATH: process.env.PATH ?? "" } as unknown as NodeJS.ProcessEnv,
+        encoding: "utf8",
+      });
+      expect(result.status).toBe(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("exits 0 for valid values", () => {

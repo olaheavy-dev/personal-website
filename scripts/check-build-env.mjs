@@ -5,6 +5,9 @@
 // Off. The Dockerfile and the publish workflow run this before building (issue #6).
 // Messages name the variables and the rule, never a value.
 
+import { realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+
 const projectUrl = /^https:\/\/[a-z]{20}\.supabase\.co$/;
 
 /** Problems with the build environment, as readable lines. */
@@ -19,8 +22,10 @@ export function checkBuildEnv(env) {
   }
 
   if (!key) problems.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is missing.");
-  else if (!key.startsWith("sb_publishable_")) {
-    problems.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must start with "sb_publishable_".');
+  else if (!/^sb_publishable_[A-Za-z0-9_-]+$/.test(key)) {
+    problems.push(
+      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must start with "sb_publishable_" and contain only letters, digits, "_" and "-".',
+    );
   }
 
   return problems;
@@ -39,4 +44,7 @@ function main() {
   console.log("check-build-env: the Supabase build values are present and well formed.");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+// import.meta.url is the real path as a file URL (spaces and symbols escaped), so compare
+// against the real path of argv[1] the same way; a raw string or a symlinked path would
+// skip main() and exit 0 silently.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) main();

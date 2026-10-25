@@ -3,7 +3,7 @@
 // Next app in .artifacts/ that contains a copy of the real src/lib/db/env.ts, with dummy
 // values, then starts its standalone server with those variables removed and asks it what
 // the reader sees. A reader that looks names up dynamically fails this test.
-import { spawn, spawnSync } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -69,25 +69,26 @@ async function ask(port: number) {
 
 describe("build time Supabase values", () => {
   it("are inlined by next build, so a server started without them still sees them", async () => {
-    writeFixture();
-    const build = spawnSync("node", [join(root, "node_modules/next/dist/bin/next"), "build"], {
-      cwd: fixture,
-      env: cleanEnv({ NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: key }),
-      encoding: "utf8",
-    });
-    expect(build.status, build.stdout + build.stderr).toBe(0);
-
-    const port = 4300 + Math.floor(Math.random() * 500);
-    // The build root is the repository, so the standalone server sits at the fixture's path inside it.
-    const standalone = join(fixture, ".next/standalone");
-    const nested = join(standalone, ".artifacts", "env-inlining");
-    const home = existsSync(join(nested, "server.js")) ? nested : standalone;
-    const server = spawn("node", [join(home, "server.js")], {
-      cwd: home,
-      env: cleanEnv({ PORT: String(port), HOSTNAME: "127.0.0.1" }),
-      stdio: "ignore",
-    });
+    let server: ChildProcess | undefined;
     try {
+      writeFixture();
+      const build = spawnSync("node", [join(root, "node_modules/next/dist/bin/next"), "build"], {
+        cwd: fixture,
+        env: cleanEnv({ NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: key }),
+        encoding: "utf8",
+      });
+      expect(build.status, build.stdout + build.stderr).toBe(0);
+
+      const port = 4300 + Math.floor(Math.random() * 500);
+      // The build root is the repository, so the standalone server sits at the fixture's path inside it.
+      const standalone = join(fixture, ".next/standalone");
+      const nested = join(standalone, ".artifacts", "env-inlining");
+      const home = existsSync(join(nested, "server.js")) ? nested : standalone;
+      server = spawn("node", [join(home, "server.js")], {
+        cwd: home,
+        env: cleanEnv({ PORT: String(port), HOSTNAME: "127.0.0.1" }),
+        stdio: "ignore",
+      });
       const seen = await ask(port);
       expect(seen.publicOk).toBe(true);
       expect(seen.urlMatches).toBe(true);
@@ -95,7 +96,7 @@ describe("build time Supabase values", () => {
       // The secret key is never inlined: without it at runtime the server env is unconfigured.
       expect(seen.serverReason).toBe("unconfigured");
     } finally {
-      server.kill();
+      server?.kill();
       rmSync(fixture, { recursive: true, force: true });
     }
   }, 240_000);

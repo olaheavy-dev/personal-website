@@ -1,71 +1,77 @@
 /* Logo rail (src/components/logos/). Each logo is a CSS mask over a flat colour, so
    every company shows in one calm token colour and takes its own colour on hover.
-   Per logo: the file, the viewBox aspect and an optical nudge. The aspect and nudge
-   here must equal src/lib/logos.ts (logos.test.ts checks). Size is equal area:
-   width = unit * sqrt(aspect) * nudge, height = width / aspect, so a long wordmark
-   and a compact badge carry the same weight. The values sit in this file, not in a
-   style attribute, because the site's style policy blocks those. */
+   Per logo: the file, the viewBox aspect, an optical nudge and the width factor
+   (square root of the aspect, times the nudge). Aspect and nudge must equal
+   src/lib/logos.ts, and the factor must follow from them; logos.test.ts checks all
+   of it. Size is equal area: width = unit * factor, height = width / aspect, so a long
+   wordmark and a compact badge carry the same weight. Everything lives in this
+   stylesheet, so the rail needs no style attributes. */
 @layer components {
   .logo-mark {
-    --logo-unit: calc(var(--space-6) * 1.4);
+    --logo-unit: calc(var(--space-6) * 1.25);
     --logo-colour: var(--color-text-tertiary);
     display: block;
     flex: none;
-    width: calc(var(--logo-unit) * sqrt(var(--logo-aspect)) * var(--logo-nudge));
+    width: calc(var(--logo-unit) * var(--logo-width-factor));
     aspect-ratio: var(--logo-aspect);
     background-color: var(--logo-colour);
-    mask: var(--logo-src) center / contain no-repeat;
+    mask: var(--logo-src) left center / contain no-repeat;
   }
 
   [data-logo="hbk"] {
     --logo-src: url("/logos/hbk.svg");
     --logo-aspect: 2.913;
-    --logo-nudge: 0.95;
+    --logo-nudge: 1.1;
+    --logo-width-factor: 1.8774;
     --logo-hover: var(--color-logo-hbk);
   }
   [data-logo="mukuru"] {
     --logo-src: url("/logos/mukuru.svg");
     --logo-aspect: 3.193;
     --logo-nudge: 1.1;
+    --logo-width-factor: 1.9656;
     --logo-hover: var(--color-logo-mukuru);
   }
   [data-logo="ulesson"] {
     --logo-src: url("/logos/ulesson-mono.svg");
     --logo-aspect: 5.92;
     --logo-nudge: 1;
+    --logo-width-factor: 2.4331;
     --logo-hover: var(--color-logo-ulesson);
   }
   [data-logo="optty"] {
     --logo-src: url("/logos/optty.svg");
     --logo-aspect: 2.673;
     --logo-nudge: 0.88;
+    --logo-width-factor: 1.4387;
     --logo-hover: var(--color-logo-optty);
   }
   [data-logo="stanbic-ibtc"] {
     --logo-src: url("/logos/stanbic-ibtc-mono.svg");
     --logo-aspect: 3.673;
-    --logo-nudge: 1.15;
+    --logo-nudge: 1.25;
+    --logo-width-factor: 2.3956;
     --logo-hover: var(--color-logo-stanbic-ibtc);
   }
   [data-logo="access-bank"] {
     --logo-src: url("/logos/access-bank.svg");
     --logo-aspect: 4.098;
     --logo-nudge: 1.12;
+    --logo-width-factor: 2.2673;
     --logo-hover: var(--color-logo-access-bank);
   }
   [data-logo="galooli"] {
     --logo-src: url("/logos/galooli.svg");
     --logo-aspect: 3.279;
     --logo-nudge: 1.15;
+    --logo-width-factor: 2.0824;
     --logo-hover: var(--color-logo-galooli);
   }
   [data-logo="deimos"] {
     --logo-src: url("/logos/deimos.svg");
     --logo-aspect: 6.882;
     --logo-nudge: 1;
-    --logo-hover: var(--color-logo-deimos);
-    /* The small "via Deimos" credit, not a client: much smaller than the rail. */
-    --logo-unit: calc(var(--space-6) * 0.5);
+    --logo-width-factor: 2.6234;
   }
 
   /* Windows high contrast and similar: the system picks the colours, and a mask over a
@@ -77,12 +83,17 @@
     }
   }
 
-  /* Phones: two columns of logos, the Deimos group on its own row below. */
+  /* Phones, in reading order: HBK alone, the Deimos group full width, then Stanbic IBTC,
+     Access Bank and Galooli spread across one row. */
   .logo-rail {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-5) var(--space-4);
+    grid-template-columns: repeat(3, auto);
+    justify-content: space-between;
     align-items: center;
+    gap: var(--space-5) var(--space-4);
+  }
+  .logo-rail > .logo-cell:first-child {
+    grid-column: 1 / -1;
   }
   .logo-cell {
     display: flex;
@@ -91,14 +102,11 @@
   }
   .logo-group {
     grid-column: 1 / -1;
-    order: 1;
-    display: flex;
-    flex-direction: column-reverse; /* logos above, the bracket and its label below */
+    display: grid;
     gap: var(--space-2);
-    width: 100%;
-    padding-top: var(--space-2);
   }
   .logo-group-list {
+    grid-row: 1;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -106,12 +114,16 @@
     gap: var(--space-3) var(--space-5);
   }
   .logo-group-label {
+    grid-row: 2;
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: var(--space-2);
     color: var(--color-text-tertiary);
   }
   .logo-group-label .logo-mark {
+    /* The small "via Deimos" credit: about 10 px tall, the label's cap height, at every width. */
+    --logo-unit: calc(var(--space-6) * 0.82);
     --logo-colour: currentColor;
   }
   /* The bracket: a line each side of the label, turned up at both ends, under the three
@@ -136,14 +148,21 @@
 
   /* md: three columns. HBK and the group on the first row, the other three below. */
   @media (min-width: 48rem) {
+    .logo-mark {
+      --logo-unit: calc(var(--space-6) * 1.4);
+    }
     .logo-rail {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      justify-content: normal;
       gap: var(--space-6) var(--space-5);
+    }
+    .logo-rail > .logo-cell:first-child {
+      grid-column: auto;
+      grid-row: 1;
     }
     .logo-group {
       grid-column: 2 / -1;
       grid-row: 1;
-      order: 0;
       width: fit-content;
     }
     .logo-group-list {
@@ -152,17 +171,57 @@
     }
   }
 
-  /* lg: one row, the group in its place between HBK and Stanbic IBTC. */
+  /* lg: one row of seven. The rail is a two row grid with a flexible spacer track between
+     every two logo tracks (all equal, so the gaps between neighbours are equal). The
+     group spans its three logos and the two spacers between them, and its rows and
+     columns are the rail's own (subgrid), so its logos share row 1 with the others and
+     the bracket in row 2 spans exactly those three logos. Spacer tracks, not
+     justify-content: space-between, because browsers place subgrid items unevenly
+     under space-between. */
   @media (min-width: 64rem) {
     .logo-rail {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-6);
+      grid-template-columns: auto repeat(6, minmax(var(--space-5), 1fr) auto);
+      grid-template-rows: auto auto;
+      justify-content: normal;
+      gap: var(--space-1) 0;
+    }
+    .logo-rail > .logo-cell {
+      grid-row: 1;
+    }
+    .logo-rail > [data-logo-cell="hbk"] {
+      grid-column: 1;
+    }
+    .logo-rail > [data-logo-cell="stanbic-ibtc"] {
+      grid-column: 9;
+    }
+    .logo-rail > [data-logo-cell="access-bank"] {
+      grid-column: 11;
+    }
+    .logo-rail > [data-logo-cell="galooli"] {
+      grid-column: 13;
     }
     .logo-group {
-      grid-column: auto;
-      grid-row: auto;
+      grid-column: 3 / span 5;
+      grid-row: 1 / span 2;
+      grid-template-columns: subgrid;
+      grid-template-rows: subgrid;
+      width: auto;
+      gap: var(--space-1) 0;
+    }
+    .logo-group-list {
+      display: contents;
+    }
+    .logo-group .logo-cell {
+      grid-row: 1;
+    }
+    .logo-group [data-logo-cell="mukuru"] {
+      grid-column: 1;
+    }
+    .logo-group [data-logo-cell="ulesson"] {
+      grid-column: 3;
+    }
+    .logo-group [data-logo-cell="optty"] {
+      grid-column: 5;
     }
   }
 

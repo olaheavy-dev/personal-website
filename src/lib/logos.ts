@@ -3,9 +3,10 @@
 // docs/references/logos.md), drawn through a CSS mask in one token colour.
 //
 // `aspect` is the file's viewBox width over height. `nudge` is a hand tuned correction
-// (0.85 to 1.15) applied on top of equal visual area, so a heavy mark and a light one
-// look the same size. The same two numbers, and the file, live in src/styles/logo-rail.css
-// (a style attribute would break the strict style policy); logos.test.ts keeps them equal.
+// (0.85 to 1.25) applied on top of equal visual area, so a heavy mark and a light one
+// look the same size. The same two numbers, the file and a precomputed width factor live in
+// src/styles/logo-rail.css, so the rail needs no style attributes and all its sizing sits in
+// one stylesheet; logos.test.ts keeps the two in step.
 
 export type LogoSlug =
   "hbk" | "mukuru" | "ulesson" | "optty" | "stanbic-ibtc" | "access-bank" | "galooli" | "deimos";
@@ -24,7 +25,7 @@ export interface Logo {
 }
 
 export const NUDGE_MIN = 0.85;
-export const NUDGE_MAX = 1.15;
+export const NUDGE_MAX = 1.25;
 
 export const deimos: Logo = {
   slug: "deimos",
@@ -34,7 +35,7 @@ export const deimos: Logo = {
   nudge: 1,
 };
 
-const hbk: Logo = { slug: "hbk", name: "HBK", file: "hbk.svg", aspect: 134 / 46, nudge: 0.95 };
+const hbk: Logo = { slug: "hbk", name: "HBK", file: "hbk.svg", aspect: 134 / 46, nudge: 1.1 };
 const mukuru: Logo = {
   slug: "mukuru",
   name: "Mukuru",
@@ -55,7 +56,7 @@ const stanbic: Logo = {
   name: "Stanbic IBTC",
   file: "stanbic-ibtc-mono.svg",
   aspect: 202 / 55,
-  nudge: 1.15,
+  nudge: 1.25,
 };
 const access: Logo = {
   slug: "access-bank",

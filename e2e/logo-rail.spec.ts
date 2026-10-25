@@ -11,6 +11,20 @@ const markColour = (page: Page, slug: string) =>
     .locator(`[data-logo-cell="${slug}"] .logo-mark`)
     .evaluate((el) => getComputedStyle(el).backgroundColor);
 
+type Box = { left: number; right: number; top: number; height: number };
+
+/** The seven client marks, in page order: HBK, the three Deimos clients, then the last three. */
+function clientBoxes(page: Page): Promise<Box[]> {
+  return rail(page)
+    .locator("[data-logo-cell] .logo-mark")
+    .evaluateAll((els) =>
+      els.map((el) => {
+        const box = el.getBoundingClientRect();
+        return { left: box.left, right: box.right, top: box.top, height: box.height };
+      }),
+    );
+}
+
 async function isDark(page: Page) {
   return page.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches);
 }
@@ -64,7 +78,8 @@ test.describe("logo rail", () => {
     expect(marks).toHaveLength(8);
     for (const mark of marks) {
       expect(mark.width, mark.logo!).toBeGreaterThan(20);
-      expect(mark.height, mark.logo!).toBeGreaterThan(5);
+      // Even the small "via Deimos" credit stays legible: about the label's cap height.
+      expect(mark.height, mark.logo!).toBeGreaterThanOrEqual(9);
       expect(mark.mask, mark.logo!).toContain(`/logos/`);
     }
     expect(failed).toEqual([]);
@@ -79,7 +94,7 @@ test.describe("logo rail", () => {
     const hovered = await markColour(page, "hbk");
     if (canHover) {
       // HBK's own colour from its logo file: teal blue in light, teal in dark.
-      expect(hovered).toBe((await isDark(page)) ? "rgb(46, 163, 159)" : "rgb(0, 96, 126)");
+      expect(hovered).toBe((await isDark(page)) ? "rgb(46, 163, 159)" : "rgb(0, 51, 90)");
       expect(hovered).not.toBe(rest);
     } else {
       expect(hovered).toBe(rest);
@@ -115,7 +130,8 @@ test.describe("logo rail", () => {
     expect(await duration()).toBeLessThan(0.001);
     // The colour still changes: only the fade goes.
     await page.locator('[data-logo-cell="hbk"]').hover();
-    expect(await markColour(page, "hbk")).not.toBe(await markColour(page, "galooli"));
+    const rest = await markColour(page, "galooli");
+    await expect.poll(() => markColour(page, "hbk")).not.toBe(rest);
   });
 
   test("keeps the logos visible under forced colours", async ({ page }) => {
@@ -162,6 +178,60 @@ test.describe("logo rail", () => {
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
     expect(heights).toHaveLength(7);
     for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+  });
+
+  test("at 1440 puts all seven logos on one line with equal gaps, and the bracket spans the middle three", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const boxes = await clientBoxes(page);
+    const centres = boxes.map((box) => box.top + box.height / 2);
+    expect(Math.max(...centres) - Math.min(...centres)).toBeLessThanOrEqual(2);
+    const gaps = boxes.slice(1).map((box, i) => box.left - boxes[i]!.right);
+    expect(gaps).toHaveLength(6);
+    expect(Math.max(...gaps) - Math.min(...gaps)).toBeLessThanOrEqual(4);
+    const label = await page.locator(".logo-group-label").boundingBox();
+    expect(Math.abs(label!.x - boxes[1]!.left)).toBeLessThanOrEqual(2);
+    expect(Math.abs(label!.x + label!.width - boxes[3]!.right)).toBeLessThanOrEqual(2);
+  });
+
+  test("at 768 keeps each row on one line and the bracket under its three logos", async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto("/");
+    const boxes = await clientBoxes(page);
+    const centre = (box: Box) => box.top + box.height / 2;
+    const first = [boxes[1]!, boxes[2]!, boxes[3]!].map(centre);
+    const second = [boxes[4]!, boxes[5]!, boxes[6]!].map(centre);
+    expect(Math.max(...first) - Math.min(...first)).toBeLessThanOrEqual(2);
+    expect(Math.max(...second) - Math.min(...second)).toBeLessThanOrEqual(2);
+    expect(second[0]!).toBeGreaterThan(first[0]! + 40);
+    const label = await page.locator(".logo-group-label").boundingBox();
+    expect(Math.abs(label!.x - boxes[1]!.left)).toBeLessThanOrEqual(2);
+    expect(Math.abs(label!.x + label!.width - boxes[3]!.right)).toBeLessThanOrEqual(2);
+  });
+
+  test("on a phone reads in order: HBK, then the Deimos group, then the last three", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto("/");
+    const boxes = await clientBoxes(page);
+    const rowOf = (box: Box) => Math.round((box.top + box.height / 2) / 30);
+    // Same order on screen as in the page: never above, and never to the left on the same row.
+    for (let i = 1; i < boxes.length; i++) {
+      const previous = boxes[i - 1]!;
+      const box = boxes[i]!;
+      const sameRow = Math.abs(box.top + box.height / 2 - (previous.top + previous.height / 2)) < 20;
+      expect(sameRow ? box.left > previous.left : box.top > previous.top, `logo ${i}`).toBe(true);
+    }
+    // HBK alone on row 1, left aligned; the three group logos share row 2; the rest row 3.
+    expect(boxes[0]!.left).toBeLessThan(40);
+    const rows = boxes.map(rowOf);
+    expect(rows[1]).toBe(rows[2]);
+    expect(rows[2]).toBe(rows[3]);
+    expect(rows[4]).toBe(rows[5]);
+    expect(rows[5]).toBe(rows[6]);
+    expect(rows[0]).toBeLessThan(rows[1]!);
+    expect(rows[3]).toBeLessThan(rows[4]!);
   });
 
   test("keeps the Deimos group together and in one piece", async ({ page }) => {

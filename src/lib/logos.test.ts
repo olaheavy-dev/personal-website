@@ -17,6 +17,7 @@ function cssRule(slug: string) {
     src: value("src"),
     aspect: Number(value("aspect")),
     nudge: Number(value("nudge")),
+    factor: Number(value("width-factor")),
     hover: value("hover"),
   };
 }
@@ -46,7 +47,7 @@ describe("logo list", () => {
     expect([...railSlugs].sort()).toEqual([...stopSlugs].sort());
   });
 
-  it("keeps every nudge between 0.85 and 1.15", () => {
+  it("keeps every nudge between 0.85 and 1.25", () => {
     for (const logo of allLogos) {
       expect(logo.nudge, logo.slug).toBeGreaterThanOrEqual(NUDGE_MIN);
       expect(logo.nudge, logo.slug).toBeLessThanOrEqual(NUDGE_MAX);
@@ -74,17 +75,20 @@ describe("logo styles", () => {
       expect(rule.src).toBe(`url("/logos/${logo.file}")`);
       expect(rule.aspect).toBeCloseTo(logo.aspect, 3);
       expect(rule.nudge).toBe(logo.nudge);
-      expect(rule.hover).toBe(`var(--color-logo-${logo.slug})`);
+      // The precomputed width factor (no sqrt() in the CSS, so every browser draws the rail).
+      expect(rule.factor).toBeCloseTo(Math.sqrt(logo.aspect) * logo.nudge, 3);
+      // The small Deimos credit is not a client cell, so it has no hover colour.
+      expect(rule.hover).toBe(logo === deimos ? undefined : `var(--color-logo-${logo.slug})`);
     },
   );
 
   it("sizes by equal area: width times height is the same for every client, apart from its nudge", () => {
-    // width = unit * sqrt(aspect) * nudge and height = width / aspect, so area = unit^2 * nudge^2.
+    // width = unit * factor and height = width / aspect, so area = unit^2 * nudge^2.
     const areas = allLogos
       .filter((logo) => logo !== deimos)
       .map((logo) => {
-        const { aspect, nudge } = cssRule(logo.slug);
-        const width = Math.sqrt(aspect) * nudge;
+        const { aspect, nudge, factor } = cssRule(logo.slug);
+        const width = factor;
         const height = width / aspect;
         return (width * height) / nudge ** 2;
       });
@@ -92,9 +96,8 @@ describe("logo styles", () => {
   });
 
   it("derives the size from a CSS formula, so no style attribute is needed", () => {
-    expect(css).toMatch(
-      /width: calc\(var\(--logo-unit\) \* sqrt\(var\(--logo-aspect\)\) \* var\(--logo-nudge\)\)/,
-    );
+    expect(css).toMatch(/width: calc\(var\(--logo-unit\) \* var\(--logo-width-factor\)\)/);
+    expect(css).not.toMatch(/sqrt\(/);
     expect(css).toMatch(/aspect-ratio: var\(--logo-aspect\)/);
   });
 });
@@ -109,6 +112,7 @@ describe("logo files", () => {
 });
 
 describe("logo hover colours", () => {
+  const clients = allLogos.filter((logo) => logo !== deimos);
   const blocks = (path: string) => {
     const text = read(path);
     const colours = (slug: string) =>
@@ -133,19 +137,20 @@ describe("logo hover colours", () => {
     "%s defines one token per company for light, dark and the system dark fallback",
     (path) => {
       const colours = blocks(path);
-      for (const logo of allLogos) expect(colours(logo.slug), logo.slug).toHaveLength(3);
+      for (const logo of clients) expect(colours(logo.slug), logo.slug).toHaveLength(3);
+      expect(colours("deimos")).toHaveLength(0);
     },
   );
 
   it("keeps both files' logo colours identical", () => {
     const a = blocks("src/styles/tokens.css");
     const b = blocks(".design/portfolio/DESIGN_TOKENS.css");
-    for (const logo of allLogos) expect(a(logo.slug), logo.slug).toEqual(b(logo.slug));
+    for (const logo of clients) expect(a(logo.slug), logo.slug).toEqual(b(logo.slug));
   });
 
   it("is readable on the page: at least 3:1 in light and in dark", () => {
     const colours = blocks("src/styles/tokens.css");
-    for (const logo of allLogos) {
+    for (const logo of clients) {
       const [light = "", dark = ""] = colours(logo.slug);
       if (light.startsWith("#"))
         expect(contrast(light, "#faf8f5"), `${logo.slug} light`).toBeGreaterThanOrEqual(3);

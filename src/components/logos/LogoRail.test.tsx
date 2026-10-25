@@ -44,6 +44,13 @@ describe("LogoRail", () => {
     }
   });
 
+  it("keeps list semantics on both lists", () => {
+    const { container } = render(<LogoRail />);
+    const lists = container.querySelectorAll("ul");
+    expect(lists).toHaveLength(2);
+    for (const list of lists) expect(list).toHaveAttribute("role", "list");
+  });
+
   it("has nothing to focus: no links, buttons or tab stops", () => {
     const { container } = render(<LogoRail />);
     expect(screen.queryAllByRole("link")).toHaveLength(0);

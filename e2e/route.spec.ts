@@ -359,10 +359,24 @@ test.describe("home journey", () => {
     await context.close();
   });
 
-  test("criterion 17c: no flash, the route is undrawn at first paint and then draws (1920 x 1440)", async ({
+  test("criterion 17d: below the first screen (1920 x 1080) the route waits undrawn, then draws once scrolled to", async ({
     page,
   }) => {
-    // Tall enough that the journey is on the first screen even with the logo rail above it.
+    // The logo rail pushes the journey below a 1080 px first screen.
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto("/");
+    const route = page.locator("#journey [data-route]");
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(500);
+    expect(await route.getAttribute("data-drawn")).toBeNull();
+    await page.locator("#journey").evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await expect(route).toHaveAttribute("data-drawn", "");
+  });
+
+  test("criterion 17c: no flash, the route is undrawn at first paint and then draws when on the first screen", async ({
+    page,
+  }) => {
+    // Tall enough (1920 x 1440) that the journey is on the first screen even with the logo rail above it.
     await page.setViewportSize({ width: 1920, height: 1440 });
     await page.goto("/", { waitUntil: "commit" });
     const pin = page.locator("#journey .route-pin").first();

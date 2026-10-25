@@ -43,6 +43,16 @@ GitHub creates a new package as private, and Watchtower can't pull a private ima
 
 After that, every merge to `main` rolls out on its own.
 
+## Security headers
+
+The app is the only source of the site's security headers (decision 0017). They are set in `next.config.ts` from `src/lib/security/headers.ts`: a Content Security Policy per kind of path, HSTS (`max-age=31536000`, no `includeSubDomains`, no `preload`), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and `X-Frame-Options`.
+
+- **Caddy today** also sets `X-Content-Type-Options`, `Referrer-Policy` and HSTS, with the same values, in the infra repository's `scripts/deploy-personal-website.sh`. Caddy's `header` directive replaces a header rather than adding a second one, so nothing is duplicated. An owner merged infra change will remove those three lines and keep `X-Robots-Tag` on staging, so the app stays the single source.
+- **Cloudflare:** Email Obfuscation, Rocket Loader and Web Analytics must stay off. Each injects script or loads from another origin, and the policy would block it.
+- **The smoke test checks them live.** `e2e/security.spec.ts` runs against staging in the post-deploy smoke: exact policy per path, every base header present, and no header repeated.
+- **Checking by hand:** `curl -sI https://staging.olaheavy.dev/` and look for one `Content-Security-Policy`, or scan the URL at securityheaders.com (target grade A).
+- **Adding a third party** (analytics, an embed, a font host): add its origin to `buildCsp` in `headers.ts` with a test, never `*`.
+
 ## Expected red runs
 
 - **Publish image: "main moved on".** When two merges land close together, the older commit's publish run fails on purpose, because `main` no longer points at it. The newer commit's run publishes, so nothing is lost.

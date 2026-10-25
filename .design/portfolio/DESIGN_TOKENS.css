@@ -193,7 +193,7 @@
   --color-accent-teal-text:      var(--teal-300);
   --color-accent-secondary:      var(--teal-400);
 
-  --color-route-line:     #4A4752;
+  --color-route-line:     var(--ink-400);
   --color-route-active:   var(--lilac-200);
   --color-route-pin:      var(--teal-400);
   --color-route-pin-ring: #131217;
@@ -241,7 +241,7 @@
     --color-accent-lilac: var(--lilac-200); --color-accent-lilac-soft: rgb(205 184 255 / 0.12); --color-accent-lilac-text: var(--lilac-200);
     --color-accent-teal: var(--teal-400); --color-accent-teal-soft: rgb(60 196 183 / 0.12); --color-accent-teal-text: var(--teal-300);
     --color-accent-secondary: var(--teal-400);
-    --color-route-line: #4A4752; --color-route-active: var(--lilac-200); --color-route-pin: var(--teal-400); --color-route-pin-ring: #131217;
+    --color-route-line: var(--ink-400); --color-route-active: var(--lilac-200); --color-route-pin: var(--teal-400); --color-route-pin-ring: #131217;
     --color-status-success: var(--green-400); --color-status-warning: var(--amber-400); --color-status-error: var(--red-400);
     --color-status-info: var(--lilac-200); --color-status-live: var(--teal-400);
     --color-surface-overlay: rgb(5 5 8 / 0.65); --color-selection-bg: rgb(205 184 255 / 0.35); --color-highlight: var(--lilac-200);
@@ -338,8 +338,10 @@
   --route-stroke: 3px;
   --route-dash: 0.1 8;               /* SVG stroke-dasharray: a zero length dash with round caps draws true round dots */
   --route-pin-size: 1.25rem;
-  --route-draw-duration: var(--duration-slow); /* one leg of the route drawing */
-  --route-plane-size: 1.5rem; /* paper plane riding a leg */
+  --route-draw-duration: var(--duration-slower); /* one leg of the route drawing */
+  --route-plane-size: 1.5rem; /* height of the paper plane riding a leg */
+  --route-halo-gap: 2px; /* page coloured gap between the current pin and its halo ring */
+  --route-halo-width: 2px; /* "you are here" ring around the current pin */
 
   /* Optical details: deliberate em-relative tweaks that scale with the type
      they sit in (hero name highlight, inline portrait, dotted mini-route) */

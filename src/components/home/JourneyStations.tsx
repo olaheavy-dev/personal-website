@@ -2,8 +2,8 @@ import { PlaneVehicle } from "@/components/route/PaperPlane";
 import { Route } from "@/components/route/Route";
 import { RoutePin } from "@/components/route/RoutePin";
 
-// Idea → Design → Build → Ship → Scale. Static in the hero slice; in the
-// "Home page complete" task each station links to evidence in a case study.
+// Idea → Design → Build → Ship → Scale, drawn as a Route. In the "Home page
+// complete" task each station links to evidence in a case study.
 const stations = [
   { name: "Idea", note: "Understand the problem with the people who face it." },
   { name: "Design", note: "Shape the experience through flows, prototypes and usability testing." },
@@ -27,7 +27,7 @@ export function JourneyStations() {
       </h2>
       <Route
         variant={{ base: "vertical", md: "horizontal" }}
-        className="mt-6 [--route-gap:var(--space-5)] md:[--route-gap:var(--space-4)]"
+        className="mt-6 [--route-gap:var(--space-5)] [--route-pin-offset:var(--space-1)] md:[--route-gap:var(--space-4)] md:[--route-pin-offset:0px]"
       >
         <ol className="grid gap-(--route-gap) md:grid-cols-5">
           {stations.map((station, index) => (

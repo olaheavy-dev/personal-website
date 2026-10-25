@@ -19,7 +19,12 @@ export interface RoutePinProps {
   tone?: PinTone;
   /** Position in the route, from 0: staggers the drawing so legs draw in order. */
   index?: number;
-  /** Rides the leg to the next stop and rests just before it. Not on an end pin. */
+  /**
+   * Rides the leg to the next stop and rests just before it. Not on an end pin.
+   * Note for the danfo and handover (#66): a vehicle that passes through a pin
+   * and carries on needs an additive "passes through" mode, since today a vehicle
+   * stays on the single leg that follows its pin.
+   */
   vehicle?: ReactNode;
   /** The last stop has no leg after it. Implied by tone "end"; use it for a last stop that is also the current one. */
   last?: boolean;

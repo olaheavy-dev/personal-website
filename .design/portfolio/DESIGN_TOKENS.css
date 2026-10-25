@@ -111,6 +111,7 @@
   --color-route-active:   var(--lilac-500);
   --color-route-pin:      var(--teal-500);
   --color-route-pin-ring: var(--ink-900);
+  --color-plane-paper: var(--paper-50); /* hero paper plane wings: white paper in both themes */
 
   /* Status */
   --color-status-success: var(--green-600);
@@ -327,6 +328,7 @@
   --duration-normal:  250ms;   /* hovers, chips */
   --duration-slow:    400ms;   /* reveals, sheets */
   --duration-slower:  600ms;   /* route drawing segments, camera moves start */
+  --duration-flight:  1400ms;  /* hero paper plane, idea to production */
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-in:      cubic-bezier(0.4, 0, 1, 1);
   --easing-out:     cubic-bezier(0.22, 1, 0.36, 1);   /* expo-out: signature */

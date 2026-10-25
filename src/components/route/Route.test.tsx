@@ -1,4 +1,5 @@
 import { act, render } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlaneVehicle } from "./PaperPlane";
 import { Route } from "./Route";
@@ -105,6 +106,83 @@ describe("Route", () => {
     for (const pin of container.querySelectorAll("[data-route-pin]")) {
       expect(pin.hasAttribute("data-reached")).toBe(true);
     }
+  });
+
+  it("criterion 4b: the route is armed once the observer mounts, and not before", () => {
+    const html = renderToStaticMarkup(stops());
+    // Server markup (and so a page whose script never loads) is the finished route.
+    expect(html).not.toContain("data-armed");
+    expect(html).not.toContain("data-drawn");
+    const { container } = render(stops());
+    expect(container.querySelector("[data-route]")!.hasAttribute("data-armed")).toBe(true);
+    const staticRoute = render(stops("static"));
+    expect(staticRoute.container.querySelector("[data-route]")!.hasAttribute("data-armed")).toBe(false);
+  });
+
+  it("progressive: a last pin nearer the page end than 40% of the viewport still completes the route", async () => {
+    const { container } = render(stops("progressive"));
+    const pins = Array.from(container.querySelectorAll<HTMLElement>("[data-route-pin]"));
+    const [pinObserver, endObserver] = observers as [FakeObserver, FakeObserver];
+    expect(endObserver.observed).toEqual([pins[2]]);
+    // Only the first pin passes the 40% line on a tall screen.
+    await fire(pinObserver, [
+      {
+        target: pins[0],
+        isIntersecting: true,
+        boundingClientRect: { top: 100 } as DOMRectReadOnly,
+        rootBounds: { bottom: 1920 } as DOMRectReadOnly,
+      },
+    ]);
+    expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, false, false]);
+    // The last pin is visible, just never above the line: everything is reached.
+    await fire(endObserver, [{ isIntersecting: true }]);
+    expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, true, true]);
+    expect(pinObserver.disconnected && endObserver.disconnected).toBe(true);
+  });
+
+  describe("waiting for the hero entrance", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+      Reflect.deleteProperty(document, "getAnimations");
+    });
+
+    function entrance(name: string, finished: Promise<unknown>) {
+      Object.defineProperty(document, "getAnimations", {
+        configurable: true,
+        value: () => [{ animationName: name, playState: "running", finished }],
+      });
+    }
+
+    it("criterion 2b: a running hero animation delays the draw until it finishes", async () => {
+      let land!: () => void;
+      entrance("mini-route-flight", new Promise<void>((resolve) => (land = resolve)));
+      const { container } = render(stops());
+      const route = container.querySelector("[data-route]")!;
+      await fire(observers[0]!, [{ isIntersecting: true }]);
+      expect(route.hasAttribute("data-drawn")).toBe(false);
+      await act(async () => land());
+      expect(route.hasAttribute("data-drawn")).toBe(true);
+    });
+
+    it("criterion 2c: an animation that never finishes is released by the timeout", async () => {
+      vi.useFakeTimers();
+      entrance("name-sweep", new Promise(() => undefined));
+      const { container } = render(stops());
+      const route = container.querySelector("[data-route]")!;
+      await fire(observers[0]!, [{ isIntersecting: true }]);
+      expect(route.hasAttribute("data-drawn")).toBe(false);
+      await act(async () => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(route.hasAttribute("data-drawn")).toBe(true);
+    });
+
+    it("ignores animations that are not the hero entrance", async () => {
+      entrance("some-scroll-driven-thing", new Promise(() => undefined));
+      const { container } = render(stops());
+      await fire(observers[0]!, [{ isIntersecting: true }]);
+      expect(container.querySelector("[data-route]")!.hasAttribute("data-drawn")).toBe(true);
+    });
   });
 
   it("static draws nothing and observes nothing", () => {

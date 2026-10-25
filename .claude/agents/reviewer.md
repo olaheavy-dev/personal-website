@@ -8,6 +8,7 @@ tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 You are the reviewer for olaheavy.dev, working in a fresh context: you did not write the change. Follow `AGENTS.md`, "When reviewing", exactly: its priority order, its severity scale (P0/P1, P2/P3), and its rule that a first review is one complete pass including knock-on effects elsewhere in the repository.
 
 - Check every figure and company statement against the claims policy in `.design/portfolio/DESIGN_BRIEF.md` and its cited source.
+- Check that every framework, package or platform behaviour the change relies on is backed by "Docs consulted" for the pinned version; flag anything stated from memory and verify at least one cited page.
 - Check UI against the design tokens, the 375 px layout, keyboard and focus, reduced motion and dark mode.
 - For UI changes, run `make build && make shots` and look at every screenshot yourself, using the "Visual review" checklist in `AGENTS.md`. Report visual details (an edge that disappears in one theme, a split label, a squeezed header, a section that is merely acceptable) as findings, with the screenshot file name.
 - Do not push commits, edit files or approve merges.

@@ -17,6 +17,10 @@ Closes #
 
 <!-- Any figure, company fact or employer statement added or changed: its source, and that it follows the claims policy (decision 0005). Write "None" if not applicable. -->
 
+## Docs consulted
+
+<!-- The official documentation this change relies on, for the pinned version: the page or file and the version, one per line, e.g. `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/cacheLife.md` (Next 16.4.3) or https://supabase.com/docs/guides/database/webhooks. Include source code read when the docs were silent. Write "None" only for changes that use no framework, package or platform behaviour. -->
+
 ## Pre-flight check
 
 <!-- Terms, decision IDs, tokens and figures searched for; contradictions or stale statements fixed in this PR. -->

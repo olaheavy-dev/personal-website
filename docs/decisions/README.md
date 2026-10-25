@@ -33,4 +33,5 @@ Every significant product, technical and working decision gets a record here, na
 | Contact email  | Set by `NEXT_PUBLIC_CONTACT_EMAIL`                                                                                                                                     |
 | Micro-motions  | Part of the motion system, not delights: they ship without a feature flag and respect reduced motion                                                                   |
 | Route layout   | Home stations run vertically on phones and horizontally from the md breakpoint; the `Route` component has no feature flag (it is the signature, not a page or delight) |
+| System pages   | The 404 and error pages have no feature flag; they are always on                                                                                                       |
 | Lab demo pages | Developer only pages such as `/_lab/route` exist only when the runtime variable `LAB_PAGES=1` (set by Playwright, never in the image); otherwise a real 404            |

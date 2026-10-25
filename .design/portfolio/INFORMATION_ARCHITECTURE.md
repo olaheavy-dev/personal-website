@@ -64,7 +64,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 
 ### Home `/` (≤ 5 viewports at 1440×900)
 1. **Hero:** "Hi, I'm [Sunkanmi]" (name as lilac object) + one-liner "I take products from idea to production, with AI built in." + **Email me** + "Ask me anything" (opens assistant) + availability chip (role openness + live UK time) + illustrated avatar (wave). *Answers the 5-second test.*
-2. **Logo rail:** HBK, Optty, Mukuru, uLesson, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
+2. **Logo rail:** HBK, Mukuru, uLesson, Optty, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
 3. **Journey stations:** Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
 4. **Selected stops:** 3 large tickets: HBK Aiana (production AI), Optty (payments), Foresight (AI product end-to-end), each with a sourced chip. "See the whole route →" `/work`. *Depth on the three strongest proofs.*
 5. **Lab & Writing (two-up):** Lab strip: Foresight / FastPilot / HomeScout mini cards; Latest writing: 3 Hashnode posts. Each half collapses if its flag is off. *Shows ongoing craft.*
@@ -72,7 +72,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 
 ### Work `/work`
 1. Title + one-line framing ("Ten years of production, from Lagos to the UK") + filter chips.
-2. Vertical route, newest first: HBK (2024 to now) → Deimos clients: Optty, Mukuru, uLesson (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
+2. Vertical route, newest first: HBK (2024 to now) → Deimos clients: Mukuru, uLesson, Optty (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
 3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy), stack.
 4. Cross-link band: "Building on my own time → Lab" (Foresight).
 5. Next stop contact band.
@@ -186,7 +186,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 
 | Concept | Label in UI | Notes |
 |---|---|---|
-| A job / engagement / project on the route | **Stop** (e.g. "Stop 03 · Optty") | Route metaphor; "Project" only in Lab |
+| A job / engagement / project on the route | **Stop** (e.g. "Stop 04 · Optty") | Route metaphor; "Project" only in Lab. Stops count up from the first job: Galooli 01, Access Bank 02, Stanbic IBTC 03, Optty 04, uLesson 05, Mukuru 06, HBK 07 ("Stop 07 · Now"). A stop keeps its number everywhere |
 | Card representing a stop | **Ticket** (internal name) | UI shows the stop name, not "ticket" |
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
 | Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |

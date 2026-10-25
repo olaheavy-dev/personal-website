@@ -14,14 +14,14 @@ export function HeroTickets() {
         notches="side"
         className="absolute inset-x-6 top-0"
         bodyPadding="px-5 pt-4 pb-16"
-        eyebrow="Stop 02 · Optty · via Deimos"
+        eyebrow="Stop 06 · Mukuru · via Deimos"
         aria-hidden="true"
       />
 
       {/* Current stop */}
       <Ticket
         tilt="front"
-        eyebrow="Stop 01 · Now"
+        eyebrow="Stop 07 · Now"
         badge="HBK"
         title="Advantage Insights"
         chips={

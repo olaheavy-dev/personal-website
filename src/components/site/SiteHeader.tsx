@@ -10,11 +10,17 @@ import { ThemeToggle } from "./ThemeToggle";
 // Sticky header: brand pill, the pill nav (desktop) or Menu (mobile), theme
 // toggle and Email me. Once the page scrolls it gains a soft backdrop and
 // shadow so it stays readable over content. The ⌘K trigger joins it in #20.
+//
+// The header's box never changes size, so nothing below it moves while the page
+// scrolls (it used to shrink its padding, which made the page 16 to 32 px shorter).
+// The condensed look is made without layout: the sticky offset is negative, so the
+// header parks a little above the viewport top, and the backdrop is a ::before layer
+// inset by the same amount, which only fades in.
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => setScrolled(window.scrollY > 16);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -23,15 +29,11 @@ export function SiteHeader() {
   return (
     <header
       data-scrolled={scrolled ? "" : undefined}
-      className={`sticky top-0 z-(--z-nav) transition-[background-color,box-shadow] duration-(--duration-normal) ${
-        scrolled ? "bg-bg-primary/85 shadow-sm backdrop-blur-md" : ""
+      className={`sticky -top-2 z-(--z-nav) before:absolute before:inset-x-0 before:inset-y-2 before:-z-10 before:bg-bg-primary/85 before:shadow-sm before:backdrop-blur-md before:transition-opacity before:duration-(--duration-normal) before:content-[''] md:-top-4 md:before:inset-y-4 ${
+        scrolled ? "before:opacity-100" : "before:opacity-0"
       }`}
     >
-      <div
-        className={`relative mx-auto flex w-full max-w-wide items-center justify-between gap-4 px-(--gutter) transition-[padding] duration-(--duration-normal) ${
-          scrolled ? "py-2" : "py-4 md:py-6"
-        }`}
-      >
+      <div className="relative mx-auto flex w-full max-w-wide items-center justify-between gap-4 px-(--gutter) py-4 md:py-6">
         <Link
           href="/"
           className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-full border border-border-strong bg-bg-elevated py-1 pr-4 pl-1 text-sm font-semibold"

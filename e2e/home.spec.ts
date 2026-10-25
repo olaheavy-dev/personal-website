@@ -65,4 +65,31 @@ test.describe("home", () => {
     await expect(skip).toBeFocused();
     await expect(skip).toBeInViewport();
   });
+
+  test("scrolling top to bottom does not shift the layout (cumulative layout shift under 0.01)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.evaluate(() => {
+      const w = window as unknown as { __cls: number };
+      w.__cls = 0;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) {
+          if (!entry.hadRecentInput) w.__cls += entry.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    const heightBefore = await page.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = 0; y <= heightBefore; y += 200) {
+      await page.evaluate((top) => window.scrollTo(0, top), y);
+      await page.waitForTimeout(60);
+    }
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(500);
+    const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
+    expect(cls).toBeLessThan(0.01);
+    // The cause of #71: the sticky header used to shrink, making the page shorter as it scrolled.
+    const heightAfter = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(heightAfter).toBe(heightBefore);
+  });
 });

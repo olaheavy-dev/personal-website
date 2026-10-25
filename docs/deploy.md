@@ -17,7 +17,7 @@ flowchart LR
 ```
 
 1. CI passes on `main` (`make check`, e2e and accessibility, dependency review, workflow lint).
-2. **Publish image** builds the image with the commit baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, checks that `/healthz` reports the commit, then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
+2. **Publish image** first checks the Supabase build values are present (see Environment below), builds the image with the commit and those values baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, checks that `/healthz` reports the commit, then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
 3. Watchtower on the VPS pulls the new `:main` and recreates only the `personal-website` container.
 4. **Post-deploy smoke** waits up to 15 minutes for `/healthz` to report the new commit, checks staging is hidden from search engines, then runs the Playwright journeys and axe against the live URL.
 
@@ -69,10 +69,28 @@ docker run --rm -p 127.0.0.1:3000:3000 --cap-drop ALL personal-website:local
 curl -s http://127.0.0.1:3000/healthz
 ```
 
+`make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image.
+
 ## Roll back
 
 Every published commit keeps its `:sha-<commit>` tag. To roll back, pin the Compose image to a known good `:sha-<commit>` on the server and run `docker compose up -d`, then fix forward on `main` and return the image to `:main`.
 
 ## Environment
 
-The site needs no runtime secrets yet. `NEXT_PUBLIC_*` values are build time, so they come from the build, not the server. When Supabase, Hashnode and the assistant arrive, their server-only keys go in `/home/apps/personal-website/.env` (mode 600) through the infra helper, never in this repository or the image.
+### Build values (public)
+
+`NEXT_PUBLIC_*` values are written into the build by Next.js, so the running container never reads them. They arrive like this:
+
+1. The owner stores `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as GitHub Actions **variables** (Settings, Secrets and variables, Actions, Variables). They are public by design.
+2. `publish.yml` first runs `scripts/check-build-env.mjs`, then passes both as `build-args` to the Docker build.
+3. The Dockerfile's build stage reads them as build arguments, runs the same check, and `next build` inlines them. The runtime stage never sees them.
+
+**The publish build fails without them.** The check refuses a missing URL, a URL that is not `https://<20 lowercase letters>.supabase.co`, and a key that does not start with `sb_publishable_`. Its message names the variable, never the value. Pull request builds in `ci.yml` have no such values on purpose: the app treats them as unconfigured. Only a local smoke build may skip the check, with `SUPABASE_OPTIONAL=1`.
+
+`src/lib/db/env.ts` must keep reading these with the full literal name (`process.env.NEXT_PUBLIC_SUPABASE_URL`), because Next only inlines literal names. `scripts/env-inlining.test.ts` builds a small app with dummy values, starts it without them and checks they are still read.
+
+`keep-alive.yml` reads one public row from `feature_flags` every day (06:17 UTC) with the publishable key, so the hosted project is never paused for inactivity. It fails if the row is missing, and can be run by hand from the Actions tab.
+
+### Runtime secrets (server only)
+
+The site needs no runtime secrets yet. When Supabase's secret key, Hashnode and the assistant arrive, their server-only keys go in `/home/apps/personal-website/.env` (mode 600) through the infra helper, never in this repository or the image.

@@ -15,7 +15,7 @@ export interface ErrorScreenProps {
 }
 
 const secondary =
-  "inline-flex min-h-11 items-center gap-2 rounded-full border border-border-strong px-6 py-3.5 font-medium transition-colors duration-150 hover:bg-bg-secondary";
+  "inline-flex min-h-11 items-center gap-2 rounded-full border border-border-strong px-6 py-3.5 text-base font-medium transition-colors duration-150 hover:bg-bg-secondary";
 
 // The shared error UI for error.tsx and global-error.tsx. It shows only fixed
 // copy and the digest: error.message can hold internal detail, so it never
@@ -39,12 +39,13 @@ export function ErrorScreen({ digest, onRetry, standalone = false }: ErrorScreen
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-accent-primary px-6 py-3.5 font-medium text-text-inverse transition-colors duration-150 hover:bg-accent-primary-hover active:bg-accent-primary-active"
+            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-accent-primary px-6 py-3.5 text-base font-medium text-text-inverse transition-colors duration-150 hover:bg-accent-primary-hover active:bg-accent-primary-active"
           >
             Try again
           </button>
           {standalone ? (
-            // A plain link: a full page load is the cleanest way out of a broken document.
+            // A plain link on purpose: a full page load is the cleanest way out of a broken document.
+            // eslint-disable-next-line @next/next/no-html-link-for-pages
             <a href="/" className={secondary}>
               Back to the start
             </a>

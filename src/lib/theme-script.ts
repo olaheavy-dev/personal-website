@@ -12,3 +12,17 @@ const ROUTE_FALLBACK_MS = 3000;
 // With no saved choice the stylesheet follows prefers-color-scheme, so there is
 // nothing to set for the theme. Shared by the root layout and the global error page.
 export const themeScript = `(function(){var h=document.documentElement;h.setAttribute("data-js","");setTimeout(function(){if(document.querySelector("[data-route]")&&!document.querySelector("[data-armed]"))h.setAttribute("data-route-fallback","")},${ROUTE_FALLBACK_MS});try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})()`;
+
+/**
+ * Applies the saved theme again. The global error page replaces the whole
+ * document, and React does not run a script it inserts, so the attribute the
+ * script set on the old <html> is gone. Call this in a layout effect there.
+ */
+export function applySavedTheme(): void {
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+  } catch {
+    // Storage blocked: the stylesheet follows the system theme.
+  }
+}

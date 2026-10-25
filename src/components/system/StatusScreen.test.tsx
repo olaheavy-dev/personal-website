@@ -6,14 +6,19 @@ import { StatusScreen } from "./StatusScreen";
 describe("StatusScreen", () => {
   it("criterion 3: renders one h1 inside main#main, with the eyebrow and lead", () => {
     const { container } = render(
-      <StatusScreen eyebrow="Eyebrow" title="The title" lead="The lead." actions={<a href="/">Go</a>} />,
+      <StatusScreen
+        eyebrow="Eyebrow"
+        title="The title"
+        lead="The lead."
+        actions={<button type="button">Go</button>}
+      />,
     );
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("The title");
     expect(container.querySelector("main#main")).toBeInTheDocument();
     expect(screen.getByText("Eyebrow")).toBeInTheDocument();
     expect(screen.getByText("The lead.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go" })).toBeInTheDocument();
   });
 
   it("makes the heading focusable by script only when it is given a ref", () => {

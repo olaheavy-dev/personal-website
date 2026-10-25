@@ -1,8 +1,9 @@
 "use client";
 
+import { useLayoutEffect } from "react";
 import { ErrorScreen } from "@/components/system/ErrorScreen";
 import { site } from "@/lib/site";
-import { themeScript } from "@/lib/theme-script";
+import { applySavedTheme, themeScript } from "@/lib/theme-script";
 import { fontVariables } from "./fonts";
 import "./globals.css";
 
@@ -13,6 +14,9 @@ import "./globals.css";
 // loads nothing from another origin, so a strict content security policy (#86)
 // allows it.
 export default function GlobalError({ error, retry }: { error: unknown; retry: () => void }) {
+  // The script below covers a server rendered load; when this replaces a page already
+  // on screen, the script is not run again, so apply the saved theme before paint.
+  useLayoutEffect(applySavedTheme, []);
   const digest =
     error && typeof error === "object" && "digest" in error && typeof error.digest === "string"
       ? error.digest

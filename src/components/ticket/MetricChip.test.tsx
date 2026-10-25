@@ -50,6 +50,52 @@ describe("MetricChip", () => {
     expect(popover.querySelector("a")).toBeNull();
   });
 
+  it.each([
+    ["90+", "Optty", 2023, "(Optty, 2023)"],
+    ["1M+", "Google Play", null, "(Google Play)"],
+    ["1M+", "Google Play", 2026, "(Google Play, 2026)"],
+    ["R2025X", "HBK", 2025, "(HBK, 2025)"],
+    ["2025 R4", "HBK", 2025, "(HBK)"],
+  ])("credits the claim: %s %s %s shows %s", (value, attribution, year, shown) => {
+    render(<MetricChip value={value} label="things" source={source} attribution={attribution} year={year} />);
+    expect(screen.getByText(shown)).toBeInTheDocument();
+  });
+
+  it("shows the day a link source was checked in the popover, and nothing for an own measurement", () => {
+    const { container, rerender } = render(
+      <MetricChip value="1M+" label="downloads" source={source} checkedOn="2026-10-05" />,
+    );
+    expect(container.querySelector("[popover]")).toHaveTextContent("Checked 5 Oct 2026");
+    rerender(
+      <MetricChip value="98" label="score" source={{ kind: "own", note: "Mobile" }} checkedOn="2026-10-05" />,
+    );
+    expect(container.querySelector("[popover]")).not.toHaveTextContent("Checked");
+  });
+
+  it("shows no credit for a claim without an attribution", () => {
+    render(
+      <MetricChip value="17" label="evaluation suites" source={source} attribution={null} year={2026} />,
+    );
+    expect(screen.queryByText(/^\((?!opens)/)).toBeNull();
+  });
+
+  it("never splits the figure, and keeps the credit on the line of the label's last word", () => {
+    render(
+      <MetricChip
+        value="2025 R4"
+        label="Aiana public launch"
+        source={source}
+        attribution="Optty"
+        year={2023}
+      />,
+    );
+    expect(screen.getByText("2025 R4")).toHaveClass("whitespace-nowrap");
+    const credit = screen.getByText("(Optty, 2023)");
+    const together = credit.parentElement;
+    expect(together).toHaveClass("whitespace-nowrap");
+    expect(together).toHaveTextContent(/^launch \(Optty, 2023\)$/);
+  });
+
   it("does not compile without a source", () => {
     // The claims policy in code: a figure can not be shown without where it is from.
     // @ts-expect-error `source` is required

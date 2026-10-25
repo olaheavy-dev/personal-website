@@ -96,6 +96,16 @@ on conflict (slug) do update set
   case_study_id = excluded.case_study_id, links_checked_on = excluded.links_checked_on,
   position = excluded.position, status = excluded.status;
 
+-- Home copy, approved by the owner on 25 Oct 2026 (issue #9). No pronouns. The same statements
+-- are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
+-- before this copy existed, because `db push --include-seed` skips a seed that has changed.
+update public.stops set summary = 'Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.' where slug = 'hbk';
+update public.stops set summary = 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.' where slug = 'optty';
+update public.stops set summary = 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.' where slug = 'access-bank';
+update public.lab_projects set summary = 'A personal finance workspace where AI agents check their own advice before it reaches you, and every number has a receipt.' where slug = 'foresight';
+update public.lab_projects set summary = 'A production RAG system for learning FastAPI: understand, watch, practise.' where slug = 'fastpilot';
+update public.lab_projects set summary = 'A home decision workspace for people buying or renting in England, at the research and concept stage.' where slug = 'homescout';
+
 -- Outcomes: only what the claims policy allows. None for Stanbic IBTC, Mukuru or uLesson.
 delete from public.outcomes
 where stop_id in (select id from public.stops where slug in ('access-bank', 'optty', 'galooli', 'hbk'))
@@ -105,11 +115,11 @@ insert into public.outcomes
   (stop_id, lab_project_id, position, figure, description, source_kind, source_label, source_url, checked_on, claim_scope, attribution, as_of_year)
 values
   ((select id from public.stops where slug = 'access-bank'), null, 1,
-    '1M+', 'Google Play downloads of the QuickBucks app',
+    '1M+', 'downloads of the QuickBucks app',
     'link', 'Google Play listing', 'https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks', date '2026-10-25',
     'company', 'Google Play', 2026),
   ((select id from public.stops where slug = 'optty'), null, 1,
-    '90+', 'BNPL and local payment methods across 120+ countries on the Optty platform',
+    '90+', 'BNPL and local payment methods across 120+ countries',
     'link', 'Optty and Triple-A announcement, 2023', 'https://triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies', date '2026-10-25',
     'company', 'Optty', 2023),
   ((select id from public.stops where slug = 'galooli'), null, 1,
@@ -117,7 +127,7 @@ values
     'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',
     'company', 'Galooli', 2021),
   ((select id from public.stops where slug = 'hbk'), null, 1,
-    '2025 R4', 'Aiana public launch in Advantage Insights',
+    '2025 R4', 'Aiana public launch',
     'link', 'HBK Advantage Insights release notes', 'https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights', date '2026-10-25',
     'company', 'HBK', 2025),
   (null, (select id from public.lab_projects where slug = 'foresight'), 1,

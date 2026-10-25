@@ -1,6 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import Home from "./page";
 
+// Selected stops is an async server component that reads the cached database queries; its own
+// tests are in components/home/SelectedStops.test.tsx. Here it only has to sit in the right place.
+vi.mock("@/components/home/SelectedStops", () => ({
+  SelectedStops: () => <section aria-label="Selected stops" />,
+}));
+
 describe("Home", () => {
   it("has one main heading that names the owner and the positioning line", () => {
     render(<Home />);
@@ -57,5 +63,12 @@ describe("Home", () => {
     const route = screen.getByRole("region", { name: /The route, every time/ });
     expect(hero.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(rail.compareDocumentPosition(route) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("puts Selected stops after the journey stations", () => {
+    render(<Home />);
+    const route = screen.getByRole("region", { name: /The route, every time/ });
+    const stops = screen.getByRole("region", { name: "Selected stops" });
+    expect(route.compareDocumentPosition(stops) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

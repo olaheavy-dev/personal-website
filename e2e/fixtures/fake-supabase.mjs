@@ -4,8 +4,10 @@
 // answer while the tests run.
 //
 //   GET  /rest/v1/feature_flags   the rows, or an error status while one is set
-//   GET  /__control               { flags, status, reads }
-//   POST /__control               { flags?: { key: "on" }, status?: 500, reset?: true }
+//   GET  /rest/v1/stops           the stops with their outcomes (fake-content.mjs)
+//   GET  /rest/v1/lab_projects    the lab projects with their outcomes
+//   GET  /__control               { flags, status, content, reads }
+//   POST /__control               { flags?: { key: "on" }, status?: 500, content?: "ok" | "empty" | "error", reset?: true }
 //
 // Run on its own with `node e2e/fixtures/fake-supabase.mjs`, or wrapped around a command
 // with `node e2e/fixtures/with-fake-supabase.mjs <command>`. It listens on 127.0.0.1 only
@@ -13,12 +15,14 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { defaultFlags, fakePort } from "./fake-constants.mjs";
+import { contentAnswer } from "./fake-content.mjs";
 
 export { defaultFlags, fakePort, fakePublishableKey, fakeUrl } from "./fake-constants.mjs";
 
 export function startFakeSupabase({ port = fakePort } = {}) {
   let flags = { ...defaultFlags };
   let status = null;
+  let content = "ok";
   let reads = 0;
 
   const server = createServer((request, response) => {
@@ -39,8 +43,12 @@ export function startFakeSupabase({ port = fakePort } = {}) {
       );
     }
 
+    const table = url.pathname.startsWith("/rest/v1/") ? url.pathname.slice("/rest/v1/".length) : null;
+    const answer = table && request.method === "GET" ? contentAnswer(table, content) : null;
+    if (answer) return send(answer.status, answer.body);
+
     if (url.pathname === "/__control") {
-      if (request.method === "GET") return send(200, { flags, status, reads });
+      if (request.method === "GET") return send(200, { flags, status, content, reads });
       if (request.method === "POST") {
         let text = "";
         request.on("data", (chunk) => (text += chunk));
@@ -50,10 +58,12 @@ export function startFakeSupabase({ port = fakePort } = {}) {
             if (body.reset) {
               flags = { ...defaultFlags };
               status = null;
+              content = "ok";
             }
             if (body.flags) flags = { ...body.flags };
             if ("status" in body) status = body.status;
-            send(200, { flags, status, reads });
+            if (body.content) content = body.content;
+            send(200, { flags, status, content, reads });
           } catch {
             send(400, { message: "bad control body" });
           }

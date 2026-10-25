@@ -73,7 +73,7 @@ curl -s http://127.0.0.1:3000/healthz
 
 `make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image: every gated page is baked Off, so the site is all 404s.
 
-The CI job `docker image` runs `make docker-build && make docker-check` on every pull request, so a file the image cannot see (`.dockerignore` keeps tests, docs and test-only config such as `playwright.config.ts` out) breaks the PR, not the publish run after merge.
+The CI job `docker image` runs `make docker-build && make docker-check` on every pull request, so a file the image cannot see (`.dockerignore` keeps tests (`*.test.*`, the Vitest configs), docs and test-only config such as `playwright.config.ts` out) breaks the PR, not the publish run after merge.
 
 ## Roll back
 

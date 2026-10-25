@@ -344,3 +344,19 @@ test("@flags the fake leaves the site as it found it", async ({ request }) => {
   const state = await (await request.get(`${fakeUrl}/__control`)).json();
   expect(state.flags).toEqual(defaultFlags);
 });
+
+test("@flags the fake content server answers empty or with an error on request, and is reset afterwards", async ({
+  request,
+}) => {
+  const post = (data: object) => request.post(`${fakeUrl}/__control`, { data });
+  try {
+    expect((await (await request.get(`${fakeUrl}/rest/v1/stops`)).json()).length).toBe(7);
+    await post({ content: "empty" });
+    expect(await (await request.get(`${fakeUrl}/rest/v1/stops`)).json()).toEqual([]);
+    await post({ content: "error" });
+    expect((await request.get(`${fakeUrl}/rest/v1/lab_projects`)).status()).toBe(500);
+  } finally {
+    await post({ reset: true });
+  }
+  expect((await request.get(`${fakeUrl}/rest/v1/lab_projects`)).status()).toBe(200);
+});

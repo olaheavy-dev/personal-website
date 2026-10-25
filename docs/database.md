@@ -4,14 +4,15 @@ The site's content, flags and travel data live in hosted Supabase (decision 0004
 
 ## How it fits together
 
-| Piece                          | What it is                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `supabase/migrations/*.sql`    | The schema: extensions and enums, tables and constraints, then grants and row level security     |
-| `supabase/seed.sql`            | The first content, from the claims policy only (decision 0005). Safe to run again                |
-| `supabase/tests/*.test.sql`    | pgTAP tests of the rules above (`make db-test`)                                                  |
-| `src/lib/db/database.types.ts` | Types generated from the schema (`make db-types`). Never edit by hand                            |
-| `src/lib/db/queries/*`         | Typed, cached reads for the pages                                                                |
-| `src/lib/db/admin.ts`          | The secret key client for the server (admin and webhooks later). ESLint limits who may import it |
+| Piece                          | What it is                                                                                                |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `supabase/migrations/*.sql`    | The schema: extensions and enums, tables and constraints, then grants and row level security              |
+| `supabase/seed.sql`            | The first content, from the claims policy only (decision 0005). Safe to run again                         |
+| `supabase/snippets/*.sql`      | One off statements for the owner to paste into the hosted SQL editor when a changed seed cannot be re-run |
+| `supabase/tests/*.test.sql`    | pgTAP tests of the rules above (`make db-test`)                                                           |
+| `src/lib/db/database.types.ts` | Types generated from the schema (`make db-types`). Never edit by hand                                     |
+| `src/lib/db/queries/*`         | Typed, cached reads for the pages                                                                         |
+| `src/lib/db/admin.ts`          | The secret key client for the server (admin and webhooks later). ESLint limits who may import it          |
 
 ## Keys
 
@@ -96,11 +97,11 @@ pnpm exec supabase db push --include-seed                    # applies the migra
 
 What a run does to a database that already has data:
 
-| Data                                                                                                                   | A re-run                                               |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `settings`, `feature_flags`                                                                                            | Inserts missing rows only. Never overwrites an edit    |
-| `stops`, `case_studies` (title and stop link), `case_study_sections` (title and position), `lab_projects`, `countries` | **Overwrites** the seeded columns with the seed values |
-| `outcomes` for the seeded stops and lab projects                                                                       | **Deletes and re-inserts** them                        |
+| Data                                                                                                                                                               | A re-run                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `settings`, `feature_flags`                                                                                                                                        | Inserts missing rows only. Never overwrites an edit    |
+| `stops` (including `summary`), `case_studies` (title and stop link), `case_study_sections` (title and position), `lab_projects` (including `summary`), `countries` | **Overwrites** the seeded columns with the seed values |
+| `outcomes` for the seeded stops and lab projects (figure, description, source)                                                                                     | **Deletes and re-inserts** them                        |
 
 To apply a changed seed on purpose, run the file yourself: `psql` with the dashboard connection string (Project Settings, Database, Connection string) and `-f supabase/seed.sql`, or paste it into the dashboard SQL editor. Before the admin (#26 and #27) ships, the seed must become insert only, so a re-run cannot revert admin edits.
 
@@ -160,7 +161,7 @@ To rotate the secret, change it on the server and in the hook's header, in that 
 
 ### In tests
 
-`make build` and `make e2e` do not use the hosted project. `e2e/fixtures/fake-supabase.mjs` is a small test only server that answers `feature_flags` like the public role does (On rows only). `make build` starts it so `next build` can read the flags, and Playwright starts it for the run. `make e2e-flags` runs the `@flags` journeys, which change its answer and call `/api/revalidate` like the webhook does; they run alone, one at a time, because they share that state.
+`make build` and `make e2e` do not use the hosted project. `e2e/fixtures/fake-supabase.mjs` is a small test only server that answers `feature_flags` like the public role does (On rows only), and `stops` and `lab_projects` with their outcomes from `e2e/fixtures/fake-content.mjs` (a unit test checks every figure, wording and link in it against `supabase/seed.sql`; `POST /__control {"content": "empty" | "error"}` switches its answer). `make build` starts it so `next build` can read the flags, and Playwright starts it for the run. `make e2e-flags` runs the `@flags` journeys, which change its answer and call `/api/revalidate` like the webhook does; they run alone, one at a time, because they share that state.
 
 ## Backups
 

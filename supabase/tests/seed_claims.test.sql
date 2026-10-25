@@ -57,6 +57,35 @@ select results_eq(
   'company figures are attributed and dated'
 );
 
+-- The approved home copy (issue #9, 25 Oct 2026) is in the seed, word for word.
+select results_eq(
+  $$select slug, summary from public.stops where summary is not null order by slug$$,
+  $$values
+    ('access-bank', 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.'),
+    ('hbk', 'Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.'),
+    ('optty', 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.')$$,
+  'the three Selected stops have their approved summaries and no other stop has one'
+);
+
+select results_eq(
+  $$select slug, summary from public.lab_projects where summary is not null order by slug$$,
+  $$values
+    ('fastpilot', 'A production RAG system for learning FastAPI: understand, watch, practise.'),
+    ('foresight', 'A personal finance workspace where AI agents check their own advice before it reaches you, and every number has a receipt.'),
+    ('homescout', 'A home decision workspace for people buying or renting in England, at the research and concept stage.')$$,
+  'the three Lab strip projects have their approved summaries and SabiTutor has none'
+);
+
+select results_eq(
+  $$select s.slug, o.figure, o.description from public.outcomes o join public.stops s on s.id = o.stop_id
+    where s.slug in ('hbk','optty','access-bank') order by s.slug$$,
+  $$values
+    ('access-bank', '1M+', 'downloads of the QuickBucks app'),
+    ('hbk', '2025 R4', 'Aiana public launch'),
+    ('optty', '90+', 'BNPL and local payment methods across 120+ countries')$$,
+  'the three Selected stops chips have the approved short descriptions, one outcome each'
+);
+
 select is((select count(*) from public.case_studies where status = 'draft'), 4::bigint, 'four draft case studies');
 select is((select count(*) from public.case_studies where status <> 'draft'), 0::bigint, 'no published case study');
 select is((select count(*) from public.case_study_sections), 28::bigint, 'seven section titles per case study');

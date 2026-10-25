@@ -1,77 +1,151 @@
 import { readFileSync } from "node:fs";
-import { contentAnswer, labProjects, stops, type FakeRow } from "../e2e/fixtures/fake-content.mjs";
+import { contentAnswer, labProjects, stops } from "../e2e/fixtures/fake-content.mjs";
 
 // The e2e fake serves content rows. This proves none of them can carry a claim the seed does
-// not: every figure, wording, link, name and year in the fixture is read back out of
-// supabase/seed.sql (decision 0005, the claims policy).
+// not: the seed's stops, lab projects and outcomes are parsed into records, and every fixture
+// record must equal its seed record field by field (decision 0005, the claims policy).
 
 const seed = readFileSync("supabase/seed.sql", "utf8");
-const sql = (text: string) => `'${text.replaceAll("'", "''")}'`;
-const inSeed = (text: string) => seed.includes(sql(text));
+const code = seed
+  .split("\n")
+  .filter((line) => !line.trim().startsWith("--"))
+  .join("\n");
 
-function everyOutcome() {
-  return [...stops, ...labProjects].flatMap((row: FakeRow) =>
-    row.outcomes.map((outcome) => ({ row, outcome })),
+const text = (literal: string) => literal.slice(1, -1).replaceAll("''", "'");
+const nullable = (literal: string) => (literal === "null" ? null : text(literal));
+const quoted = String.raw`'(?:[^']|'')*'`;
+const orNull = String.raw`(?:${quoted}|null)`;
+
+type SeedOutcome = {
+  position: number;
+  figure: string;
+  description: string;
+  source_kind: string;
+  source_label: string;
+  source_url: string;
+  checked_on: string;
+  claim_scope: string;
+  attribution: string | null;
+  as_of_year: number | null;
+};
+
+/** Every seeded outcome, keyed "stop:<slug>:<position>" or "lab:<slug>:<position>". */
+function seededOutcomes() {
+  const block = code.slice(code.indexOf("insert into public.outcomes"));
+  const tuple = new RegExp(
+    String.raw`\(\s*(?:\(select id from public\.stops where slug = '([\w-]+)'\), null|null, \(select id from public\.lab_projects where slug = '([\w-]+)'\)), (\d+),\s+(${quoted}), (${quoted}),\s+'(link|own)', (${quoted}), (${quoted}), date '([\d-]+)',\s+'(\w+)', (${orNull}), (null|\d+)\)`,
+    "g",
   );
+  const records = new Map<string, SeedOutcome>();
+  for (const m of block.matchAll(tuple)) {
+    const [, stop, lab, position, figure, description, kind, label, url, checked, scope, attribution, year] =
+      m;
+    records.set(`${stop ? "stop" : "lab"}:${stop ?? lab}:${position}`, {
+      position: Number(position),
+      figure: text(figure!),
+      description: text(description!),
+      source_kind: kind!,
+      source_label: text(label!),
+      source_url: text(url!),
+      checked_on: checked!,
+      claim_scope: scope!,
+      attribution: nullable(attribution!),
+      as_of_year: year === "null" ? null : Number(year),
+    });
+  }
+  return records;
 }
 
+const fixtureOutcomes = () => [
+  ...stops.flatMap((row) => row.outcomes.map((outcome) => ({ key: `stop:${row.slug}`, outcome }))),
+  ...labProjects.flatMap((row) => row.outcomes.map((outcome) => ({ key: `lab:${row.slug}`, outcome }))),
+];
+
 describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
-  it("names only stops and lab projects that the seed seeds, with the seed's numbers and years", () => {
+  it("parses every seeded outcome (a guard for the parser itself)", () => {
+    expect(seededOutcomes().size).toBe(8);
+  });
+
+  it("equals the seed record for every stop: slug, name, kind, filters, years, via and summary", () => {
     for (const stop of stops) {
-      expect(inSeed(stop.slug), `${stop.slug} slug`).toBe(true);
-      expect(inSeed(stop.name), `${stop.slug} name`).toBe(true);
-      const seeded = new RegExp(
-        `\\('${stop.slug}', ${stop.number}, '${stop.name}', '${stop.kind}', '\\{${(stop.filters as string[]).join(",")}\\}', ${stop.start_year}, ${stop.end_year ?? "null"}, ${stop.via ? `'${stop.via}'` : "null"}, 'published'\\)`,
-      );
-      expect(seed, `${stop.slug} row`).toMatch(seeded);
+      const row = new RegExp(
+        String.raw`\('${stop.slug}', (\d+), '([^']+)', '(\w+)', '\{([\w,]+)\}', (\d+), (\d+|null), (${orNull}), 'published'\)`,
+      ).exec(code);
+      expect(row, `${stop.slug} is seeded`).not.toBeNull();
+      expect({
+        number: Number(row![1]),
+        name: row![2],
+        kind: row![3],
+        filters: row![4]!.split(","),
+        start_year: Number(row![5]),
+        end_year: row![6] === "null" ? null : Number(row![6]),
+        via: nullable(row![7]!),
+      }).toEqual({
+        number: stop.number,
+        name: stop.name,
+        kind: stop.kind,
+        filters: stop.filters,
+        start_year: stop.start_year,
+        end_year: stop.end_year,
+        via: stop.via,
+      });
+      const summary = new RegExp(
+        String.raw`update public\.stops set summary = (${quoted}) where slug = '${stop.slug}';`,
+      ).exec(code);
+      expect(summary ? text(summary[1]!) : null, `${stop.slug} summary`).toEqual(stop.summary);
     }
+  });
+
+  it("equals the seed record for every lab project: links, in_progress, position, checked date and summary", () => {
     for (const project of labProjects) {
-      expect(inSeed(project.slug), `${project.slug} slug`).toBe(true);
-      expect(inSeed(project.name), `${project.slug} name`).toBe(true);
-      for (const key of ["repo_url", "live_url", "video_url"] as const) {
-        const url = project[key] as string | null;
-        if (url) expect(inSeed(url), `${project.slug} ${key}`).toBe(true);
-      }
+      const row = new RegExp(
+        String.raw`\('${project.slug}', (${quoted}), (true|false), (${orNull}), (${orNull}), (${orNull}),\s+(?:\(select [^)]*\)|null), (?:date '([\d-]+)'|null), (\d+), 'published'\)`,
+      ).exec(code);
+      expect(row, `${project.slug} is seeded`).not.toBeNull();
+      expect({
+        name: text(row![1]!),
+        in_progress: row![2] === "true",
+        repo_url: nullable(row![3]!),
+        live_url: nullable(row![4]!),
+        video_url: nullable(row![5]!),
+        links_checked_on: row![6] ?? null,
+        position: Number(row![7]),
+      }).toEqual({
+        name: project.name,
+        in_progress: project.in_progress,
+        repo_url: project.repo_url,
+        live_url: project.live_url,
+        video_url: project.video_url,
+        links_checked_on: project.links_checked_on,
+        position: project.position,
+      });
+      const summary = new RegExp(
+        String.raw`update public\.lab_projects set summary = (${quoted}) where slug = '${project.slug}';`,
+      ).exec(code);
+      expect(summary ? text(summary[1]!) : null, `${project.slug} summary`).toEqual(project.summary);
     }
   });
 
-  it("carries a summary only where the seed sets exactly that summary", () => {
-    for (const row of [...stops, ...labProjects]) {
-      if (row.summary === null) continue;
-      const table = stops.includes(row) ? "stops" : "lab_projects";
-      expect(seed, `${row.slug} summary`).toContain(
-        `update public.${table} set summary = ${sql(row.summary)} where slug = '${row.slug}';`,
-      );
-    }
-  });
-
-  it("carries only outcomes that the seed seeds, figure, wording, source and attribution together", () => {
-    const outcomes = everyOutcome();
+  it("equals the seed record for every outcome, field by field, under the same owner and position", () => {
+    const seeded = seededOutcomes();
+    const outcomes = fixtureOutcomes();
     expect(outcomes.length).toBeGreaterThan(0);
-    for (const { row, outcome } of outcomes) {
-      const where = `${row.slug} outcome ${outcome.figure}`;
-      const line = [outcome.figure, outcome.description].map((text) => sql(text)).join(", ");
-      expect(seed, where).toContain(line);
-      expect(inSeed(outcome.source_label as string), `${where} label`).toBe(true);
-      expect(inSeed(outcome.source_url as string), `${where} url`).toBe(true);
-      const claim = outcome.attribution
-        ? `'${outcome.claim_scope}', ${sql(outcome.attribution)}, ${outcome.as_of_year}`
-        : `'${outcome.claim_scope}', null, null`;
-      expect(seed, `${where} scope`).toContain(claim);
+    for (const { key, outcome } of outcomes) {
+      const record = seeded.get(`${key}:${outcome.position}`);
+      expect(record, `${key}:${outcome.position} is in the seed`).toBeDefined();
+      expect({
+        position: outcome.position,
+        figure: outcome.figure,
+        description: outcome.description,
+        source_kind: outcome.source_kind,
+        source_label: outcome.source_label,
+        source_url: outcome.source_url,
+        checked_on: outcome.checked_on,
+        claim_scope: outcome.claim_scope,
+        attribution: outcome.attribution,
+        as_of_year: outcome.as_of_year,
+      }).toEqual(record);
     }
-  });
-
-  it("belongs to the right owner: each figure sits under the same stop or project as in the seed", () => {
-    const seeded = [
-      ...seed.matchAll(
-        /^\s+(?:\(\(select id from public\.\w+ where slug = '([\w-]+)'\)|\(null, \(select id from public\.\w+ where slug = '([\w-]+)'\)), (?:null, )?\d,\n\s+'([^']+)'/gm,
-      ),
-    ];
-    const fixture = everyOutcome().map(({ row, outcome }) => `${row.slug}:${outcome.figure}`);
-    const seededPairs = new Set(seeded.map((match) => `${match[1] ?? match[2]}:${match[3]}`));
-    expect(seededPairs.size).toBeGreaterThan(0);
-    for (const pair of fixture)
-      expect(seededPairs.has(pair), `${pair} under the same owner in the seed`).toBe(true);
   });
 
   it("answers like PostgREST: rows, an empty array, or a 500, and nothing for other tables", () => {

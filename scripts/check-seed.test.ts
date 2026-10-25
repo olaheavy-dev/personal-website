@@ -97,7 +97,17 @@ describe("supabase/seed.sql", () => {
       expect(code, `${slug} in the seed`).toContain(statement);
       expect(snippet, `${slug} in the snippet`).toContain(statement);
     }
-    expect([...snippet.matchAll(/^update /gm)]).toHaveLength(6);
+    expect([...snippet.matchAll(/^update public\.(?:stops|lab_projects) /gm)]).toHaveLength(6);
+
+    // Each outcome statement sets the description the seed inserts for the same stop and figure.
+    const statement =
+      /^update public\.outcomes set description = '([^']+)' where position = 1 and figure = '([^']+)' and stop_id = \(select id from public\.stops where slug = '([\w-]+)'\);$/gm;
+    const outcomeUpdates = [...snippet.matchAll(statement)];
+    expect(outcomeUpdates).toHaveLength(3);
+    for (const [, description, figure, slug] of outcomeUpdates) {
+      const row = `where slug = '${slug}'), null, 1,\n    '${figure}', '${description}',`;
+      expect(code, `${slug} outcome`).toContain(row);
+    }
   });
 
   it("starts with only the home flag on", () => {

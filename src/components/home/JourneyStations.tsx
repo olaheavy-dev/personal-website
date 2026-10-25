@@ -1,3 +1,4 @@
+import { SectionLabel } from "@/components/home/SectionLabel";
 import { PlaneVehicle } from "@/components/route/PaperPlane";
 import { Route } from "@/components/route/Route";
 import { RoutePin } from "@/components/route/RoutePin";
@@ -17,14 +18,8 @@ const stations = [
 
 export function JourneyStations() {
   return (
-    <section
-      id="journey"
-      aria-labelledby="journey-title"
-      className="mx-auto w-full max-w-wide px-(--gutter) pt-8"
-    >
-      <h2 id="journey-title" className="label-mono text-text-tertiary">
-        The route, every time
-      </h2>
+    <section id="journey" aria-labelledby="journey-title" className="mx-auto w-full max-w-wide px-(--gutter)">
+      <SectionLabel id="journey-title">The route, every time</SectionLabel>
       <Route
         variant={{ base: "vertical", md: "horizontal" }}
         className="mt-6 [--route-gap:var(--space-5)] [--route-pin-offset:var(--space-1)] md:[--route-gap:var(--space-4)] md:[--route-pin-offset:0px]"

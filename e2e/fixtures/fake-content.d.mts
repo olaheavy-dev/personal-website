@@ -1,8 +1,11 @@
 export type FakeOutcome = {
+  position: number;
   figure: string;
   description: string;
+  source_kind: string;
   source_label: string | null;
   source_url: string | null;
+  checked_on: string | null;
   attribution: string | null;
   as_of_year: number | null;
   claim_scope: string;
@@ -12,6 +15,18 @@ export type FakeRow = {
   name: string;
   summary: string | null;
   status: string;
+  number: number;
+  kind: string;
+  filters: string[];
+  start_year: number;
+  end_year: number | null;
+  via: string | null;
+  in_progress: boolean;
+  repo_url: string | null;
+  live_url: string | null;
+  video_url: string | null;
+  links_checked_on: string | null;
+  position: number;
   outcomes: FakeOutcome[];
   [column: string]: unknown;
 };

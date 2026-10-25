@@ -20,7 +20,26 @@ export type MetricSource =
       note: string;
     };
 
-export function SourceDisclosure({ figure, source }: { figure: string; source: MetricSource }) {
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-10-25" as "25 Oct 2026". Read from the text, so no time zone can move the day. */
+export function formatCheckedOn(isoDate: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  const month = match ? months[Number(match[2]) - 1] : undefined;
+  return match && month ? `${Number(match[3])} ${month} ${match[1]}` : null;
+}
+
+export function SourceDisclosure({
+  figure,
+  source,
+  checkedOn,
+}: {
+  figure: string;
+  source: MetricSource;
+  /** The day a link source was last opened, as YYYY-MM-DD. */
+  checkedOn?: string | null;
+}) {
+  const checked = checkedOn ? formatCheckedOn(checkedOn) : null;
   const id = useId();
   // Anchor names are dashed idents; React's ids contain characters CSS rejects.
   const anchor = `--source-${id.replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -70,6 +89,9 @@ export function SourceDisclosure({ figure, source }: { figure: string; source: M
             <span className="font-medium">Own measurement.</span> {source.note}
           </p>
         )}
+        {source.kind === "link" && checked ? (
+          <p className="mt-1 text-sm text-text-secondary">Checked {checked}</p>
+        ) : null}
         <button
           type="button"
           popoverTarget={id}

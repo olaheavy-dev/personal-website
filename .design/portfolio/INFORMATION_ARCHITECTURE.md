@@ -66,7 +66,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 1. **Hero:** "Hi, I'm [Sunkanmi]" (name as lilac object) + one-liner "I take products from idea to production, with AI built in." + **Email me** + "Ask me anything" (opens assistant) + availability chip (role openness + live UK time) + illustrated avatar (wave). *Answers the 5-second test.*
 2. **Logo rail:** HBK, Mukuru, uLesson, Optty, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
 3. **Journey stations:** Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
-4. **Selected stops:** 3 large tickets: HBK Aiana (production AI), Optty (payments), Foresight (AI product end-to-end), each with a sourced chip. "See the whole route →" `/work`. *Depth on the three strongest proofs.*
+4. **Selected stops:** 3 large tickets: HBK (production AI), Optty (payments) and Access Bank (regulated mobile banking), each with a sourced chip (owner decision, 25 Oct 2026; Foresight stays in the Lab strip). "See the whole route →" `/work`. *Depth on the three strongest proofs.*
 5. **Lab & Writing (two-up):** Lab strip: Foresight / FastPilot / HomeScout mini cards; Latest writing: 3 Hashnode posts. Each half collapses if its flag is off. *Shows ongoing craft.*
 6. **Next stop (contact band):** "Next stop: your product." Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 

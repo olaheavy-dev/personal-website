@@ -1,3 +1,4 @@
+import { SectionLabel } from "@/components/home/SectionLabel";
 import { LogoMark } from "@/components/logos/LogoMark";
 import { railItems, type Logo } from "@/lib/logos";
 
@@ -14,14 +15,8 @@ function Cell({ logo }: { logo: Logo }) {
 // role="list" keeps the list semantics in Safari, which drops them when list-style is none.
 export function LogoRail() {
   return (
-    <section
-      id="shipped"
-      aria-labelledby="shipped-title"
-      className="mx-auto w-full max-w-wide px-(--gutter) pt-4 pb-8 md:pb-10"
-    >
-      <h2 id="shipped-title" className="label-mono text-text-tertiary">
-        Where I&apos;ve shipped
-      </h2>
+    <section id="shipped" aria-labelledby="shipped-title" className="mx-auto w-full max-w-wide px-(--gutter)">
+      <SectionLabel id="shipped-title">Where I&apos;ve shipped</SectionLabel>
       <ul role="list" className="logo-rail mt-6">
         {railItems.map((item) =>
           item.kind === "logo" ? (

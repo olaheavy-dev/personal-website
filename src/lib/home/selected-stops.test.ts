@@ -1,7 +1,7 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, Outcome, Stop } from "@/lib/db/types";
 import type { CaseStudyEntry, PageEntry } from "@/lib/flags/registry";
-import { buildSelectedStops, stopEyebrow } from "./selected-stops";
+import { buildSelectedStops, chipYear, stopEyebrow } from "./selected-stops";
 
 const chip: Outcome = {
   id: "o1",
@@ -49,8 +49,22 @@ const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key
 describe("stopEyebrow", () => {
   it("follows the information architecture naming", () => {
     expect(stopEyebrow(hbk)).toBe("Stop 07 · Now");
-    expect(stopEyebrow(optty)).toBe("Stop 04 · Optty · via Deimos");
+    expect(stopEyebrow(optty)).toBe("Stop 04 · via Deimos");
+    expect(stopEyebrow(optty, { withName: true })).toBe("Stop 04 · Optty · via Deimos");
     expect(stopEyebrow(access)).toBe("Stop 02");
+  });
+});
+
+describe("chipYear", () => {
+  it("keeps the year of an older company claim and drops this year's", () => {
+    expect(chipYear(chip)).toBe(2023);
+    expect(chipYear({ ...chip, asOfYear: 2026 })).toBeNull();
+  });
+
+  it("shows no year without a year, a check date, or a company claim", () => {
+    expect(chipYear({ ...chip, asOfYear: null })).toBeNull();
+    expect(chipYear({ ...chip, checkedOn: null })).toBeNull();
+    expect(chipYear({ ...chip, scope: "personal" })).toBeNull();
   });
 });
 

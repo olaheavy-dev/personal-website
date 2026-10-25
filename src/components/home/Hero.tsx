@@ -8,7 +8,7 @@ export function Hero() {
   return (
     <section
       aria-labelledby="hero-title"
-      className="mx-auto grid w-full max-w-wide gap-12 px-(--gutter) pt-10 pb-12 md:pt-14 lg:grid-cols-12 lg:items-center lg:gap-8 lg:pb-16"
+      className="mx-auto grid w-full max-w-wide gap-12 px-(--gutter) pt-10 md:pt-14 lg:grid-cols-12 lg:items-center lg:gap-8"
     >
       <div className="lg:col-span-8">
         <AvailabilityChip />

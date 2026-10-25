@@ -76,6 +76,16 @@ select results_eq(
   'the three Lab strip projects have their approved summaries and SabiTutor has none'
 );
 
+select results_eq(
+  $$select s.slug, o.figure, o.description from public.outcomes o join public.stops s on s.id = o.stop_id
+    where s.slug in ('hbk','optty','access-bank') order by s.slug$$,
+  $$values
+    ('access-bank', '1M+', 'downloads of the QuickBucks app'),
+    ('hbk', '2025 R4', 'Aiana public launch'),
+    ('optty', '90+', 'BNPL and local payment methods across 120+ countries')$$,
+  'the three Selected stops chips have the approved short descriptions, one outcome each'
+);
+
 select is((select count(*) from public.case_studies where status = 'draft'), 4::bigint, 'four draft case studies');
 select is((select count(*) from public.case_studies where status <> 'draft'), 0::bigint, 'no published case study');
 select is((select count(*) from public.case_study_sections), 28::bigint, 'seven section titles per case study');

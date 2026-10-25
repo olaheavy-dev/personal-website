@@ -34,10 +34,19 @@ export type SelectedStopsModel = {
   routeLink: "/work" | null;
 };
 
-/** "Stop 07 · Now", "Stop 02", or "Stop 04 · Optty · via Deimos". */
-export function stopEyebrow(stop: Pick<Stop, "number" | "name" | "via" | "endYear">): string {
+/**
+ * "Stop 07 · Now", "Stop 02" or "Stop 04 · via Deimos". A ticket whose title is not the stop's
+ * name would pass `withName` to get "Stop 04 · Optty · via Deimos".
+ */
+export function stopEyebrow(
+  stop: Pick<Stop, "number" | "name" | "via" | "endYear">,
+  { withName = false }: { withName?: boolean } = {},
+): string {
   const parts = [`Stop ${String(stop.number).padStart(2, "0")}`];
-  if (stop.via) parts.push(stop.name, `via ${stop.via}`);
+  if (stop.via) {
+    if (withName) parts.push(stop.name);
+    parts.push(`via ${stop.via}`);
+  }
   if (stop.endYear === null) parts.push("Now");
   return parts.join(" · ");
 }
@@ -81,4 +90,13 @@ export function buildSelectedStops(
   }
   if (tickets.length === 0) return null;
   return { tickets, routeLink: workVisible ? "/work" : null };
+}
+
+/**
+ * The year a chip shows beside its attribution. A claim from this year needs no year ("Google
+ * Play"); an older one keeps it ("Optty, 2023"). Only company claims are attributed.
+ */
+export function chipYear(outcome: Outcome): number | null {
+  if (outcome.scope !== "company" || outcome.asOfYear === null || outcome.checkedOn === null) return null;
+  return outcome.asOfYear < Number(outcome.checkedOn.slice(0, 4)) ? outcome.asOfYear : null;
 }

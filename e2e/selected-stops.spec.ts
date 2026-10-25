@@ -1,6 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { fakeUrl } from "./fixtures/fake-constants.mjs";
 
 // Home, Selected stops (#9, PR 2). The rows come from the fake Supabase server
 // (e2e/fixtures/fake-content.mjs), which copies the seed.
@@ -18,7 +17,7 @@ test.describe("selected stops", () => {
     await expect(stops.getByRole("heading", { level: 2, name: "Selected stops" })).toBeVisible();
     await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["HBK", "Optty", "Access Bank"]);
     await expect(stops.getByText("Stop 07 · Now")).toBeVisible();
-    await expect(stops.getByText("Stop 04 · Optty · via Deimos")).toBeVisible();
+    await expect(stops.getByText("Stop 04 · via Deimos")).toBeVisible();
     await expect(stops.getByText("Stop 02", { exact: true })).toBeVisible();
     await expect(stops.getByText(/^Designing and building the Advantage Insights/)).toBeVisible();
     await expect(stops.getByText(/^Design and delivery of the integrations behind Optty's/)).toBeVisible();
@@ -31,7 +30,7 @@ test.describe("selected stops", () => {
     await expect(stops.getByRole("button", { name: /^Source for / })).toHaveCount(3);
     await expect(stops.getByText("(HBK)")).toBeVisible();
     await expect(stops.getByText("(Optty, 2023)")).toBeVisible();
-    await expect(stops.getByText("(Google Play, 2026)")).toBeVisible();
+    await expect(stops.getByText("(Google Play)")).toBeVisible();
   });
 
   test("links only to /work: no case study is live and the Work page is not either", async ({ page }) => {
@@ -77,6 +76,31 @@ test.describe("selected stops", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
+  test("spaces every home section by the same gap, down to the footer", async ({ page }) => {
+    await page.goto("/");
+    const gaps = await page.evaluate(() => {
+      const blocks = ["main > section:first-child", "#shipped", "#journey", "#selected-stops", "footer"].map(
+        (selector) => document.querySelector(selector)!.getBoundingClientRect(),
+      );
+      return blocks.slice(1).map((box, index) => Math.round(box.top - blocks[index]!.bottom));
+    });
+    expect(gaps).toHaveLength(4);
+    for (const gap of gaps) expect(Math.abs(gap - gaps[0]!)).toBeLessThanOrEqual(1);
+  });
+
+  test("marks the three home sections with one clearly visible label style", async ({ page }) => {
+    await page.goto("/");
+    const labels = await page
+      .locator("#shipped-title, #journey-title, #selected-stops-title")
+      .evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el)).map((s) => [s.fontSize, s.color, s.textTransform]),
+      );
+    expect(labels).toHaveLength(3);
+    expect(new Set(labels.map((label) => label.join("|"))).size).toBe(1);
+    expect(labels[0]![0]).toBe("14px");
+    expect(labels[0]![2]).toBe("uppercase");
+  });
+
   test("fits 375 px as well as 360 px", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");
@@ -100,6 +124,25 @@ test.describe("selected stops", () => {
     const results = await new AxeBuilder({ page }).withTags(tags).analyze();
     expect(results.violations).toEqual([]);
   });
+
+  test("has no accessibility violations with each source popover open", async ({ page }) => {
+    await page.goto("/");
+    await section(page).scrollIntoViewIfNeeded();
+    const triggers = section(page).getByRole("button", { name: /^Source for / });
+    await expect(triggers).toHaveCount(3);
+    for (let index = 0; index < 3; index += 1) {
+      // showPopover() opens it without a click that would scroll or move the pointer.
+      await triggers.nth(index).evaluate((button) => {
+        button.scrollIntoView({ block: "center" });
+        document.getElementById(button.getAttribute("popovertarget") ?? "")?.showPopover();
+      });
+      await expect(page.locator(".source-popover:popover-open")).toBeVisible();
+      const results = await new AxeBuilder({ page }).withTags(tags).analyze();
+      expect(results.violations, `popover ${index + 1}`).toEqual([]);
+      await page.keyboard.press("Escape");
+      await expect(page.locator(".source-popover:popover-open")).toHaveCount(0);
+    }
+  });
 });
 
 test.describe("selected stops without JavaScript", () => {
@@ -113,23 +156,5 @@ test.describe("selected stops without JavaScript", () => {
       "Access Bank",
     ]);
     await expect(section(page).getByText("(Optty, 2023)")).toBeVisible();
-  });
-});
-
-test.describe("the fake content server", () => {
-  test.skip(remote, "needs the fake Supabase server");
-
-  test("answers empty or with an error on request, and is reset afterwards", async ({ request }) => {
-    const post = (data: object) => request.post(`${fakeUrl}/__control`, { data });
-    try {
-      expect((await (await request.get(`${fakeUrl}/rest/v1/stops`)).json()).length).toBe(7);
-      await post({ content: "empty" });
-      expect(await (await request.get(`${fakeUrl}/rest/v1/stops`)).json()).toEqual([]);
-      await post({ content: "error" });
-      expect((await request.get(`${fakeUrl}/rest/v1/lab_projects`)).status()).toBe(500);
-    } finally {
-      await post({ reset: true });
-    }
-    expect((await request.get(`${fakeUrl}/rest/v1/lab_projects`)).status()).toBe(200);
   });
 });

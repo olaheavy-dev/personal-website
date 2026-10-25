@@ -54,10 +54,22 @@ describe("MetricChip", () => {
     ["90+", "Optty", 2023, "(Optty, 2023)"],
     ["1M+", "Google Play", null, "(Google Play)"],
     ["1M+", "Google Play", 2026, "(Google Play, 2026)"],
+    ["R2025X", "HBK", 2025, "(HBK, 2025)"],
     ["2025 R4", "HBK", 2025, "(HBK)"],
   ])("credits the claim: %s %s %s shows %s", (value, attribution, year, shown) => {
     render(<MetricChip value={value} label="things" source={source} attribution={attribution} year={year} />);
     expect(screen.getByText(shown)).toBeInTheDocument();
+  });
+
+  it("shows the day a link source was checked in the popover, and nothing for an own measurement", () => {
+    const { container, rerender } = render(
+      <MetricChip value="1M+" label="downloads" source={source} checkedOn="2026-10-05" />,
+    );
+    expect(container.querySelector("[popover]")).toHaveTextContent("Checked 5 Oct 2026");
+    rerender(
+      <MetricChip value="98" label="score" source={{ kind: "own", note: "Mobile" }} checkedOn="2026-10-05" />,
+    );
+    expect(container.querySelector("[popover]")).not.toHaveTextContent("Checked");
   });
 
   it("shows no credit for a claim without an attribution", () => {

@@ -13,6 +13,8 @@ export type MetricChipProps = {
   attribution?: string | null;
   /** The year the claim was true. Left out when the figure already holds it, as "2025 R4" does. */
   year?: number | null;
+  /** The day the source was last opened (YYYY-MM-DD), shown in the source popover. */
+  checkedOn?: string | null;
 };
 
 /** "(Optty, 2023)", "(Google Play)", or "(HBK)" when the figure already contains the year. */
@@ -22,15 +24,15 @@ export function attributionText(
   year?: number | null,
 ): string | null {
   if (!attribution) return null;
-  const showYear = year != null && !value.includes(String(year));
+  const showYear = year != null && !new RegExp(`\\b${year}\\b`).test(value);
   return `(${showYear ? `${attribution}, ${year}` : attribution})`;
 }
 
-export function MetricChip({ value, label, source, attribution, year }: MetricChipProps) {
+export function MetricChip({ value, label, source, attribution, year, checkedOn }: MetricChipProps) {
   const figure = `${value} ${label}`;
   const credit = attributionText(value, attribution, year);
   return (
-    <div className="inline-flex items-center gap-1 rounded-lg border border-border-primary py-0.5 pr-0.5 pl-3 text-sm">
+    <div className="inline-flex items-center gap-1 rounded-lg border border-border-strong py-0.5 pr-0.5 pl-3 text-sm">
       <span>
         <span className="font-semibold whitespace-nowrap">{value}</span> {label}
         {credit ? (
@@ -40,7 +42,7 @@ export function MetricChip({ value, label, source, attribution, year }: MetricCh
           </>
         ) : null}
       </span>
-      <SourceDisclosure figure={figure} source={source} />
+      <SourceDisclosure figure={figure} source={source} checkedOn={checkedOn} />
     </div>
   );
 }

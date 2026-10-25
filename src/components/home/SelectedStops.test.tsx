@@ -12,7 +12,7 @@ vi.mock("@/lib/db/queries/stops", () => ({ getStops: vi.fn() }));
 const outcome = (more: Partial<Outcome>): Outcome => ({
   id: "o",
   figure: "1M+",
-  description: "Google Play downloads of the QuickBucks app",
+  description: "downloads of the QuickBucks app",
   source: { kind: "link", label: "Google Play listing", url: "https://play.google.com/example" },
   checkedOn: "2026-10-25",
   scope: "company",
@@ -44,7 +44,7 @@ const opttyRow = stop("optty", 4, {
   outcomes: [
     outcome({
       figure: "90+",
-      description: "BNPL and local payment methods across 120+ countries on the Optty platform",
+      description: "BNPL and local payment methods across 120+ countries",
       attribution: "Optty",
       asOfYear: 2023,
     }),
@@ -56,7 +56,7 @@ const hbkRow = stop("hbk", 7, {
   outcomes: [
     outcome({
       figure: "2025 R4",
-      description: "Aiana public launch in Advantage Insights",
+      description: "Aiana public launch",
       attribution: "HBK",
       asOfYear: 2025,
     }),
@@ -86,7 +86,7 @@ describe("SelectedStopsView", () => {
   it("labels each ticket with its stop, as the information architecture names them", () => {
     const section = view();
     expect(within(section).getByText("Stop 07 · Now")).toBeInTheDocument();
-    expect(within(section).getByText("Stop 04 · Optty · via Deimos")).toBeInTheDocument();
+    expect(within(section).getByText("Stop 04 · via Deimos")).toBeInTheDocument();
     expect(within(section).getByText("Stop 02")).toBeInTheDocument();
   });
 
@@ -98,11 +98,10 @@ describe("SelectedStopsView", () => {
       HTMLElement,
     ];
     expect(hbk).toHaveTextContent("Summary of hbk.");
-    expect(hbk).toHaveTextContent("2025 R4 Aiana public launch in Advantage Insights (HBK)");
-    expect(optty).toHaveTextContent(
-      "90+ BNPL and local payment methods across 120+ countries on the Optty platform (Optty, 2023)",
-    );
-    expect(access).toHaveTextContent("1M+ Google Play downloads of the QuickBucks app (Google Play, 2026)");
+    expect(hbk).toHaveTextContent("2025 R4 Aiana public launch (HBK)");
+    expect(optty).toHaveTextContent("90+ BNPL and local payment methods across 120+ countries (Optty, 2023)");
+    expect(hbk).toHaveTextContent("Checked 25 Oct 2026");
+    expect(access).toHaveTextContent("1M+ downloads of the QuickBucks app (Google Play)");
     for (const ticket of [hbk, optty, access]) {
       expect(within(ticket).getAllByRole("button", { name: /^Source for / })).toHaveLength(1);
     }

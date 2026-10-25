@@ -100,7 +100,7 @@ export const stops = [
       {
         position: 1,
         figure: "1M+",
-        description: "Google Play downloads of the QuickBucks app",
+        description: "downloads of the QuickBucks app",
         source_kind: "link",
         source_label: "Google Play listing",
         source_url: "https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks",
@@ -138,7 +138,7 @@ export const stops = [
       {
         position: 1,
         figure: "90+",
-        description: "BNPL and local payment methods across 120+ countries on the Optty platform",
+        description: "BNPL and local payment methods across 120+ countries",
         source_kind: "link",
         source_label: "Optty and Triple-A announcement, 2023",
         source_url:
@@ -186,7 +186,7 @@ export const stops = [
       {
         position: 1,
         figure: "2025 R4",
-        description: "Aiana public launch in Advantage Insights",
+        description: "Aiana public launch",
         source_kind: "link",
         source_label: "HBK Advantage Insights release notes",
         source_url: "https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",

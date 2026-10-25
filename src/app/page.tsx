@@ -5,7 +5,7 @@ import { LogoRail } from "@/components/logos/LogoRail";
 
 export default function Home() {
   return (
-    <main id="main">
+    <main id="main" className="flex flex-col gap-(--section-gap)">
       <Hero />
       <LogoRail />
       <JourneyStations />

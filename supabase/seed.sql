@@ -115,11 +115,11 @@ insert into public.outcomes
   (stop_id, lab_project_id, position, figure, description, source_kind, source_label, source_url, checked_on, claim_scope, attribution, as_of_year)
 values
   ((select id from public.stops where slug = 'access-bank'), null, 1,
-    '1M+', 'Google Play downloads of the QuickBucks app',
+    '1M+', 'downloads of the QuickBucks app',
     'link', 'Google Play listing', 'https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks', date '2026-10-25',
     'company', 'Google Play', 2026),
   ((select id from public.stops where slug = 'optty'), null, 1,
-    '90+', 'BNPL and local payment methods across 120+ countries on the Optty platform',
+    '90+', 'BNPL and local payment methods across 120+ countries',
     'link', 'Optty and Triple-A announcement, 2023', 'https://triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies', date '2026-10-25',
     'company', 'Optty', 2023),
   ((select id from public.stops where slug = 'galooli'), null, 1,
@@ -127,7 +127,7 @@ values
     'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',
     'company', 'Galooli', 2021),
   ((select id from public.stops where slug = 'hbk'), null, 1,
-    '2025 R4', 'Aiana public launch in Advantage Insights',
+    '2025 R4', 'Aiana public launch',
     'link', 'HBK Advantage Insights release notes', 'https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights', date '2026-10-25',
     'company', 'HBK', 2025),
   (null, (select id from public.lab_projects where slug = 'foresight'), 1,

@@ -21,7 +21,7 @@ What an attacker could try, and what stands in the way:
 - **Data sent to another origin.** `connect-src 'self'`, `form-action 'self'`, `base-uri 'none'`.
 - **Plugins and old tricks.** `object-src 'none'`, `frame-src 'none'`, `nosniff`.
 - **Downgrade to http.** HSTS and `upgrade-insecure-requests`.
-- **The admin.** `/admin` is the one place with a login and write access. It gets the strict nonce policy, because it is always rendered per request anyway.
+- **The admin.** `/admin` is the one place with a login and write access. It is meant to get the strict nonce policy, but see the constraints under Consequences: with Cache Components it is not automatically rendered per request.
 
 ## Options
 
@@ -40,7 +40,7 @@ Option 3.
 - **HSTS** has no `includeSubDomains` and no `preload`. Subdomains such as `foresight` are not all this project's to commit to https, and preload is hard to undo. Preload is a separate decision at production launch.
 - **Enforced from the first merge**, not report only, and no reporting endpoint until error tracking exists (#55). The pages were checked first (see the spike in the pull request): nothing is blocked.
 - **No feature flag.** A flag that could switch security headers off would be a risk in itself. Rollback is pinning the `:sha-<commit>` image tag.
-- The app is the only source of these headers. Caddy also sets three of them today (see `docs/deploy.md`).
+- The app is the only source of these headers. Caddy also sets three of them today, and because Caddy's `header` block runs before `reverse_proxy` adds the app's headers, they would appear twice. Those three Caddy lines must be removed before or with the deploy (see `docs/deploy.md`).
 - **Not done here, as follow-up issues:** `Cross-Origin-Embedder-Policy` and Trusted Types.
 
 ## Consequences
@@ -49,3 +49,5 @@ Option 3.
 - Any new third party script, font, image host or embed needs a line in `buildCsp` and a test, so the policy grows on purpose. Cloudflare Email Obfuscation, Rocket Loader and Web Analytics must stay off, because each injects script or loads from another origin.
 - `scripts/check-budget.mjs` fails if one of the six listed pages stops being prerendered, so the assumption this decision rests on is guarded.
 - Revisit if the public site gains accounts, comments or any visitor content: then public pages move to a nonce policy, and the cache plan changes with it.
+- **The admin nonce plan has three constraints**, to settle in the "Admin shell + auth" task. With `cacheComponents: true`, Partial Prerendering is on for every route, so `/admin` gets a prerendered shell whose Next scripts carry no nonce, and the bundled guide says PPR and nonces do not mix. (1) The admin needs a nonce free shell (a separate root layout or route group), or a hash or `'unsafe-inline'` fallback for admin. (2) The root layout's theme script has no nonce, and reading `headers()` there would make every public page dynamic. (3) A nonce in `style-src` blocks the `style=""` attributes in PillNav and SourceDisclosure.
+- Trailing slash 308 redirects (for example `/work/`) are emitted before `headers()` runs and carry no security headers. They have no body, so this is accepted.

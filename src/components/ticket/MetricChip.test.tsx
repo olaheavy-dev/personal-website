@@ -50,6 +50,29 @@ describe("MetricChip", () => {
     expect(popover.querySelector("a")).toBeNull();
   });
 
+  it.each([
+    ["90+", "Optty", 2023, "(Optty, 2023)"],
+    ["1M+", "Google Play", null, "(Google Play)"],
+    ["1M+", "Google Play", 2026, "(Google Play, 2026)"],
+    ["2025 R4", "HBK", 2025, "(HBK)"],
+  ])("credits the claim: %s %s %s shows %s", (value, attribution, year, shown) => {
+    render(<MetricChip value={value} label="things" source={source} attribution={attribution} year={year} />);
+    expect(screen.getByText(shown)).toBeInTheDocument();
+  });
+
+  it("shows no credit for a claim without an attribution", () => {
+    render(
+      <MetricChip value="17" label="evaluation suites" source={source} attribution={null} year={2026} />,
+    );
+    expect(screen.queryByText(/^\((?!opens)/)).toBeNull();
+  });
+
+  it("never splits the figure or its credit across lines", () => {
+    render(<MetricChip value="2025 R4" label="launch" source={source} attribution="Optty" year={2023} />);
+    expect(screen.getByText("2025 R4")).toHaveClass("whitespace-nowrap");
+    expect(screen.getByText("(Optty, 2023)")).toHaveClass("whitespace-nowrap");
+  });
+
   it("does not compile without a source", () => {
     // The claims policy in code: a figure can not be shown without where it is from.
     // @ts-expect-error `source` is required

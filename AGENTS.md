@@ -62,7 +62,7 @@ The roster above follows the Claude models available today. **Whenever Anthropic
 
 1. Read the model's announcement and migration notes: capabilities, price per million tokens, speed, context size, and any breaking API changes.
 2. For each row (planner, implementer, verifier, reviewer, deep reviewer), decide whether the new model should take it, considering quality, cost and speed. Try it on one real task before switching.
-3. Check the site's own model use too (the Ask Sunkanmi assistant, decision 0009) against its evaluation set before changing it.
+3. The site's own assistant uses OpenAI models, not Claude (decision 0016), so it is reviewed separately: run its evaluation set against a new OpenAI model before switching.
 4. Record the outcome in a decision record (or a line in the register if nothing changes), then update this table, `.claude/agents/`, decision 0015 and `docs/references/third-party.md` in one pull request.
 
 ## Planning

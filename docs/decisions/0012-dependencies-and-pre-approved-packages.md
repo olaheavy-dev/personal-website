@@ -15,7 +15,7 @@ Packages add risk, weight and licence obligations; agents need to know what they
 
 ## Decision
 
-Pre-approved (add without asking, exact versions): `next`, `react`, `react-dom`, `typescript`, `tailwindcss` and `@tailwindcss/*`, `eslint` and `eslint-config-next`, `prettier` and `prettier-plugin-tailwindcss`, `vitest` and `@vitest/*`, `@vitejs/plugin-react`, `jsdom`, `@testing-library/*`, `@playwright/test`, `@axe-core/playwright`, `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `@anthropic-ai/sdk`, `langchain`, `@langchain/core`, `@langchain/anthropic`, `@langchain/community`, `langsmith`, `@langchain/textsplitters`, `@langchain/openai` (decision 0016), `three`, `@react-three/fiber`, `@react-three/drei`, `shiki`, and `@types/*` for these. Anything else needs the owner.
+Pre-approved (add without asking, exact versions): `next`, `react`, `react-dom`, `typescript`, `tailwindcss` and `@tailwindcss/*`, `eslint` and `eslint-config-next`, `prettier` and `prettier-plugin-tailwindcss`, `vitest` and `@vitest/*`, `@vitejs/plugin-react`, `jsdom`, `@testing-library/*`, `@playwright/test`, `@axe-core/playwright`, `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `@anthropic-ai/sdk`, `langchain`, `@langchain/core`, `@langchain/community`, `langsmith`, `@langchain/textsplitters`, `@langchain/openai` (decision 0016), `three`, `@react-three/fiber`, `@react-three/drei`, `shiki`, and `@types/*` for these. Anything else needs the owner.
 
 ## Consequences
 

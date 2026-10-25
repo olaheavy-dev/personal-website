@@ -64,10 +64,10 @@ test.describe("visual @visual", () => {
       await page.getByRole("button", { name: "Copy email" }).click();
       const footer = page.locator("section[aria-labelledby='next-stop-title']");
       await expect(footer.locator(".boarding-pass")).toBeVisible();
+      // The sticky site header would otherwise sit over the footer on short phones.
+      await page.addStyleTag({ content: "header { visibility: hidden; }" });
       await expect(footer).toHaveScreenshot(`footer-pass-${theme}.png`, {
         animations: "disabled",
-        // The sticky site header would otherwise sit over the footer on short phones.
-        style: "header { visibility: hidden; }",
         threshold: 0.05,
         maxDiffPixels: 25,
       });

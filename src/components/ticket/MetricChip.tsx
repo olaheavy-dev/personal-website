@@ -31,16 +31,21 @@ export function attributionText(
 export function MetricChip({ value, label, source, attribution, year, checkedOn }: MetricChipProps) {
   const figure = `${value} ${label}`;
   const credit = attributionText(value, attribution, year);
+  // The credit stays on the same line as the label's last word, so it never wraps alone.
+  const lastSpace = label.lastIndexOf(" ");
+  const lead = lastSpace === -1 ? "" : label.slice(0, lastSpace + 1);
+  const lastWord = label.slice(lastSpace + 1);
   return (
     <div className="inline-flex items-center gap-1 rounded-lg border border-border-strong py-0.5 pr-0.5 pl-3 text-sm">
       <span>
-        <span className="font-semibold whitespace-nowrap">{value}</span> {label}
+        <span className="font-semibold whitespace-nowrap">{value}</span> {lead}
         {credit ? (
-          <>
-            {" "}
-            <span className="whitespace-nowrap text-text-secondary">{credit}</span>
-          </>
-        ) : null}
+          <span className="whitespace-nowrap">
+            {lastWord} <span className="text-text-secondary">{credit}</span>
+          </span>
+        ) : (
+          lastWord
+        )}
       </span>
       <SourceDisclosure figure={figure} source={source} checkedOn={checkedOn} />
     </div>

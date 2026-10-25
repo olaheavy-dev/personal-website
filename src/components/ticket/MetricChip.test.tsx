@@ -79,10 +79,21 @@ describe("MetricChip", () => {
     expect(screen.queryByText(/^\((?!opens)/)).toBeNull();
   });
 
-  it("never splits the figure or its credit across lines", () => {
-    render(<MetricChip value="2025 R4" label="launch" source={source} attribution="Optty" year={2023} />);
+  it("never splits the figure, and keeps the credit on the line of the label's last word", () => {
+    render(
+      <MetricChip
+        value="2025 R4"
+        label="Aiana public launch"
+        source={source}
+        attribution="Optty"
+        year={2023}
+      />,
+    );
     expect(screen.getByText("2025 R4")).toHaveClass("whitespace-nowrap");
-    expect(screen.getByText("(Optty, 2023)")).toHaveClass("whitespace-nowrap");
+    const credit = screen.getByText("(Optty, 2023)");
+    const together = credit.parentElement;
+    expect(together).toHaveClass("whitespace-nowrap");
+    expect(together).toHaveTextContent(/^launch \(Optty, 2023\)$/);
   });
 
   it("does not compile without a source", () => {

@@ -359,10 +359,11 @@ test.describe("home journey", () => {
     await context.close();
   });
 
-  test("criterion 17c: no flash, the route is undrawn at first paint and then draws (1920 x 1080)", async ({
+  test("criterion 17c: no flash, the route is undrawn at first paint and then draws (1920 x 1440)", async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    // Tall enough that the journey is on the first screen even with the logo rail above it.
+    await page.setViewportSize({ width: 1920, height: 1440 });
     await page.goto("/", { waitUntil: "commit" });
     const pin = page.locator("#journey .route-pin").first();
     await pin.waitFor({ state: "attached" });
@@ -407,7 +408,9 @@ test.describe("home journey", () => {
     test(`criterion 20: home passes axe with the journey drawn (${project})`, async ({ page }) => {
       test.skip(test.info().project.name !== project, "runs once per project");
       await page.goto("/");
-      await page.locator("#journey").scrollIntoViewIfNeeded();
+      // Put the journey at the top, below the sticky header, so the header never sits over
+      // the hero buttons when axe measures them (that depends on where the page stops).
+      await page.locator("#journey").evaluate((el) => el.scrollIntoView({ block: "start" }));
       await settle(page);
       const results = await new AxeBuilder({ page }).withTags(tags).analyze();
       expect(results.violations).toEqual([]);

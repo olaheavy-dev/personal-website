@@ -18,6 +18,12 @@ Before using a package's API, read the official documentation for the **pinned**
 | Playwright                                         | 1.64.1                     | https://playwright.dev/docs/intro                                                         |
 | Playwright visual comparisons (`toHaveScreenshot`) | 1.64.1                     | https://playwright.dev/docs/test-snapshots                                                |
 | axe-core for Playwright                            | 4.14.0                     | https://playwright.dev/docs/accessibility-testing                                         |
+| Supabase CLI (`supabase`)                          | 2.122.0                    | https://supabase.com/docs/reference/cli/introduction                                      |
+| Supabase JS (`@supabase/supabase-js`)              | 2.118.0                    | https://supabase.com/docs/reference/javascript/introduction                               |
+| Supabase pgTAP testing                             | with the CLI               | https://supabase.com/docs/guides/local-development/testing/overview                       |
+| Supabase API keys (publishable and secret)         | n/a                        | https://supabase.com/docs/guides/api/api-keys                                             |
+| pgvector (in the `extensions` schema)              | with Postgres 17           | https://github.com/pgvector/pgvector#readme                                               |
+| Zod                                                | 4.6.7                      | https://zod.dev/                                                                          |
 
 ## GitHub Actions (pinned by commit SHA)
 

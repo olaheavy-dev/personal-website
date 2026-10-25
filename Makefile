@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install visual visual-accept shots docker-build docker-check clean
+.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -12,7 +12,7 @@ help: ## List the available commands
 install: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
 
-check: install lint dashes format-check typecheck coverage build budget ## Every gate CI runs on a pull request (except e2e)
+check: install lint dashes format-check typecheck coverage build budget client-secrets ## Every gate CI runs on a pull request (except e2e)
 
 lint: ## ESLint, zero warnings allowed
 	pnpm lint
@@ -41,6 +41,9 @@ build: ## Production build
 budget: ## Fail if a page exceeds its transfer budget (after build)
 	pnpm budget
 
+client-secrets: ## Fail if a server secret could reach the browser (after build)
+	node scripts/check-client-secrets.mjs
+
 e2e-install: ## Install the Playwright browser once
 	pnpm exec playwright install --with-deps chromium
 
@@ -65,6 +68,33 @@ docker-build: ## Build the production image locally as personal-website:local
 
 docker-check: ## Check the local image for private files and a root user
 	bash scripts/check-image.sh personal-website:local
+
+# The database targets need Docker. db-start runs Postgres only (no API, auth or studio),
+# which is all the schema tests need. See docs/database.md.
+db-start: ## Start the local Postgres in Docker (Postgres only)
+	pnpm exec supabase start -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+db-reset: ## Rebuild the local database from the migrations and the seed
+	pnpm exec supabase db reset
+
+db-test: ## pgTAP tests in supabase/tests
+	pnpm exec supabase test db
+
+db-lint: ## Lint the local schema (warnings fail)
+	pnpm exec supabase db lint --local --fail-on warning
+
+db-types: ## Regenerate src/lib/db/database.types.ts from the local database
+	pnpm exec supabase gen types typescript --local > src/lib/db/database.types.ts
+	pnpm exec prettier --write src/lib/db/database.types.ts
+
+db-check: db-start db-reset db-test db-lint ## Database gate: reset, pgTAP tests, lint, and generated types up to date
+	mkdir -p .artifacts
+	cp src/lib/db/database.types.ts .artifacts/database.types.committed.ts
+	$(MAKE) db-types
+	diff -u .artifacts/database.types.committed.ts src/lib/db/database.types.ts || { echo "database.types.ts is out of date: run make db-types and commit it"; exit 1; }
+
+db-stop: ## Stop the local database containers
+	pnpm exec supabase stop
 
 clean: ## Remove build and test output
 	rm -rf .next .artifacts coverage playwright-report test-results

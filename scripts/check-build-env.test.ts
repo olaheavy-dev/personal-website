@@ -7,8 +7,9 @@ const key = "sb_publishable_abc123";
 const script = join(resolve(__dirname), "check-build-env.mjs");
 
 function run(env: Record<string, string>) {
+  const clean = { PATH: process.env.PATH ?? "", ...env } as unknown as NodeJS.ProcessEnv;
   return spawnSync("node", [script], {
-    env: { PATH: process.env.PATH ?? "", ...env },
+    env: clean,
     encoding: "utf8",
   });
 }

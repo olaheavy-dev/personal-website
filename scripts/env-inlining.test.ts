@@ -17,7 +17,7 @@ function cleanEnv(extra: Record<string, string> = {}) {
   const env: Record<string, string | undefined> = { ...process.env };
   delete env.NODE_ENV;
   for (const name of names) delete env[name];
-  return { ...env, NEXT_TELEMETRY_DISABLED: "1", ...extra } as NodeJS.ProcessEnv;
+  return { ...env, NEXT_TELEMETRY_DISABLED: "1", ...extra } as unknown as NodeJS.ProcessEnv;
 }
 
 function writeFixture() {

@@ -1,7 +1,8 @@
 // Fails if a server secret could reach the browser (decision 0004).
 //
 //   1. The browser bundle (.next/static, after `make build`) must not contain a Supabase
-//      secret key, the names of the secret variables, or a JWT whose role is service_role.
+//      secret key, the names of the secret variables (including REVALIDATE_SECRET, which
+//      guards /api/revalidate), or a JWT whose role is service_role.
 //   2. No variable that starts with NEXT_PUBLIC_ may have SECRET or SERVICE_ROLE in its
 //      name, because Next.js would publish its value to every visitor.
 //   3. No file that starts with "use client" may import the secret key client.
@@ -13,7 +14,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 
 const secretKey = /sb_secret_[A-Za-z0-9_-]{8,}/;
-const secretNames = /SUPABASE_SECRET_KEY|SUPABASE_SERVICE_ROLE_KEY/;
+const secretNames = /SUPABASE_SECRET_KEY|SUPABASE_SERVICE_ROLE_KEY|REVALIDATE_SECRET/;
 const jwt = /eyJ[A-Za-z0-9_-]{5,}\.(eyJ[A-Za-z0-9_-]{5,})\.[A-Za-z0-9_-]*/g;
 const publicSecretName = /NEXT_PUBLIC_[A-Z0-9_]*(SECRET|SERVICE_ROLE)[A-Z0-9_]*/;
 const adminImport =

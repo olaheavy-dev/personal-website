@@ -3,7 +3,7 @@ import { fakeClient, type FakeResponse } from "../fake-client";
 import { createPublicClient } from "../public-client";
 import { failure, success } from "../result";
 import { getCaseStudy, loadCaseStudy } from "./case-studies";
-import { getFeatureFlags, isFlagOn, loadFlags } from "./flags";
+import { loadFlags } from "./flags";
 import { getLabProjects, loadLabProjects } from "./lab";
 import { getSettings, loadSettings } from "./settings";
 import { getStops, loadStops } from "./stops";
@@ -91,11 +91,9 @@ describe("the loaders", () => {
     });
   });
 
-  it("loadFlags maps rows and isFlagOn treats a missing key or a failure as off", async () => {
+  it("loadFlags maps rows to a key and state map, and reports a failed query", async () => {
     const flags = await loadFlags(fakeClient(ok([{ key: "page.home", state: "on" }])).client);
-    expect(isFlagOn(flags, "page.home")).toBe(true);
-    expect(isFlagOn(flags, "page.work")).toBe(false);
-    expect(isFlagOn(failure("query_failed", "x"), "page.home")).toBe(false);
+    expect(flags).toEqual({ ok: true, data: { "page.home": "on" } });
     expect(await loadFlags(fakeClient(broken).client)).toMatchObject({ ok: false });
   });
 
@@ -166,7 +164,6 @@ describe("the loaders", () => {
 describe("the cached readers", () => {
   const readers = [
     { name: "getStops", read: () => getStops(), tag: "stops", row: [stopRow] },
-    { name: "getFeatureFlags", read: () => getFeatureFlags(), tag: "flags", row: [] },
     { name: "getLabProjects", read: () => getLabProjects(), tag: "lab", row: [] },
     { name: "getCountries", read: () => getCountries(), tag: "travel", row: [] },
     {

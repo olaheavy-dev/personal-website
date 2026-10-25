@@ -182,6 +182,8 @@ Lab cards show evidence, not status badges: GitHub, a demo video or GIF, a write
 | Owner preview | 404 | Visible + "Preview" banner | Hidden | Excluded, `noindex` | Must not cite |
 | Off | 404 | 404 (admin link to enable) | Hidden | Excluded | Must not cite |
 
+Until the admin and Auth ship (#23), Preview behaves as Off for everyone: the owner cannot be told apart yet, so a Preview page is a 404 and the "Preview" banner does not exist (decision 0018).
+
 Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.travel`, `page.about`, `case.*` (per case study), `feature.assistant`, `feature.passport`, `feature.cmdk`, `feature.globe3d` (off → 2D map + list only). Home sections bound to a disabled page collapse without gaps.
 
 ## Naming Conventions

@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
+.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-flags e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -35,8 +35,8 @@ test: ## Unit and component tests (Vitest)
 coverage: ## Unit tests with coverage report in .artifacts/coverage
 	pnpm test:coverage
 
-build: ## Production build
-	pnpm build
+build: ## Production build, reading the flags from the fake Supabase server (e2e/fixtures); the image build uses the real project
+	node e2e/fixtures/with-fake-supabase.mjs pnpm build
 
 budget: ## Fail if a page exceeds its transfer budget (after build)
 	pnpm budget
@@ -47,8 +47,11 @@ client-secrets: ## Fail if a server secret could reach the browser (after build)
 e2e-install: ## Install the Playwright browser once
 	pnpm exec playwright install --with-deps chromium
 
-e2e: ## Browser journeys + axe accessibility against a production build
-	pnpm test:e2e --grep-invert @visual
+e2e: ## Browser journeys + axe accessibility against a production build (not @visual, not @flags)
+	pnpm test:e2e --grep-invert "@visual|@flags"
+
+e2e-flags: ## Flag journeys against the fake Supabase server, one at a time, because they change shared state (after build)
+	pnpm test:e2e --grep @flags --workers=1 --project=desktop-light --project=small-phone
 
 visual: ## Screenshot comparison against the Linux baselines (after build; CI runs it in the Playwright container)
 	pnpm test:e2e --grep @visual
@@ -69,7 +72,7 @@ docker-build: ## Build the production image locally as personal-website:local (u
 			--build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
 			-t personal-website:local .; \
 	else \
-		echo "docker-build: no Supabase values in the shell, so this is a local smoke build (SUPABASE_OPTIONAL=1). Never publish it."; \
+		echo "docker-build: no Supabase values in the shell, so this is a local smoke build (SUPABASE_OPTIONAL=1): every gated page is baked Off, so the site is all 404s. Never publish it."; \
 		docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) --build-arg SUPABASE_OPTIONAL=1 \
 			-t personal-website:local .; \
 	fi

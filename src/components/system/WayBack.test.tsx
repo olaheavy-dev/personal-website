@@ -1,19 +1,20 @@
 import { render, screen, within } from "@testing-library/react";
-import { navItems, wayBackLinks } from "@/lib/nav";
+import { pageRegistry } from "@/lib/flags/registry";
+import { wayBackLinks } from "@/lib/nav";
 import { WayBack } from "./WayBack";
 
-const withoutWork = navItems.filter((item) => item.href !== "/work");
+const withoutWork = pageRegistry.filter((item) => item.href !== "/work");
 
 describe("wayBackLinks", () => {
   it("criterion 10: offers Home and Work, and drops Work when it is not in the navigation", () => {
-    expect(wayBackLinks().map((link) => link.href)).toEqual(["/", "/work"]);
+    expect(wayBackLinks(pageRegistry).map((link) => link.href)).toEqual(["/", "/work"]);
     expect(wayBackLinks(withoutWork).map((link) => link.href)).toEqual(["/"]);
   });
 });
 
 describe("WayBack", () => {
   it("criterion 8: lists You are here, then Home and Work as real links", () => {
-    render(<WayBack />);
+    render(<WayBack items={pageRegistry} />);
     const list = screen.getByRole("list", { name: "The way back" });
     const items = within(list).getAllByRole("listitem");
     expect(items).toHaveLength(3);
@@ -32,7 +33,7 @@ describe("WayBack", () => {
   });
 
   it("puts the paper plane on the first leg only", () => {
-    const { container } = render(<WayBack />);
+    const { container } = render(<WayBack items={pageRegistry} />);
     const legs = container.querySelectorAll("[data-route-leg]");
     expect(legs).toHaveLength(2);
     expect(legs[0]!.querySelector(".route-plane")).not.toBeNull();
@@ -40,7 +41,7 @@ describe("WayBack", () => {
   });
 
   it("stands the lost avatar on the You are here stop, decorative, with the label as text", () => {
-    const { container } = render(<WayBack />);
+    const { container } = render(<WayBack items={pageRegistry} />);
     const pin = container.querySelector("[data-route-pin='here']")!;
     const avatar = pin.querySelector("[data-avatar]");
     expect(avatar).toHaveAttribute("data-pose", "lost");
@@ -49,7 +50,7 @@ describe("WayBack", () => {
   });
 
   it("shows an arrow after Home and Work that assistive technology skips", () => {
-    render(<WayBack />);
+    render(<WayBack items={pageRegistry} />);
     for (const name of [/Home/, /Work/]) {
       const link = screen.getByRole("link", { name });
       expect(link.querySelector("[aria-hidden='true']")).toHaveTextContent("→");

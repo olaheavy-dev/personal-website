@@ -1,18 +1,33 @@
-import { activeNavItem, navItems } from "./nav";
+import { activeNavItem, wayBackLinks } from "./nav";
+import { pageRegistry } from "./flags/registry";
 import { configuredProfiles, site } from "./site";
 
-describe("navItems", () => {
-  it("lists the five sections in navigation order", () => {
-    expect(navItems.map((item) => item.label)).toEqual(["Work", "Lab", "Writing", "Travel", "About"]);
+describe("activeNavItem", () => {
+  it("matches the exact path only (closes #87)", () => {
+    expect(activeNavItem("/work", pageRegistry)?.label).toBe("Work");
+    expect(activeNavItem("/work/nope", pageRegistry)).toBeUndefined();
+    expect(activeNavItem("/work/optty", pageRegistry)).toBeUndefined();
+    expect(activeNavItem("/workshop", pageRegistry)).toBeUndefined();
+    expect(activeNavItem("/", pageRegistry)).toBeUndefined();
+  });
+
+  it("finds nothing when the item is not in the list", () => {
+    expect(
+      activeNavItem(
+        "/work",
+        pageRegistry.filter((item) => item.href !== "/work"),
+      ),
+    ).toBeUndefined();
   });
 });
 
-describe("activeNavItem", () => {
-  it("matches a section and its sub-pages, but not look-alike paths", () => {
-    expect(activeNavItem("/work")?.label).toBe("Work");
-    expect(activeNavItem("/work/optty")?.label).toBe("Work");
-    expect(activeNavItem("/workshop")).toBeUndefined();
-    expect(activeNavItem("/")).toBeUndefined();
+describe("wayBackLinks", () => {
+  it("offers Home and Work, and drops Work when Work is hidden", () => {
+    expect(wayBackLinks(pageRegistry).map((link) => link.href)).toEqual(["/", "/work"]);
+    expect(wayBackLinks(pageRegistry.filter((item) => item.href !== "/work")).map((l) => l.href)).toEqual([
+      "/",
+    ]);
+    expect(wayBackLinks([]).map((link) => link.href)).toEqual(["/"]);
   });
 });
 

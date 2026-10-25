@@ -70,6 +70,8 @@ jobs:
       - name: Refuse to publish an image with private files or a root user
         run: bash scripts/check-image.sh personal-website:candidate
 
+      # The container runs with no Supabase variables at all, so "configured" can only mean the
+      # build wrote the values in. If it says "unconfigured", every gated page would be Off.
       - name: Serve /healthz from the candidate image
         env:
           CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -82,6 +84,12 @@ jobs:
           done
           echo "healthz: $body"
           if ! echo "$body" | grep -q "\"sha\":\"$CHECKED_SHA\""; then
+            docker logs candidate
+            docker rm -f candidate >/dev/null
+            exit 1
+          fi
+          if ! echo "$body" | grep -q '"supabase":"configured"'; then
+            echo "::error::The candidate image reports Supabase as unconfigured: the build values were not written into it."
             docker logs candidate
             docker rm -f candidate >/dev/null
             exit 1

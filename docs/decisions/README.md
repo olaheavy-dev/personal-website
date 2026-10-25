@@ -23,6 +23,7 @@ Every significant product, technical and working decision gets a record here, na
 | [0015](0015-fable-for-highest-stakes-reviews.md)          | Fable 5.1 for the highest-stakes reviews     | Accepted                             | 2026-10-24 |
 | [0016](0016-langchain-and-langsmith-for-the-assistant.md) | LangChain and LangSmith for the assistant    | Accepted                             | 2026-10-25 |
 | [0017](0017-content-security-policy.md)                   | Content Security Policy and security headers | Accepted                             | 2026-10-25 |
+| [0018](0018-how-flags-reach-prerendered-pages.md)         | How feature flags reach prerendered pages    | Accepted                             | 2026-10-25 |
 
 ## Easily reversible defaults
 
@@ -41,3 +42,5 @@ Every significant product, technical and working decision gets a record here, na
 | uLesson          | No figures, like Stanbic IBTC (issue #5, supersedes the two figures in the earlier brief)                                                                                              |
 | Database tooling | Supabase CLI with a local Docker Postgres, pgTAP tests, generated types checked in CI; the hosted project is changed only by the owner with `db push` (issue #5, docs/database.md)     |
 | Seeding          | `supabase/seed.sql` is idempotent: settings and flags are never overwritten on a re-run                                                                                                |
+| Flag cache       | `getFlags()` is cached for an hour (`cacheLife("hours")`) as a backstop; the Supabase webhook refreshes it at once (decision 0018, issue #6)                                           |
+| Preview flag     | Preview behaves as Off for everyone until Auth (#23) can tell the owner apart; the Preview banner moves to the admin shell task (decision 0018)                                        |

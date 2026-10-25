@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { activeNavItem, navItems } from "@/lib/nav";
+import { activeNavItem, type NavItem } from "@/lib/nav";
 
 // left/width: the active item's box; origin: where the first item starts (the
 // list's padding), so the label copy inside the pill lines up with the real labels.
@@ -15,9 +15,9 @@ type Indicator = { left: number; width: number; origin: number } | null;
 // every frame of the slide: dark on lilac inside the pill, light on dark
 // outside it. Before hydration (and with JavaScript off) the active link
 // carries the lilac itself, so the server HTML is already correct.
-export function PillNav() {
+export function PillNav({ items }: { items: readonly NavItem[] }) {
   const pathname = usePathname();
-  const active = activeNavItem(pathname);
+  const active = activeNavItem(pathname, items);
   const listRef = useRef<HTMLUListElement>(null);
   const [indicator, setIndicator] = useState<Indicator>(null);
 
@@ -32,11 +32,14 @@ export function PillNav() {
     );
   }, []);
 
-  useLayoutEffect(measure, [measure, pathname]);
+  useLayoutEffect(measure, [measure, pathname, items]);
   useEffect(() => {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [measure]);
+
+  // Every section switched off: no empty pill and no landmark with nothing in it.
+  if (items.length === 0) return null;
 
   return (
     <nav aria-label="Main" className="hidden md:block">
@@ -45,7 +48,7 @@ export function PillNav() {
         data-indicator={indicator ? "ready" : undefined}
         className="relative flex items-center gap-1 rounded-full border border-border-strong bg-bg-elevated p-1"
       >
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = item.href === active?.href;
           // Once the indicator is ready it shows the active state; the real
           // links keep one colour, so nothing changes colour mid-slide.
@@ -76,7 +79,7 @@ export function PillNav() {
               className="absolute top-0 flex h-full gap-1 transition-[left] duration-(--duration-normal) ease-out-expo motion-reduce:transition-none"
               style={{ left: indicator.origin - indicator.left }}
             >
-              {navItems.map((item) => (
+              {items.map((item) => (
                 <span
                   key={item.href}
                   className="inline-flex min-h-10 items-center px-4 text-sm font-medium whitespace-nowrap text-text-on-accent"
@@ -94,9 +97,9 @@ export function PillNav() {
 
 // Below 768 px: a Menu button with a disclosure panel. The bottom dock (#28)
 // replaces it later.
-export function MobileMenu() {
+export function MobileMenu({ items }: { items: readonly NavItem[] }) {
   const pathname = usePathname();
-  const active = activeNavItem(pathname);
+  const active = activeNavItem(pathname, items);
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelId = "mobile-menu";
@@ -120,6 +123,9 @@ export function MobileMenu() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // Nothing to open: no Menu button either.
+  if (items.length === 0) return null;
 
   return (
     <div className="md:hidden">
@@ -152,7 +158,7 @@ export function MobileMenu() {
         className="absolute inset-x-(--gutter) top-full mt-2 rounded-lg border border-border-strong bg-bg-elevated p-2 shadow-lg in-data-scrolled:mt-0"
       >
         <ul className="flex flex-col">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = item.href === active?.href;
             return (
               <li key={item.href}>

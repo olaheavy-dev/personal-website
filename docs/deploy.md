@@ -17,9 +17,9 @@ flowchart LR
 ```
 
 1. CI passes on `main` (`make check`, e2e and accessibility, dependency review, workflow lint).
-2. **Publish image** first checks the Supabase build values are present (see Environment below), builds the image with the commit and those values baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, checks that `/healthz` reports the commit, then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
+2. **Publish image** first checks the Supabase build values are present (see Environment below), builds the image with the commit and those values baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, runs the candidate image with no Supabase variables and checks that `/healthz` reports the commit and `"supabase":"configured"` (which proves the values were written into the build), then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
 3. Watchtower on the VPS pulls the new `:main` and recreates only the `personal-website` container.
-4. **Post-deploy smoke** waits up to 15 minutes for `/healthz` to report the new commit, checks staging is hidden from search engines, then runs the Playwright journeys and axe against the live URL.
+4. **Post-deploy smoke** waits up to 15 minutes for `/healthz` to report the new commit, checks it reports `"supabase":"configured"`, checks staging is hidden from search engines, then runs the Playwright journeys and axe against the live URL.
 
 ## Where it runs
 
@@ -27,7 +27,7 @@ flowchart LR
 | -------------- | --------------------------------------------------------------------------------------- |
 | Staging URL    | `https://staging.olaheavy.dev` (hidden from search engines by Caddy)                    |
 | Production URL | `https://olaheavy.dev` (later: one Caddy and DNS change promotes the same image)        |
-| Health         | `/healthz` returns `{"status":"ok","sha":"<commit>"}`                                   |
+| Health         | `/healthz` returns `{"status":"ok","sha":"<commit>","supabase":"configured"}`           |
 | Image          | `ghcr.io/olaheavy-dev/personal-website` (public)                                        |
 | Container      | `personal-website`, on `caddy_net`, no host ports, all capabilities dropped, non-root   |
 | Compose file   | `deploy/docker-compose.prod.yml` (owned here, copied to the server by the infra helper) |
@@ -51,6 +51,8 @@ The app is the only source of the site's security headers (decision 0017). They 
 - **`/_next/image`** responses carry Next's own, stricter policy (`script-src 'none'; frame-src 'none'; sandbox`) instead of ours. That is expected.
 - **Trailing slash redirects** (for example `/work/` to `/work`) are answered before the headers rules run, so those 308 responses carry no security headers. They have no body, which is accepted (decision 0017).
 - **Cloudflare:** Email Obfuscation, Rocket Loader and Web Analytics must stay off. Each injects script or loads from another origin, and the policy would block it.
+- **Cloudflare must not cache HTML for more than 60 seconds** (#54). A flag change refreshes the site's own pages at once, but an edge copy would keep showing the old page, and a hidden page's 404, until it expires (decision 0018).
+- **`/api/revalidate` counts wrong guesses per address from `X-Forwarded-For`**, and ignores `cf-connecting-ip`: staging is not behind Cloudflare (its DNS record is not proxied), so that header is always supplied by the caller. Without `trusted_proxies`, Caddy replaces a client's `X-Forwarded-For` with the connecting address, so the app reads its one entry. When #54 turns on the Cloudflare proxy: set Caddy `trusted_proxies` to Cloudflare's ranges, restrict the origin to Cloudflare, and only then switch the app to `cf-connecting-ip`. The secret is the real protection either way: a right secret is never limited, and a wrong one is never accepted.
 - **The smoke test checks them live.** `e2e/security.spec.ts` runs against staging in the post-deploy smoke: exact policy per path, every base header present, and no header repeated.
 - **Checking by hand:** `curl -sI https://staging.olaheavy.dev/` and look for one `Content-Security-Policy`, or scan the URL at securityheaders.com (target grade A).
 - **Adding a third party** (analytics, an embed, a font host): add its origin to `buildCsp` in `headers.ts` with a test, never `*`.
@@ -69,7 +71,7 @@ docker run --rm -p 127.0.0.1:3000:3000 --cap-drop ALL personal-website:local
 curl -s http://127.0.0.1:3000/healthz
 ```
 
-`make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image.
+`make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image: every gated page is baked Off, so the site is all 404s.
 
 ## Roll back
 
@@ -85,7 +87,9 @@ Every published commit keeps its `:sha-<commit>` tag. To roll back, pin the Comp
 2. `publish.yml` first runs `scripts/check-build-env.mjs`, then passes both as `build-args` to the Docker build.
 3. The Dockerfile's build stage reads them as build arguments, runs the same check, and `next build` inlines them. The runtime stage never sees them.
 
-**The publish build fails without them.** The check refuses a missing URL, a URL that is not `https://<20 lowercase letters>.supabase.co`, and a key that does not start with `sb_publishable_`. Its message names the variable, never the value. Pull request builds in `ci.yml` have no such values on purpose: the app treats them as unconfigured. Only a local smoke build may skip the check, with `SUPABASE_OPTIONAL=1`.
+**The publish build fails without them.** The check refuses a missing URL, a URL that is not `https://<20 lowercase letters>.supabase.co`, and a key that does not start with `sb_publishable_`. Its message names the variable, never the value. Pull request builds in `ci.yml` do not use the hosted project: `make build` reads the flags from the fake Supabase server in `e2e/fixtures/` (its address is written into that build only). Only a local smoke build may skip the check, with `SUPABASE_OPTIONAL=1`.
+
+**Flags are read at build time too.** `next build` reads `feature_flags` while it prerenders, so an image built with a wrong key or an unreachable project fails the build instead of baking in a site where every page is Off. `/healthz` shows `"supabase":"configured"` when the values are in the build; it is read at request time and never shows a value.
 
 `src/lib/db/env.ts` must keep reading these with the full literal name (`process.env.NEXT_PUBLIC_SUPABASE_URL`), because Next only inlines literal names. `NEXT_PUBLIC_CONTACT_EMAIL` is also a build value, but the Dockerfile and `publish.yml` do not pass it, so images use the fallback in `site.ts` unless it is passed the same way.
 
@@ -95,4 +99,6 @@ Every published commit keeps its `:sha-<commit>` tag. To roll back, pin the Comp
 
 ### Runtime secrets (server only)
 
-The site needs no runtime secrets yet. When Supabase's secret key, Hashnode and the assistant arrive, their server-only keys go in `/home/apps/personal-website/.env` (mode 600) through the infra helper, never in this repository or the image.
+`REVALIDATE_SECRET` is the first runtime secret. It guards `POST /api/revalidate`, which the Supabase Database Webhook calls when a feature flag changes (setup steps in `docs/database.md`). Until it is set the route answers 503 and flag changes reach the pages only through the one hour backstop. Make it with `openssl rand -hex 32`.
+
+When Supabase's secret key, Hashnode and the assistant arrive, their server-only keys go in `/home/apps/personal-website/.env` (mode 600) through the infra helper, never in this repository or the image.

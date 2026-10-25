@@ -8,6 +8,7 @@
 import { spawn } from "node:child_process";
 import { mkdir, rm } from "node:fs/promises";
 import { chromium } from "@playwright/test";
+import { startFakeSupabase } from "../e2e/fixtures/fake-supabase.mjs";
 
 const routes = process.argv.slice(2).length
   ? process.argv.slice(2)
@@ -23,6 +24,7 @@ const outDir = ".artifacts/screenshots";
 const port = 3220;
 const baseURL = process.env.SHOTS_BASE_URL ?? `http://127.0.0.1:${port}`;
 let server;
+let fake;
 
 async function waitFor(url, timeoutMs = 60_000) {
   const start = Date.now();
@@ -39,6 +41,8 @@ async function waitFor(url, timeoutMs = 60_000) {
 
 try {
   if (!process.env.SHOTS_BASE_URL) {
+    // The build read its flags from the fake Supabase server, so serve with it up (make build).
+    fake = await startFakeSupabase().catch(() => undefined); // already running: fine
     server = spawn("pnpm", ["serve"], {
       env: { ...process.env, PORT: String(port), HOSTNAME: "127.0.0.1" },
       stdio: "ignore",
@@ -71,4 +75,5 @@ try {
   console.log(`screenshots: ${routes.length * widths.length * themes.length} in ${outDir}`);
 } finally {
   if (server) process.kill(-server.pid);
+  await fake?.close();
 }

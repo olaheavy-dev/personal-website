@@ -56,6 +56,11 @@ jobs:
           echo "::error::Deploy did not reach $BASE_URL within 15 minutes (live: ${live:-unreachable})"
           exit 1
 
+      # The same check the publish workflow made on the candidate image, now on the live site.
+      - name: The live site has the Supabase values built in
+        if: ${{ steps.wait.outputs.superseded != 'true' }}
+        run: curl -sf "$BASE_URL/healthz" | grep -q '"supabase":"configured"'
+
       - name: Staging is hidden from search engines
         if: ${{ steps.wait.outputs.superseded != 'true' }}
         run: |

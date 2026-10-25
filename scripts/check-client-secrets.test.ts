@@ -18,6 +18,10 @@ describe("checkBundleText", () => {
     expect(checkBundleText("a.js", "process.env.SUPABASE_SERVICE_ROLE_KEY")).toHaveLength(1);
   });
 
+  it("rejects the name of the revalidate secret", () => {
+    expect(checkBundleText("a.js", "process.env.REVALIDATE_SECRET")).toHaveLength(1);
+  });
+
   it("rejects a service_role JWT but not an anon one", () => {
     expect(checkBundleText("a.js", `x("${jwt("service_role")}")`)).toHaveLength(1);
   });

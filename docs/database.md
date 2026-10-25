@@ -110,19 +110,57 @@ Then, in the dashboard: turn off sign-ups, confirm that only `public` is exposed
 
 Pages call the cached readers, never the database directly:
 
-| Reader                            | Returns                                     | Cache tag                           |
-| --------------------------------- | ------------------------------------------- | ----------------------------------- |
-| `getSettings()`                   | Site settings                               | `settings`                          |
-| `getFeatureFlags()`, `isFlagOn()` | Flags that are on (missing means off)       | `flags`                             |
-| `getStops()`                      | Published stops with their sourced outcomes | `stops`                             |
-| `getCaseStudy(slug)`              | One published case study, or `null`         | `case-studies`, `case-study:<slug>` |
-| `getLabProjects()`                | Published lab projects with outcomes        | `lab`                               |
-| `getCountries()`                  | Published countries with their trips        | `travel`                            |
+| Reader               | Returns                                     | Cache tag                           |
+| -------------------- | ------------------------------------------- | ----------------------------------- |
+| `getSettings()`      | Site settings                               | `settings`                          |
+| `getFlags()`         | Flags that are on (missing means off)       | `flags`                             |
+| `getStops()`         | Published stops with their sourced outcomes | `stops`                             |
+| `getCaseStudy(slug)` | One published case study, or `null`         | `case-studies`, `case-study:<slug>` |
+| `getLabProjects()`   | Published lab projects with outcomes        | `lab`                               |
+| `getCountries()`     | Published countries with their trips        | `travel`                            |
 
-- Each reader uses `'use cache'` and `cacheTag`. It keeps a good result for days (`cacheLife('days')`) and a failure for minutes (`cacheLife('minutes')`), so an outage heals quickly. The `seconds` profile is never used (it is never prerendered). Next.js docs: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md` and `.../04-functions/cacheLife.md`.
-- A reader never throws. It returns `{ ok: true, data }` or `{ ok: false, reason }` (`unconfigured`, `invalid_config`, `query_failed`, `invalid_data`). Show the empty state on `ok: false`.
+- Each reader except `getFlags()` uses `'use cache'` and `cacheTag`. It keeps a good result for days (`cacheLife('days')`) and a failure for minutes (`cacheLife('minutes')`), so an outage heals quickly. `getFlags()` follows its own rules (below). The `seconds` profile is never used (it is never prerendered). Next.js docs: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md` and `.../04-functions/cacheLife.md`.
+- A reader, except `getFlags()`, never throws. It returns `{ ok: true, data }` or `{ ok: false, reason }` (`unconfigured`, `invalid_config`, `query_failed`, `invalid_data`). Show the empty state on `ok: false`.
 - Each reader creates its client inside the cached function, so no client is shared across requests.
 - After an edit, call `revalidateTag` with the matching tag from `src/lib/db/tags.ts`.
+
+## Feature flags
+
+How a flag reaches the site is decision 0018. In short: the pages are prerendered from `getFlags()`, a cached read tagged `flags`, and a Supabase Database Webhook asks the site to refresh that cache when a flag changes.
+
+### The flag reader
+
+`getFlags()` (`src/lib/db/queries/flags.ts`) is the only reader that **throws**:
+
+- **Supabase not configured** (no URL or key at all): it returns an empty map, so every flagged page is Off. This is local development and unit tests without the variables.
+- **Configured and the read works**: the flags that are On, cached for an hour (`cacheLife("hours")`) as a backstop.
+- **Configured and the read fails**: it returns the last good flags this process read, cached for a minute so it tries again soon. If the process has never read them, it throws: `next build` fails (instead of baking in a site where every page is hidden) and a rebuild leaves the page as it was.
+
+The public role only sees flags that are On, so a missing key means Off, and Preview is never visible to a visitor. Until Auth (#23) Preview behaves as Off for everyone.
+
+### Set up the webhook (owner, once, after the first deploy that has `/api/revalidate`)
+
+The webhook is made by hand in the dashboard, never in a migration: its Authorization header holds a secret, and a migration would put that secret in this public repository. **Never run `supabase db pull`, and never share a schema dump** (`supabase db dump`, a dashboard export): the webhook trigger and its header, secret included, appear in any dump of the database, not only in a pull. It would write the webhook, header and secret included, into a migration file. `scripts/check-supabase-webhook.test.ts` fails if anything under `supabase/` contains `http_request` or `Authorization`, so a pull cannot be committed by accident.
+
+1. Make a secret: `openssl rand -hex 32`. Keep it in your password manager.
+2. Put it on the server, with the other runtime secrets (`docs/deploy.md`): add `REVALIDATE_SECRET=<the secret>` to `/home/apps/personal-website/.env` (mode 600) through the infra helper, then recreate the container so it reads it. Until it is set, `/api/revalidate` answers 503 and does nothing.
+3. In the Supabase dashboard, open **Integrations, Database Webhooks** (older dashboards: **Database, Webhooks**) and choose **Create a new hook** and set:
+   - **Name:** `revalidate_flags`
+   - **Table:** `public.feature_flags`
+   - **Events:** Insert, Update and Delete
+   - **Type of hook:** HTTP Request
+   - **Method:** `POST`
+   - **URL:** `https://staging.olaheavy.dev/api/revalidate` (staging and production share this project and these flags, so add a second hook with `https://olaheavy.dev/api/revalidate` once production is live)
+   - **HTTP headers:** keep `Content-Type: application/json`, and add `Authorization` with the value `Bearer <the secret>`
+   - **Timeout:** 5000 ms
+4. Test it: change one flag in the Table Editor (for example set `page.lab` to `off`), wait a couple of seconds, and open `/lab` (it should be a 404 and Lab should have left the navigation). Set it back to `on` and check Lab returns. **Delivery log:** Database, Webhooks, the hook's logs show each call and its status (200 is success; 401 means the secret differs; 503 means the server has no secret; 429 means more than 30 wrong attempts a minute from one address).
+5. If a webhook call is ever lost, the pages catch up within an hour on their own (the `cacheLife("hours")` backstop). To refresh at once, send the call by hand: `curl -X POST -H "Authorization: Bearer <the secret>" -H "Content-Type: application/json" -d '{"tag":"flags"}' https://staging.olaheavy.dev/api/revalidate`.
+
+To rotate the secret, change it on the server and in the hook's header, in that order, and recreate the container. Only a call with the right secret can refresh anything, and the route only accepts the `flags` tag.
+
+### In tests
+
+`make build` and `make e2e` do not use the hosted project. `e2e/fixtures/fake-supabase.mjs` is a small test only server that answers `feature_flags` like the public role does (On rows only). `make build` starts it so `next build` can read the flags, and Playwright starts it for the run. `make e2e-flags` runs the `@flags` journeys, which change its answer and call `/api/revalidate` like the webhook does; they run alone, one at a time, because they share that state.
 
 ## Backups
 

@@ -84,13 +84,39 @@ test("@flags Off gives the Wrong turn 404 after one revalidation, and the page d
   expect((await request.get("/work")).status()).toBe(200);
 });
 
-test("@flags a hidden page is indistinguishable from a mistyped URL", async ({ request }) => {
+test("@flags a hidden page answers like a mistyped URL: same status and robots header, nothing of its own", async ({
+  request,
+}) => {
+  // Not byte for byte: a hidden page is Next's static error shell (no lang, drawn in the
+  // browser), an unknown address is the prerendered 404. What must match is what a crawler or
+  // a visitor can tell: the status, the robots header, and no title or text from the page.
   await applyFlags(request, flagsWithout("page.lab"), "203.0.113.3");
   const hidden = await request.get("/lab");
   const mistyped = await request.get("/this-page-does-not-exist");
   expect(hidden.status()).toBe(mistyped.status());
   expect(hidden.headers()["x-robots-tag"]).toBe(mistyped.headers()["x-robots-tag"]);
-  expect(await hidden.text()).not.toContain("/lab");
+  const html = await hidden.text();
+  expect(html).not.toContain("Things I build to learn");
+  expect(html).not.toContain("Lab | Sunkanmi");
+  expect(html).toMatch(/<meta name="robots" content="[^"]*noindex/);
+});
+
+test("@flags after a revalidation the 404 never holds a visitor's address", async ({ request }) => {
+  // The 404 reads the flags, so it is rebuilt after each revalidation. Without the proxy's one
+  // fixed path it would be rebuilt for whichever address came first and then served to all.
+  await request.get("/first-missing-aaa");
+  await applyFlags(request, flagsWithout("page.lab"), "203.0.113.14");
+  const bodies: string[] = [];
+  for (const path of ["/second-missing-bbb", "/third-missing-ccc", "/fourth-missing-ddd/deeper"]) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(404);
+    bodies.push(await response.text());
+  }
+  for (const body of bodies) {
+    for (const word of ["first-missing", "second-missing", "third-missing", "fourth-missing"]) {
+      expect(body).not.toContain(word);
+    }
+  }
 });
 
 test("@flags a switched on page comes back after one revalidation", async ({ page, request }) => {
@@ -274,16 +300,22 @@ test("@flags /api/revalidate refuses the wrong caller", async ({ request }) => {
   expect((await request.put("/api/revalidate", { headers: base, data: body })).status()).toBe(405);
 });
 
-test("@flags /api/revalidate allows 30 requests a minute from one address, then 429", async ({
+test("@flags /api/revalidate allows 30 wrong attempts a minute from one address, then 429, and never limits the right secret", async ({
   request,
 }, testInfo) => {
   // One address per project, because the window is a minute and the projects run back to back.
   const own = `203.0.114.${testInfo.project.name.length}`;
+  const wrong = () =>
+    request.post("/api/revalidate", {
+      headers: { authorization: "Bearer not-the-secret", "x-forwarded-for": own },
+      data: { tag: "flags" },
+    });
   const statuses: number[] = [];
-  for (let i = 0; i < 32; i++) statuses.push((await revalidate(request, own)).status());
-  expect(statuses.slice(0, 30).every((status) => status === 200)).toBe(true);
+  for (let i = 0; i < 32; i++) statuses.push((await wrong()).status());
+  expect(statuses.slice(0, 30).every((status) => status === 401)).toBe(true);
   expect(statuses.slice(30)).toEqual([429, 429]);
-  // Another address is unaffected.
+  // The right secret from the same address still works, and another address is unaffected.
+  expect((await revalidate(request, own)).status()).toBe(200);
   expect((await revalidate(request, "203.0.113.201")).status()).toBe(200);
 });
 

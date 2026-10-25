@@ -2,7 +2,7 @@ import type { FeatureFlags, FlagState } from "@/lib/db/types";
 
 // Who is looking. Today everyone is `public`. The owner's `owner` viewer arrives with
 // Auth (#23), which is also when the Preview banner is built. Until then Preview behaves
-// exactly like Off for every visitor (decision 0018).
+// the same as Off for every visitor (decision 0018).
 export type Viewer = "public" | "owner";
 
 /** The viewer for this request. Always public until Auth (#23) can tell the owner apart. */

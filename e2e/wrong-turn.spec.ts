@@ -70,7 +70,7 @@ test("criterion 4: the requested path is never repeated, and nothing says coming
   expect(nested).not.toContain("secret");
 });
 
-test("criterion 5: a hidden page is indistinguishable from a mistyped URL: Wrong turn title, noindex", async ({
+test("criterion 5: a hidden page answers 404 with the Wrong turn title and noindex, and none of its own title", async ({
   page,
   request,
 }) => {

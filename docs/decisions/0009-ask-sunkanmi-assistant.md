@@ -1,6 +1,6 @@
 # 0009: Ask Sunkanmi assistant
 
-**Status:** Accepted (partly superseded by 0016: the assistant is built with LangChain.js and LangSmith rather than the plain Anthropic SDK)  
+**Status:** Accepted (partly superseded by 0016: the assistant is built with LangChain.js and LangSmith rather than the plain Anthropic SDK, and the answering model is chosen by evaluation between Claude and OpenAI)  
 **Date:** 2026-10-24  
 **Decided by:** the owner, in the design-flow grill session
 

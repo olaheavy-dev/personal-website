@@ -52,7 +52,7 @@ If the webhook call is ever lost, the site catches up within an hour by itself. 
 - `page.home` cannot be changed or deleted; the database refuses it.
 - A flag key that does not exist reads as `off`. Keys follow `page.<name>`, `case.<slug>` or `feature.<name>`, lowercase with hyphens; the database refuses anything else.
 - Flags for features that are not built yet do nothing until that feature ships. Switching them on early is harmless.
-- If Supabase is down, the site keeps showing the last flags it read successfully, and retries every minute.
+- If Supabase is down, a running site keeps showing the last flags it read successfully and retries every minute. The exception: a server that has just started (a new deploy, a restart, or a rollback to an image built more than a day ago) and has never read the flags yet answers 500 on every page until Supabase is back (decision 0018).
 - Never run `supabase db pull` or share a schema dump: the webhook's secret would be included (see [database.md](database.md#feature-flags)).
 
 ## Adding a flag

@@ -205,7 +205,10 @@ test.describe("ticket", () => {
     const link = page.getByRole("link", { name: "Optty" });
     await expect(link).toBeFocused();
     expect(await link.evaluate((el) => getComputedStyle(el).boxShadow)).toBe("none");
-    const ring = await page.locator(".ticket").evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(ring).not.toBe("none");
+    // The ring is part of the wrapper's filter, so it follows the notches.
+    const filter = await page.locator(".ticket").evaluate((el) => getComputedStyle(el).filter);
+    expect(filter).toContain("drop-shadow");
+    expect((filter.match(/drop-shadow/g) ?? []).length).toBeGreaterThanOrEqual(6);
+    expect(await page.locator(".ticket").evaluate((el) => getComputedStyle(el).boxShadow)).toBe("none");
   });
 });

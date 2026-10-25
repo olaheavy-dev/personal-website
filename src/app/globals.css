@@ -139,14 +139,11 @@
     inset: 0;
     border-radius: var(--border-radius-lg);
   }
-  /* One focus ring for the whole ticket, in the site's focus style, instead of the
-     global ring on the title text. */
+  /* One focus ring for the whole ticket instead of the global ring on the title
+     text, drawn by the filter (--ticket-drop-focus) so it follows the notches. */
   .ticket[data-linked] .ticket-link:focus-visible {
     outline: none;
     box-shadow: none;
-  }
-  .ticket[data-linked]:has(.ticket-link:focus-visible) {
-    box-shadow: var(--shadow-focus);
   }
   .ticket[data-linked] .ticket-stub {
     pointer-events: none;
@@ -165,7 +162,12 @@
   }
   .ticket[data-linked]:is(:hover, :has(.ticket-link:focus-visible)) {
     translate: 0 var(--ticket-lift);
+  }
+  .ticket[data-linked]:hover {
     filter: var(--ticket-drop-hover);
+  }
+  .ticket[data-linked]:has(.ticket-link:focus-visible) {
+    filter: var(--ticket-drop-focus);
   }
 
   @media (prefers-reduced-motion: reduce) {

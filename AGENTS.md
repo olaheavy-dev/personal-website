@@ -79,9 +79,9 @@ The roster above follows the Claude models available today. **Whenever Anthropic
 - **Noticed, not changed:** list anything outside the task in the PR description and open an issue labelled `noticed` for each. Don't fix unrelated things in the same change.
 - **Stop and ask** when a task needs an undecided product or content choice, a package not on the pre-approved list (decision 0012), or work well beyond the issue. **Stop after 3 failed attempts** at the same problem and report what was tried.
 - **Stop what you start:** dev servers, watchers, temporary worktrees.
-- Before using a framework API, check the official documentation for the pinned version (`docs/references/third-party.md`; for Next.js read `node_modules/next/dist/docs/`), not memory. When adding a dependency or changing a major version, update that file in the same PR.
+- Before using a framework API, check the official documentation for the pinned version (`docs/references/third-party.md`; for Next.js read `node_modules/next/dist/docs/`), not memory. When adding a dependency or changing a major version, update that file in the same PR. List every page relied on under "Docs consulted" in the PR description; when the docs are silent, say what you read instead (source code, a spike) and what it showed.
 - Commit messages and PR titles: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`. Squash merges use the PR title.
-- PR description: use the template (what and why, how tested, assumptions, claims and content, pre-flight check, noticed-not-changed).
+- PR description: use the template (what and why, how tested, assumptions, claims and content, docs consulted, pre-flight check, noticed-not-changed).
 - **Pre-flight check:** search the repository for every term, decision ID, token and figure the change touches, and fix any contradiction or stale statement in the same PR. Check new facts against their sources.
 - **Run `make check` before pushing**, and `make e2e` for any UI change.
 - **Visual review for any UI change.** Tests prove behaviour, not taste. Run `make build && make shots`, then look at every screenshot in `.artifacts/screenshots/` (each route, light and dark, 360, 768 and 1440 px) and judge it against the brief's quality bar, not just "nothing is broken". Check the small things a visitor notices:
@@ -118,8 +118,9 @@ Check in priority order:
 2. **Breaches of the rules above**, especially the claims policy, employer confidentiality, personal data and tokens-only.
 3. **Spec match:** the issue's acceptance criteria and the design brief, including 375 px, keyboard, focus, reduced motion, and light and dark themes looking equally finished (see "Visual review" under "When building").
 4. **Quality bar:** accessibility (contrast, names, landmarks, focus order), performance (budgets, image sizes, client JS added), SEO (metadata, one `h1`).
-5. **Tests:** important behaviour and edge states covered.
-6. **Clarity:** could the owner understand and maintain this? Flag unnecessary complexity.
+5. **Docs:** every framework, package or platform behaviour the change depends on is backed by an entry under "Docs consulted" for the pinned version. Flag any behaviour stated from memory, and check at least one cited page against the claim.
+6. **Tests:** important behaviour and edge states covered.
+7. **Clarity:** could the owner understand and maintain this? Flag unnecessary complexity.
 
 How to report:
 

@@ -209,7 +209,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 |---|---|---|
 | `SiteShell` (pill nav, footer, assistant launcher, ⌘K, passport provider) | All public pages | Admin uses separate `AdminShell` |
 | `AdminShell` (sidebar, auth guard) | All `/admin/*` | Owner only |
-| `Route` (dotted path + pins) | Home stations, Work list, About career, Travel arcs (3D variant), Next-stop band | Vertical (desktop Work/About), horizontal strip (mobile, Home), 3D arcs (Travel) |
+| `Route` (dotted path + pins) | Home stations, Work list, About career, Travel arcs (3D variant), Next-stop band | Vertical (Work/About; Home stations on phones), horizontal strip (Home stations from md), inline (inside a sentence), 3D arcs (Travel) |
 | `Ticket` | Home selected stops, Work list, About career, Lab (project variant) | Sizes: large / compact / mini; compact expands inline |
 | `MetricChip` | Tickets, case-study TL;DR & results, Lab cards | Source shown as tooltip (desktop) / tap sheet (mobile) |
 | `PageHeader` (eyebrow mono label + display title + intro) | Work, Lab, Writing, Travel, About, case studies | Case study adds meta grid |

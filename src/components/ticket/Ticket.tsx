@@ -10,7 +10,7 @@ export type TicketSize = "large" | "compact" | "mini";
 export type TicketTone = "paper" | "lilac";
 export type TicketTilt = "none" | "front" | "back";
 
-export type TicketProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> & {
+type TicketBaseProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> & {
   /** "stacked": stub below the body. "pass": stub on the right from md, below on phones. */
   layout?: TicketLayout;
   /** large: home and footer. compact: Work list. mini: About career route (one line, no stub). */
@@ -24,11 +24,10 @@ export type TicketProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"
   eyebrow?: ReactNode;
   /** Company pill, shown opposite the eyebrow. */
   badge?: ReactNode;
-  title?: ReactNode;
   /** Id for the title element, so a surrounding region can be named by it. */
   titleId?: string;
-  /** When set, the title becomes a link stretched over the whole ticket. */
-  href?: string;
+  /** Half notches on the sides of a ticket that has no stub (the peeking ticket behind the hero). */
+  notches?: "none" | "side";
   /** Body content under the title. */
   children?: ReactNode;
   /** Chips row (for example MetricChips) under the body content. */
@@ -38,6 +37,10 @@ export type TicketProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"
   /** Replaces the body's padding classes, for example on a ticket that only peeks out. */
   bodyPadding?: string;
 };
+
+// `href` turns the title into the link, so a ticket with an href must have a title.
+export type TicketProps = TicketBaseProps &
+  ({ href?: undefined; title?: ReactNode } | { href: string; title: ReactNode });
 
 const defaultBodyPadding: Record<TicketLayout, Record<TicketSize, string>> = {
   stacked: {
@@ -81,6 +84,7 @@ export function Ticket({
   badge,
   title,
   titleId,
+  notches = "none",
   href,
   children,
   chips,
@@ -108,6 +112,7 @@ export function Ticket({
       data-tilt={tilt === "none" ? undefined : tilt}
       data-stub={hasStub ? "" : undefined}
       data-linked={href ? "" : undefined}
+      data-notches={notches === "none" ? undefined : notches}
     >
       <div className={`ticket-body ${bodyPaddingOverride ?? defaultBodyPadding[layout][size]}`}>
         {eyebrow != null || badge != null ? (

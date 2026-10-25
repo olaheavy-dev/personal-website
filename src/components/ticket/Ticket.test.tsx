@@ -96,4 +96,15 @@ describe("Ticket", () => {
     expect(ticket).toHaveAttribute("data-tone", "lilac");
     expect(ticket).toHaveAttribute("data-tilt", "back");
   });
+
+  it("does not compile with an href but no title", () => {
+    // @ts-expect-error a link needs a title to carry it
+    const ticket = <Ticket href="/work/optty" />;
+    expect(ticket).toBeTruthy();
+  });
+
+  it("marks side notches for a ticket without a stub", () => {
+    render(<Ticket as="div" notches="side" eyebrow="Stop 02" />);
+    expect(document.querySelector(".ticket")).toHaveAttribute("data-notches", "side");
+  });
 });

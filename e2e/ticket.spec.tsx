@@ -8,6 +8,8 @@ import { Ticket } from "../src/components/ticket/Ticket";
 // Home selected stops), and a public test route would ship. So these tests render the real
 // components to HTML here, then put that HTML into a loaded page of the site. The page's
 // real stylesheet and the browser's real popover do the work; nothing is mocked.
+// When Work and Home carry real tickets (and a MetricChip with a source), these checks move
+// onto those pages and this file goes away.
 // Behaviour that needs no browser (aria-expanded, URL hash) is in the Vitest tests.
 
 const markup = renderToStaticMarkup(
@@ -21,6 +23,7 @@ const markup = renderToStaticMarkup(
           value="1M+"
           label="Google Play downloads"
           source={{
+            kind: "link",
             label: "Google Play listing",
             url: "https://play.google.com/store/apps/details?id=example",
           }}
@@ -33,11 +36,57 @@ const markup = renderToStaticMarkup(
   </main>,
 );
 
-async function showTicket(page: Page) {
+async function showTicket(page: Page, html = markup) {
   await page.goto("/");
-  await page.evaluate((html) => {
-    document.body.innerHTML = html;
-  }, markup);
+  await page.evaluate((markup) => {
+    document.body.innerHTML = markup;
+  }, html);
+}
+
+const chip = (
+  <MetricChip
+    value="1M+"
+    label="Google Play downloads"
+    source={{ kind: "link", label: "Google Play listing", url: "https://example.com/source" }}
+  />
+);
+
+// A linked ticket whose MetricChip sits in the stub, where pointer-events are off.
+const stubChipMarkup = renderToStaticMarkup(
+  <main>
+    <Ticket title="Optty" href="#ticket-link" stub={chip}>
+      <p>Payments.</p>
+    </Ticket>
+  </main>,
+);
+
+// Long and short content in both layouts, to check the two pieces meet on the tear line.
+const long = Array.from({ length: 40 }, () => "A long sentence about the work.").join(" ");
+const geometryMarkup = renderToStaticMarkup(
+  <main>
+    {["short", "long"].map((length) =>
+      (["stacked", "pass"] as const).map((layout) => (
+        <div key={`${layout}-${length}`} data-case={`${layout}-${length}`} className="mb-8">
+          <Ticket as="div" layout={layout} title="Title" stub={<p>{length === "long" ? long : "Stub"}</p>}>
+            <p>{length === "long" ? long : "Body"}</p>
+          </Ticket>
+        </div>
+      )),
+    )}
+  </main>,
+);
+
+async function seam(page: Page, name: string) {
+  return page.locator(`[data-case="${name}"]`).evaluate((el) => {
+    const body = el.querySelector(".ticket-body")!.getBoundingClientRect();
+    const stub = el.querySelector(".ticket-stub")!.getBoundingClientRect();
+    return {
+      stubTopMinusBodyBottom: stub.top - body.bottom,
+      stubLeftMinusBodyRight: stub.left - body.right,
+      heightDiff: stub.height - body.height,
+      stubIsBelow: stub.top >= body.bottom - 1.01 && stub.left < body.right,
+    };
+  });
 }
 
 test.describe("ticket", () => {
@@ -112,4 +161,51 @@ test.describe("ticket", () => {
       expect(results.violations).toEqual([]);
     });
   }
+
+  test("a source popover in the stub of a linked ticket stays open when its text is clicked", async ({
+    page,
+  }) => {
+    await showTicket(page, stubChipMarkup);
+    await page.getByRole("button", { name: /Source for/ }).click();
+    const popover = page.locator("[popover]");
+    await expect(popover).toBeVisible();
+    await popover.getByText("1M+ Google Play downloads").click();
+    await expect(popover).toBeVisible();
+    expect(new URL(page.url()).hash).toBe("");
+  });
+
+  test.describe("the body and stub meet on the tear line", () => {
+    for (const length of ["short", "long"]) {
+      test(`stacked, ${length} content`, async ({ page }) => {
+        await showTicket(page, geometryMarkup);
+        const gap = await seam(page, `stacked-${length}`);
+        expect(gap.stubTopMinusBodyBottom).toBeCloseTo(-1, 1);
+      });
+
+      test(`pass at md and up, ${length} content`, async ({ page }) => {
+        await page.setViewportSize({ width: 1024, height: 900 });
+        await showTicket(page, geometryMarkup);
+        const gap = await seam(page, `pass-${length}`);
+        expect(gap.stubLeftMinusBodyRight).toBeCloseTo(-1, 1);
+        expect(gap.heightDiff).toBeCloseTo(0, 1);
+      });
+
+      test(`pass below md stacks like the stacked layout, ${length} content`, async ({ page }) => {
+        await page.setViewportSize({ width: 600, height: 900 });
+        await showTicket(page, geometryMarkup);
+        const gap = await seam(page, `pass-${length}`);
+        expect(gap.stubTopMinusBodyBottom).toBeCloseTo(-1, 1);
+      });
+    }
+  });
+
+  test("a focused linked ticket shows one ring, not two", async ({ page }) => {
+    await showTicket(page);
+    await page.keyboard.press("Tab");
+    const link = page.getByRole("link", { name: "Optty" });
+    await expect(link).toBeFocused();
+    expect(await link.evaluate((el) => getComputedStyle(el).boxShadow)).toBe("none");
+    const ring = await page.locator(".ticket").evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(ring).not.toBe("none");
+  });
 });

@@ -11,6 +11,7 @@ export function HeroTickets() {
         as="div"
         tone="lilac"
         tilt="back"
+        notches="side"
         className="absolute inset-x-6 top-0"
         bodyPadding="px-5 pt-4 pb-16"
         eyebrow="Stop 02 · Optty · via Deimos"

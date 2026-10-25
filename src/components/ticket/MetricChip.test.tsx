@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { MetricChip } from "./MetricChip";
 
-const source = { label: "Google Play listing", url: "https://play.google.com/store/apps/details?id=example" };
+const source = {
+  kind: "link" as const,
+  label: "Google Play listing",
+  url: "https://play.google.com/store/apps/details?id=example",
+};
 
 describe("MetricChip", () => {
   it("shows the figure and a source button whose name says source", () => {
@@ -32,10 +36,30 @@ describe("MetricChip", () => {
     expect(close).toHaveAttribute("popovertarget", popover.id);
   });
 
+  it("shows an own measurement as text, with no link", () => {
+    const { container } = render(
+      <MetricChip
+        value="98"
+        label="Lighthouse performance"
+        source={{ kind: "own", note: "Mobile, 12 May 2026" }}
+      />,
+    );
+    const popover = container.querySelector("[popover]") as HTMLElement;
+    expect(popover).toHaveTextContent("Own measurement.");
+    expect(popover).toHaveTextContent("Mobile, 12 May 2026");
+    expect(popover.querySelector("a")).toBeNull();
+  });
+
   it("does not compile without a source", () => {
     // The claims policy in code: a figure can not be shown without where it is from.
     // @ts-expect-error `source` is required
     const chip = <MetricChip value="1M+" label="downloads" />;
+    expect(chip).toBeTruthy();
+  });
+
+  it("does not compile with an unlabelled source", () => {
+    // @ts-expect-error a link source needs a label and url; an own source needs a note
+    const chip = <MetricChip value="1M+" label="downloads" source={{ kind: "own" }} />;
     expect(chip).toBeTruthy();
   });
 });

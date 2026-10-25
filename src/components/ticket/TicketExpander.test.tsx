@@ -57,4 +57,63 @@ describe("TicketExpander", () => {
     render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
     expect(screen.getByRole("button", { name: "Read more" })).toBeInTheDocument();
   });
+
+  it("opens on popstate (back and forward)", () => {
+    render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
+    act(() => {
+      window.location.hash = "#mukuru";
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(screen.getByRole("button", { name: "Show less" })).toBeInTheDocument();
+  });
+
+  describe("with the Navigation API", () => {
+    const navigation = new EventTarget();
+    beforeEach(() => {
+      (window as unknown as { navigation: EventTarget }).navigation = navigation;
+    });
+    afterEach(() => {
+      delete (window as unknown as { navigation?: EventTarget }).navigation;
+    });
+
+    it("opens on currententrychange", () => {
+      render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
+      act(() => {
+        window.location.hash = "#mukuru";
+        navigation.dispatchEvent(new Event("currententrychange"));
+      });
+      expect(screen.getByRole("button", { name: "Show less" })).toBeInTheDocument();
+    });
+
+    it("stops listening when it unmounts", () => {
+      const { unmount } = render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
+      unmount();
+      expect(() => navigation.dispatchEvent(new Event("currententrychange"))).not.toThrow();
+    });
+  });
+
+  it("reopens when the URL points at it again after the visitor closed it", async () => {
+    const user = userEvent.setup();
+    window.location.hash = "#mukuru";
+    render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
+    await user.click(screen.getByRole("button", { name: "Show less" }));
+    expect(screen.getByRole("button", { name: "Read more" })).toBeInTheDocument();
+    // Same hash again (a link to the hash already in the URL): only the event fires.
+    act(() => {
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+    expect(screen.getByRole("button", { name: "Show less" })).toBeInTheDocument();
+  });
+
+  it("does not reopen for a hash that points elsewhere", async () => {
+    const user = userEvent.setup();
+    window.location.hash = "#mukuru";
+    render(<TicketExpander anchorId="mukuru">Details</TicketExpander>);
+    await user.click(screen.getByRole("button", { name: "Show less" }));
+    act(() => {
+      window.location.hash = "#other";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+    expect(screen.getByRole("button", { name: "Read more" })).toBeInTheDocument();
+  });
 });

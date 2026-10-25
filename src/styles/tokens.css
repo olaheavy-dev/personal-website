@@ -355,6 +355,9 @@
   --ticket-tilt-back: -5deg;
   --ticket-max-width: 22rem;
   --ticket-stub-width: 18rem; /* tear-off stub of the wide "pass" ticket */
+  --ticket-lift: -0.25rem; /* hover and focus lift of a linked ticket */
+  --ticket-tear-width: 2px; /* dashed tear line and popover border */
+  --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
   --z-skip-link: 100;
 
   /* Motion */

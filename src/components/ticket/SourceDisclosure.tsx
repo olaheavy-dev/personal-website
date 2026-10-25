@@ -5,11 +5,20 @@ import { useId } from "react";
 // (".source-popover"): a bottom sheet on phones, beside the button where CSS anchor
 // positioning is supported.
 
-export type MetricSource = {
-  /** Who published it, for example "Google Play listing". */
-  label: string;
-  url: string;
-};
+// Where a figure comes from: a public link, or the author's own measurement
+// (decision 0005 allows both; nothing else).
+export type MetricSource =
+  | {
+      kind: "link";
+      /** Who published it, for example "Google Play listing". */
+      label: string;
+      url: string;
+    }
+  | {
+      kind: "own";
+      /** How it was measured, for example "Lighthouse, mobile, 12 May 2026". */
+      note: string;
+    };
 
 export function SourceDisclosure({ figure, source }: { figure: string; source: MetricSource }) {
   const id = useId();
@@ -21,7 +30,7 @@ export function SourceDisclosure({ figure, source }: { figure: string; source: M
       <button
         type="button"
         popoverTarget={id}
-        className="source-trigger -my-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-text-primary"
+        className="source-trigger -my-1 size-11 shrink-0 rounded-full text-text-secondary hover:text-text-primary"
         style={{ "--source-anchor": anchor } as React.CSSProperties}
         aria-label={`Source for ${figure}`}
       >
@@ -45,21 +54,27 @@ export function SourceDisclosure({ figure, source }: { figure: string; source: M
         style={{ "--source-anchor": anchor } as React.CSSProperties}
       >
         <p className="label-mono text-text-tertiary">Source</p>
-        <p className="mt-2 text-sm text-text-secondary">{figure}</p>
-        <a
-          href={source.url}
-          target="_blank"
-          rel="noopener"
-          className="mt-3 inline-flex min-h-11 items-center gap-1 text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
-        >
-          {source.label}
-          <span className="sr-only"> (opens in a new tab)</span>
-        </a>
+        <p className="source-figure mt-2 text-sm text-text-secondary">{figure}</p>
+        {source.kind === "link" ? (
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noopener"
+            className="mt-3 inline-flex min-h-11 items-center gap-1 text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
+          >
+            {source.label}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        ) : (
+          <p className="mt-3 text-sm">
+            <span className="font-medium">Own measurement.</span> {source.note}
+          </p>
+        )}
         <button
           type="button"
           popoverTarget={id}
           popoverTargetAction="hide"
-          className="mt-2 flex min-h-11 items-center text-sm font-medium text-text-secondary underline decoration-1 underline-offset-4 hover:text-text-primary hover:no-underline md:hidden"
+          className="source-close mt-2 min-h-11 text-sm font-medium text-text-secondary underline decoration-1 underline-offset-4 hover:text-text-primary hover:no-underline"
         >
           Close
         </button>

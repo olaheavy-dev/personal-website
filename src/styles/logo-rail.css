@@ -1,0 +1,181 @@
+/* Logo rail (src/components/logos/). Each logo is a CSS mask over a flat colour, so
+   every company shows in one calm token colour and takes its own colour on hover.
+   Per logo: the file, the viewBox aspect and an optical nudge. The aspect and nudge
+   here must equal src/lib/logos.ts (logos.test.ts checks). Size is equal area:
+   width = unit * sqrt(aspect) * nudge, height = width / aspect, so a long wordmark
+   and a compact badge carry the same weight. The values sit in this file, not in a
+   style attribute, because the site's style policy blocks those. */
+@layer components {
+  .logo-mark {
+    --logo-unit: calc(var(--space-6) * 1.4);
+    --logo-colour: var(--color-text-tertiary);
+    display: block;
+    flex: none;
+    width: calc(var(--logo-unit) * sqrt(var(--logo-aspect)) * var(--logo-nudge));
+    aspect-ratio: var(--logo-aspect);
+    background-color: var(--logo-colour);
+    mask: var(--logo-src) center / contain no-repeat;
+  }
+
+  [data-logo="hbk"] {
+    --logo-src: url("/logos/hbk.svg");
+    --logo-aspect: 2.913;
+    --logo-nudge: 0.95;
+    --logo-hover: var(--color-logo-hbk);
+  }
+  [data-logo="mukuru"] {
+    --logo-src: url("/logos/mukuru.svg");
+    --logo-aspect: 3.193;
+    --logo-nudge: 1.1;
+    --logo-hover: var(--color-logo-mukuru);
+  }
+  [data-logo="ulesson"] {
+    --logo-src: url("/logos/ulesson-mono.svg");
+    --logo-aspect: 5.92;
+    --logo-nudge: 1;
+    --logo-hover: var(--color-logo-ulesson);
+  }
+  [data-logo="optty"] {
+    --logo-src: url("/logos/optty.svg");
+    --logo-aspect: 2.673;
+    --logo-nudge: 0.88;
+    --logo-hover: var(--color-logo-optty);
+  }
+  [data-logo="stanbic-ibtc"] {
+    --logo-src: url("/logos/stanbic-ibtc-mono.svg");
+    --logo-aspect: 3.673;
+    --logo-nudge: 1.15;
+    --logo-hover: var(--color-logo-stanbic-ibtc);
+  }
+  [data-logo="access-bank"] {
+    --logo-src: url("/logos/access-bank.svg");
+    --logo-aspect: 4.098;
+    --logo-nudge: 1.12;
+    --logo-hover: var(--color-logo-access-bank);
+  }
+  [data-logo="galooli"] {
+    --logo-src: url("/logos/galooli.svg");
+    --logo-aspect: 3.279;
+    --logo-nudge: 1.15;
+    --logo-hover: var(--color-logo-galooli);
+  }
+  [data-logo="deimos"] {
+    --logo-src: url("/logos/deimos.svg");
+    --logo-aspect: 6.882;
+    --logo-nudge: 1;
+    --logo-hover: var(--color-logo-deimos);
+    /* The small "via Deimos" credit, not a client: much smaller than the rail. */
+    --logo-unit: calc(var(--space-6) * 0.5);
+  }
+
+  /* Windows high contrast and similar: the system picks the colours, and a mask over a
+     background colour would be forced to the page colour and vanish. */
+  @media (forced-colors: active) {
+    .logo-mark {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
+
+  /* Phones: two columns of logos, the Deimos group on its own row below. */
+  .logo-rail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
+    align-items: center;
+  }
+  .logo-cell {
+    display: flex;
+    align-items: center;
+    min-height: var(--space-7);
+  }
+  .logo-group {
+    grid-column: 1 / -1;
+    order: 1;
+    display: flex;
+    flex-direction: column-reverse; /* logos above, the bracket and its label below */
+    gap: var(--space-2);
+    width: 100%;
+    padding-top: var(--space-2);
+  }
+  .logo-group-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+  }
+  .logo-group-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-tertiary);
+  }
+  .logo-group-label .logo-mark {
+    --logo-colour: currentColor;
+  }
+  /* The bracket: a line each side of the label, turned up at both ends, under the three
+     logos it groups. */
+  .logo-group-label::before,
+  .logo-group-label::after {
+    content: "";
+    flex: 1;
+    height: var(--space-2);
+    border: 0 solid var(--color-route-line);
+    border-bottom-width: 1px;
+    transform: translateY(calc(var(--space-2) / -2));
+  }
+  .logo-group-label::before {
+    border-left-width: 1px;
+    margin-right: var(--space-1);
+  }
+  .logo-group-label::after {
+    border-right-width: 1px;
+    margin-left: var(--space-1);
+  }
+
+  /* md: three columns. HBK and the group on the first row, the other three below. */
+  @media (min-width: 48rem) {
+    .logo-rail {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6) var(--space-5);
+    }
+    .logo-group {
+      grid-column: 2 / -1;
+      grid-row: 1;
+      order: 0;
+      width: fit-content;
+    }
+    .logo-group-list {
+      justify-content: flex-start;
+      gap: var(--space-3) var(--space-6);
+    }
+  }
+
+  /* lg: one row, the group in its place between HBK and Stanbic IBTC. */
+  @media (min-width: 64rem) {
+    .logo-rail {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-6);
+    }
+    .logo-group {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+
+  /* Hover colours only on devices that really hover, so a tap never leaves one lit. The
+     colour change itself stays under reduced motion; only the fade goes. */
+  @media (hover: hover) {
+    .logo-cell:hover .logo-mark {
+      --logo-colour: var(--logo-hover);
+    }
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .logo-mark {
+      transition: background-color var(--duration-normal) var(--easing-default);
+    }
+  }
+}

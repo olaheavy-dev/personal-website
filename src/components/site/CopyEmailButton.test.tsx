@@ -15,7 +15,7 @@ function renderButton() {
 
 // The toast provider renders its region after its children, so ours is the first one.
 function passRegion() {
-  return screen.getAllByRole("status")[0];
+  return screen.getAllByRole("status")[0]!;
 }
 
 describe("CopyEmailButton", () => {
@@ -77,6 +77,6 @@ describe("CopyEmailButton", () => {
     const regions = screen.getAllByRole("status");
     const withText = regions.filter((region) => region.textContent?.trim());
     expect(withText).toHaveLength(1);
-    expect(withText[0]).toHaveTextContent("Email copied");
+    expect(withText[0]!).toHaveTextContent("Email copied");
   });
 });

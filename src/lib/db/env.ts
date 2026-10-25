@@ -12,6 +12,20 @@ export type ServerEnv = PublicEnv & { secretKey: string };
 
 type Source = Record<string, string | undefined>;
 
+// Next replaces `process.env.NEXT_PUBLIC_*` with the build time value only when the name is
+// written out in full. A lookup by variable (`process.env[name]`) is not replaced, so the
+// image would read these as missing at runtime. Keep these reads literal. The secret keys
+// are not NEXT_PUBLIC_, so they stay runtime reads and never enter the bundle.
+function fromProcess(): Source {
+  return {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+  };
+}
+
 const legacyVariables = ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"] as const;
 
 const projectUrl = z.string().refine(
@@ -57,7 +71,7 @@ function present(source: Source, names: string[]) {
   return names.every((name) => source[name]);
 }
 
-export function readPublicEnv(source: Source = process.env): Result<PublicEnv> {
+export function readPublicEnv(source: Source = fromProcess()): Result<PublicEnv> {
   const legacy = legacyProblem(source);
   if (legacy) return legacy;
   if (!present(source, ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"])) {
@@ -71,7 +85,7 @@ export function readPublicEnv(source: Source = process.env): Result<PublicEnv> {
   });
 }
 
-export function readServerEnv(source: Source = process.env): Result<ServerEnv> {
+export function readServerEnv(source: Source = fromProcess()): Result<ServerEnv> {
   const legacy = legacyProblem(source);
   if (legacy) return legacy;
   if (

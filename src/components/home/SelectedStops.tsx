@@ -15,7 +15,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
     <section
       id="selected-stops"
       aria-labelledby="selected-stops-title"
-      className="mx-auto w-full max-w-wide px-(--gutter) pt-8 pb-12 md:pt-10 md:pb-16"
+      className="mx-auto w-full max-w-wide px-(--gutter) pt-8 pb-8 md:pt-10 md:pb-10"
     >
       <h2 id="selected-stops-title" className="label-mono text-text-tertiary">
         Selected stops
@@ -52,9 +52,12 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
         <p className="mt-6">
           <a
             href={model.routeLink}
-            className="inline-flex min-h-11 items-center font-medium text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
+            className="group inline-flex min-h-11 items-center gap-1.5 font-medium text-lilac-text"
           >
-            See the whole route <span aria-hidden="true">&nbsp;&rarr;</span>
+            <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
+              See the whole route
+            </span>
+            <span aria-hidden="true">&rarr;</span>
           </a>
         </p>
       ) : null}

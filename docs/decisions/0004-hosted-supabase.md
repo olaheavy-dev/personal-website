@@ -22,4 +22,5 @@ Hosted Supabase (Postgres + pgvector, Auth, Storage). Row-level security on ever
 
 - Migrations live in the repository.
 - The service-role key is server-only and never reaches the browser.
+- Update, 2026-10-25 (owner): the project uses the new API keys only. The server key is now the secret key (`SUPABASE_SECRET_KEY`, `sb_secret_`), and the browser key is the publishable key (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `sb_publishable_`). The legacy anon and service role keys are disabled after the first smoke test and the code refuses them. Everything else above is unchanged.
 - Running-cost changes are owner-merged.

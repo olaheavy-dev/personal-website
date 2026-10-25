@@ -50,7 +50,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 - **Utility (right cluster):** ⌘K icon button · theme toggle icon button · **Email me** solid ink pill (primary CTA, copies email + opens mailto menu).
 - **Assistant launcher:** avatar bubble fixed bottom-right on every public page (except when its flag is off); opens the Ask Sunkanmi panel. Not in the nav.
 - **Secondary navigation:**
-  - Work: filter chips (All · AI · Payments & banking · Platform), sticky under the page title.
+  - Work: filter chips (All · AI · Payments & banking · Data & IoT · Edtech; each stop belongs to at least one: HBK is AI and Data & IoT, Galooli is Data & IoT, uLesson is Edtech, Optty, Access Bank, Stanbic IBTC and Mukuru are Payments & banking), sticky under the page title.
   - Case study: sticky "On this page" TOC with scroll-spy (side column ≥1280px; top disclosure below) + "Next stop" footer linking the next case study in route order.
   - Travel: timeline scrubber + country list (also the accessible alternative to the globe).
   - Writing: tag chips (when enabled) and older/newer pagination.
@@ -86,10 +86,12 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 
 ### Lab `/lab`
 1. Title + framing ("Things I build to learn. Most of them shipped.").
-2. Foresight (feature card, GIF, Live badge, link to case study + live site).
-3. FastPilot (screenshots/Loom, eval stats from repo, repo link; demo link when redeployed).
-4. HomeScout (In progress badge, decision-records angle; AI concept images captioned).
-5. SabiTutor (Coming soon card, teaser only).
+2. Foresight (feature card, GIF, evidence links: GitHub, case study; "Try it" because a live URL is set).
+3. FastPilot (screenshots/Loom, eval stats from repo, GitHub link; no "Try it" until a live URL is set).
+4. HomeScout (small "In progress" tag, decision-records angle; AI concept images captioned).
+5. SabiTutor (small "In progress" tag, teaser only, no links yet).
+
+Lab cards show evidence, not status badges: GitHub, a demo video or GIF, a write-up or case study, and "Try it" only while a live URL exists. The only status mark is a small "In progress" tag; there are no Live or Coming soon badges.
 
 ### Writing `/writing` and `/writing/[slug]`
 - Index: featured latest post → list (title, date, reading time, tags) → pagination → RSS link.
@@ -191,7 +193,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
 | Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |
 | Personal projects section | **Lab** | Not "Playground" or "Side quests" |
-| Project status | **Live · In progress · Coming soon** | Exactly these three |
+| Project status | **In progress** (tag) | Lab cards carry only a small "In progress" tag while the work is unfinished; no Live or Coming soon badges. "Try it" appears only while a live URL is set |
 | Blog | **Writing** | Posts are "posts", not "articles" |
 | Five capabilities | **Idea · Design · Build · Ship · Scale** | Always in this order |
 | Contact band | **Next stop** | CTA text always "Email me" |
@@ -218,7 +220,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | `NextStopBand` | End of every public page | Copy varies by page |
 | `GallerySheet` + `Lightbox` | Travel country/trip; case-study image sets | Travel adds trip filter |
 | `AvatarIllustration` (poses) | Hero, assistant, 404, Travel, Next stop | Pose prop |
-| `StatusBadge` | Lab, admin | Admin adds flag states |
+| `StatusBadge` | Lab ("In progress" tag), admin | Admin adds flag states |
 | `Toast` | Passport stamps, admin saves | Polite live region (Copy email prints a boarding pass instead) |
 | `CommandPalette` | Global | Secret station only for public |
 
@@ -238,7 +240,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 - **Pattern:** `/section/item-slug` (max 3 segments: `/travel/[country]/[trip]`). Lowercase, hyphenated, ASCII, no trailing slash, no spaces.
 - **Dynamic segments:** `[slug]` (case study, post), `[country]` (lowercase English country name slug), `[trip]` (`city-year`), `[tag]`.
 - **Anchors:** case-study sections use stable IDs (`#context`, `#design`, `#architecture`, `#production`, `#tradeoffs`, `#results`, `#reflection`) so assistant citations and TOC links never break; compact stops use company slugs on `/work`.
-- **Query parameters:** `?filter=ai|payments|platform` (Work), `?page=n` (Writing), `?photo=[id]` (lightbox), `?ref=` (assistant citation highlight). Filters are shareable; default state has no params.
+- **Query parameters:** `?filter=ai|payments|data-iot|edtech` (Work), `?page=n` (Writing), `?photo=[id]` (lightbox), `?ref=` (assistant citation highlight). Filters are shareable; default state has no params.
 - **Canonical & SEO:** every page has its own canonical, title, description and dynamic OG image (`/og/...`); Hashnode posts canonical to `/writing/[slug]`; flagged-off pages 404 and are excluded from the sitemap.
 - **Redirects:** slugs are permanent; renames create 308 redirects managed in admin. `/blog/*` → `/writing/*`, `/projects` → `/lab`, `/cv` → `/resume.pdf`.
 - **Hard refresh safety:** all routes are server-rendered/ISR, with no client-only routes (avoids the SPA 404s seen in the inspiration set).

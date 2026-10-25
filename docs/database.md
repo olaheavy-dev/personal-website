@@ -126,7 +126,7 @@ Pages call the cached readers, never the database directly:
 
 ## Feature flags
 
-How a flag reaches the site is decision 0018. In short: the pages are prerendered from `getFlags()`, a cached read tagged `flags`, and a Supabase Database Webhook asks the site to refresh that cache when a flag changes.
+Every flag, its state and how to switch it is in [flags.md](flags.md). How a flag reaches the site is decision 0018. In short: the pages are prerendered from `getFlags()`, a cached read tagged `flags`, and a Supabase Database Webhook asks the site to refresh that cache when a flag changes.
 
 ### The flag reader
 

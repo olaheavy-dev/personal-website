@@ -14,8 +14,20 @@ const budgets = [
   { route: "/_not-found", file: ".next/server/app/_not-found.html", maxBytes: 600 * KB },
 ];
 
+// Public pages must stay prerendered: the static security policy (decision 0017) and
+// edge caching both depend on it. A page that is removed, renamed or loses its static shell has no .html file here.
+const prerendered = ["/", "/work", "/lab", "/writing", "/travel", "/about"];
+
 const gz = (buffer) => gzipSync(buffer, { level: 9 }).length;
 let failed = false;
+
+for (const route of prerendered) {
+  const file = `.next/server/app/${route === "/" ? "index" : route.slice(1)}.html`;
+  if (!existsSync(file)) {
+    console.error(`budget FAIL ${route}: ${file} is missing, so the page is no longer prerendered.`);
+    failed = true;
+  }
+}
 
 for (const { route, file, maxBytes } of budgets) {
   if (!existsSync(file)) {

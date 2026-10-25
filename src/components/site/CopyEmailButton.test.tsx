@@ -13,9 +13,9 @@ function renderButton() {
   return screen.getByRole("button", { name: "Copy email" });
 }
 
-// The toast provider renders its region after its children, so ours is the first one.
+// The toast provider has a status region of its own; ours is found by test id.
 function passRegion() {
-  return screen.getAllByRole("status")[0]!;
+  return screen.getByTestId("copy-email-status");
 }
 
 describe("CopyEmailButton", () => {

@@ -22,6 +22,26 @@ function emailMe(page: Page) {
   return page.locator("footer").getByRole("link", { name: /Email me/ });
 }
 
+async function canHover(page: Page) {
+  return page.evaluate(() => matchMedia("(hover: hover)").matches);
+}
+
+// Reach Email me with real Tab presses, the way a keyboard visitor would.
+async function tabToEmailMe(page: Page) {
+  const link = emailMe(page);
+  for (let i = 0; i < 80; i++) {
+    await page.keyboard.press("Tab");
+    if (await link.evaluate((el) => el === document.activeElement)) return;
+  }
+  throw new Error("Email me was not reached by Tab");
+}
+
+// Lift the stub the way this device can: hover, or keyboard focus on touch devices.
+async function liftStub(page: Page) {
+  if (await canHover(page)) await emailMe(page).hover();
+  else await tabToEmailMe(page);
+}
+
 async function stubRotate(page: Page) {
   return page.locator("footer .ticket-stub").evaluate((el) => getComputedStyle(el).rotate);
 }
@@ -155,9 +175,10 @@ test.describe("footer stub lift", () => {
       await page.goto("/");
       await emailMe(page).scrollIntoViewIfNeeded();
       expect(await stubRotate(page)).toBe("none");
-      await emailMe(page).hover();
+      await liftStub(page);
       await expect.poll(() => stubRotate(page)).not.toBe("none");
       await page.mouse.move(2, 2);
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
       await expect.poll(() => stubRotate(page)).toBe("none");
     });
   }
@@ -166,9 +187,9 @@ test.describe("footer stub lift", () => {
     await page.goto("/");
     const link = emailMe(page);
     await link.scrollIntoViewIfNeeded();
-    await page.keyboard.press("Tab");
-    await link.focus();
+    await tabToEmailMe(page);
     await expect(link).toBeFocused();
+    expect(await link.evaluate((el) => el.matches(":focus-visible"))).toBe(true);
     await expect.poll(() => stubRotate(page)).not.toBe("none");
   });
 
@@ -176,12 +197,25 @@ test.describe("footer stub lift", () => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");
     await emailMe(page).scrollIntoViewIfNeeded();
-    await emailMe(page).hover();
+    // Before any click the empty status region must already sit inside the ticket.
+    const check = async () => {
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    };
+    await check();
+    const inside = await page.evaluate(() => {
+      const region = document
+        .querySelector("footer [data-testid='copy-email-status']")!
+        .getBoundingClientRect();
+      const ticket = document.querySelector("footer .ticket")!.getBoundingClientRect();
+      return region.left >= ticket.left - 0.5 && region.right <= ticket.right + 0.5;
+    });
+    expect(inside).toBe(true);
+    await liftStub(page);
     await expect.poll(() => stubRotate(page)).not.toBe("none");
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
+    await check();
   });
 
   test("criterion 11: the lift moves no layout", async ({ page }) => {
@@ -195,7 +229,7 @@ test.describe("footer stub lift", () => {
     await page.waitForTimeout(300);
     const before = await layoutBoxes(page);
     const buttonBefore = await emailMe(page).boundingBox();
-    await emailMe(page).hover();
+    await liftStub(page);
     await expect.poll(() => stubRotate(page)).not.toBe("none");
     expect(await layoutBoxes(page)).toEqual(before);
     // Sub-pixel scroll settling can move the button by a hundredth of a pixel; a layout shift would be whole pixels.
@@ -224,6 +258,17 @@ test.describe("footer stub lift", () => {
 test.describe("boarding pass", () => {
   test.beforeEach(async ({ context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+  });
+
+  test("criterion 9b: the printed pass fits the viewport at 375 px", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Copy email" }).click();
+    await expect(page.locator("footer .boarding-pass")).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 
   test("criterion 18: Copy email works from the keyboard and keeps focus", async ({ page }) => {

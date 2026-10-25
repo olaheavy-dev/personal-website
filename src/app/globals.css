@@ -128,25 +128,46 @@
   }
 
   /* Tear-off hint: hovering or focusing a .ticket-tear-trigger inside the ticket lifts
-     its stub a degree, hinged at the bottom notch (md and up) or the left end of the
-     tear line (below md). Transforms only, so layout never moves and the wrapper's
+     its stub by --ticket-tear-angle, hinged at the bottom notch (md and up) or the right
+     end of the tear line (below md, turning the other way so the left edge stays aligned). Transforms only, so layout never moves and the wrapper's
      filter keeps tracing the outline. No lift under reduced motion. */
   @media (prefers-reduced-motion: no-preference) {
     .ticket[data-stub] > .ticket-stub {
-      transform-origin: 0 0;
+      transform-origin: 100% 0;
       transition: rotate var(--duration-normal) var(--easing-bounce);
     }
-    .ticket[data-stub]:has(.ticket-tear-trigger:is(:hover, :focus-visible)) > .ticket-stub {
-      rotate: var(--ticket-tear-angle);
+    .ticket[data-stub]:has(.ticket-tear-trigger:focus-visible) > .ticket-stub {
+      rotate: calc(-1 * var(--ticket-tear-angle));
+    }
+    /* Hover only on devices that really hover, so a tap never leaves the stub lifted. */
+    @media (hover: hover) {
+      .ticket[data-stub]:has(.ticket-tear-trigger:hover) > .ticket-stub {
+        rotate: calc(-1 * var(--ticket-tear-angle));
+      }
     }
     @media (min-width: 48rem) {
       .ticket[data-layout="pass"][data-stub] > .ticket-stub {
         transform-origin: 0 100%;
       }
+      .ticket[data-layout="pass"][data-stub]:has(.ticket-tear-trigger:focus-visible) > .ticket-stub {
+        rotate: var(--ticket-tear-angle);
+      }
+      @media (hover: hover) {
+        .ticket[data-layout="pass"][data-stub]:has(.ticket-tear-trigger:hover) > .ticket-stub {
+          rotate: var(--ticket-tear-angle);
+        }
+      }
     }
   }
 
-  /* Boarding pass printed by the Copy email button: a printer-style reveal. */
+  /* Boarding pass printed by the Copy email button: a small two part pass (label and
+     status, then the address on a stub) with tighter notches and corners than the big
+     tickets, a flat outline instead of the nested glow, and a printer-style reveal. */
+  .boarding-pass {
+    --ticket-notch: var(--ticket-notch-mini);
+    --border-radius-lg: var(--border-radius-md);
+    --ticket-drop: var(--ticket-drop-flat);
+  }
   @media (prefers-reduced-motion: no-preference) {
     .boarding-pass {
       animation: pass-print var(--duration-slow) var(--easing-out) backwards;
@@ -394,9 +415,12 @@
 
 @keyframes pass-print {
   from {
-    clip-path: inset(-2rem -2rem 100% -2rem);
+    clip-path: inset(
+      calc(-1 * var(--ticket-print-bleed)) calc(-1 * var(--ticket-print-bleed)) 100%
+        calc(-1 * var(--ticket-print-bleed))
+    );
   }
   to {
-    clip-path: inset(-2rem);
+    clip-path: inset(calc(-1 * var(--ticket-print-bleed)));
   }
 }

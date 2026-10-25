@@ -36,6 +36,8 @@ type TicketBaseProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> &
   stub?: ReactNode;
   /** Replaces the body's padding classes, for example on a ticket that only peeks out. */
   bodyPadding?: string;
+  /** Replaces the stub's padding classes, for a small stub such as the boarding pass's. */
+  stubPadding?: string;
 };
 
 // `href` turns the title into the link, so a ticket with an href must have a title.
@@ -90,6 +92,7 @@ export function Ticket({
   chips,
   stub,
   bodyPadding: bodyPaddingOverride,
+  stubPadding: stubPaddingOverride,
   className = "",
   ...rest
 }: TicketProps) {
@@ -141,7 +144,9 @@ export function Ticket({
         {children}
         {chips != null ? <div className="mt-4">{chips}</div> : null}
       </div>
-      {hasStub ? <div className={`ticket-stub ${stubPadding[layout]}`}>{stub}</div> : null}
+      {hasStub ? (
+        <div className={`ticket-stub ${stubPaddingOverride ?? stubPadding[layout]}`}>{stub}</div>
+      ) : null}
     </Wrapper>
   );
 }

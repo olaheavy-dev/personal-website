@@ -48,20 +48,23 @@ export function CopyEmailButton() {
         </svg>
         Copy email
       </button>
-      <div role="status" className="w-full empty:absolute">
+      <div role="status" data-testid="copy-email-status" className="basis-full empty:absolute empty:w-0">
         {pass ? (
           <Ticket
             key={pass.count}
             as="div"
-            size="mini"
-            className="boarding-pass w-full sm:w-fit"
+            size="compact"
+            layout="stacked"
+            className="boarding-pass w-full sm:w-fit sm:min-w-72"
+            bodyPadding="px-4 py-3"
+            stubPadding="px-4 py-3"
             eyebrow={<span aria-hidden="true">Next stop: your email</span>}
+            stub={<p className="font-mono text-sm break-all select-all">{site.email}</p>}
           >
-            <p className="text-sm font-medium">
+            <p className="mt-1 text-sm font-medium">
               {pass.outcome === "copied" ? "Email copied" : "Select to copy"}
               <span className="sr-only">, </span>
             </p>
-            <p className="font-mono text-sm break-all select-all">{site.email}</p>
           </Ticket>
         ) : null}
       </div>

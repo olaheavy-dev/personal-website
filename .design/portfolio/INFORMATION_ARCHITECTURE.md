@@ -219,7 +219,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | `GallerySheet` + `Lightbox` | Travel country/trip; case-study image sets | Travel adds trip filter |
 | `AvatarIllustration` (poses) | Hero, assistant, 404, Travel, Next stop | Pose prop |
 | `StatusBadge` | Lab, admin | Admin adds flag states |
-| `Toast` | Passport stamps, copy email, admin saves | Polite live region |
+| `Toast` | Passport stamps, admin saves | Polite live region (Copy email prints a boarding pass instead) |
 | `CommandPalette` | Global | Secret station only for public |
 
 ## Content Growth Plan

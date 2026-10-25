@@ -31,14 +31,4 @@ describe("ErrorScreen", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "Try again" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
-
-  it("offers Email me only when standalone (global error has no header)", () => {
-    const { rerender } = render(<ErrorScreen onRetry={() => {}} />);
-    expect(screen.queryByRole("link", { name: /Email me/ })).toBeNull();
-    rerender(<ErrorScreen onRetry={() => {}} standalone />);
-    expect(screen.getByRole("link", { name: /Email me/ })).toHaveAttribute(
-      "href",
-      expect.stringMatching(/^mailto:/),
-    );
-  });
 });

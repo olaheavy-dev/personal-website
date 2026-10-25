@@ -1,22 +1,11 @@
+import { act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // next/font only works inside the Next compiler, and the stylesheet is not needed here.
 vi.mock("./fonts", () => ({ fontVariables: "font-test" }));
 vi.mock("./globals.css", () => ({}));
-
-// Wraps the real ErrorScreen so the test can see the props global-error hands it.
-const seen: { onRetry?: () => void; standalone?: boolean; digest?: string }[] = [];
-vi.mock("@/components/system/ErrorScreen", async () => {
-  const actual = await vi.importActual<typeof import("@/components/system/ErrorScreen")>(
-    "@/components/system/ErrorScreen",
-  );
-  return {
-    ErrorScreen: (props: Parameters<typeof actual.ErrorScreen>[0]) => {
-      seen.push(props);
-      return actual.ErrorScreen(props);
-    },
-  };
-});
 
 import GlobalError from "./global-error";
 
@@ -29,22 +18,28 @@ describe("global-error.tsx", () => {
     expect(html).toContain("<body>");
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html).toContain("Try again");
+    expect(html).toContain("Back to the start");
     expect(html).toContain('href="/"');
-    expect(html).toContain("Email me");
+    expect(html).toContain('href="mailto:');
+    expect(html).toContain(">Email me<");
+    expect(html).toContain("Sunkanmi Olawuwo");
     expect(html).toContain('name="robots" content="noindex"');
     expect(html).not.toContain("internal detail");
     expect(html).toContain("abc123");
     // Only same origin or mailto links, and no external scripts, styles or images.
     expect(html).not.toMatch(/(?:src|href)="https?:/);
+    expect(html).not.toContain("<img");
   });
 
-  it("criterion 29: hands retry to the Try again button, in standalone mode", () => {
+  it("criterion 29: Try again calls retry, and focus starts on the h1", async () => {
     const retry = vi.fn();
-    seen.length = 0;
-    renderToStaticMarkup(<GlobalError error={error} retry={retry} />);
-    expect(seen[0]?.standalone).toBe(true);
-    expect(seen[0]?.digest).toBe("abc123");
-    seen[0]?.onRetry?.();
+    const root = createRoot(document);
+    await act(async () => root.render(<GlobalError error={error} retry={retry} />));
+    const heading = document.querySelector("h1");
+    expect(heading).toHaveFocus();
+    const button = [...document.querySelectorAll("button")].find((b) => b.textContent === "Try again")!;
+    await userEvent.setup().click(button);
     expect(retry).toHaveBeenCalledOnce();
+    await act(async () => root.unmount());
   });
 });

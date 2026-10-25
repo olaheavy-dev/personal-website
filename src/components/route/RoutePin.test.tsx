@@ -27,4 +27,11 @@ describe("RoutePin", () => {
     );
     expect(container.querySelectorAll("[data-route-leg]")).toHaveLength(1);
   });
+
+  it("draws a marker over the pin without changing the pin or its leg", () => {
+    const { container } = render(<RoutePin id="a" marker={<i data-testid="marker" />} />);
+    const pin = container.querySelector("[data-route-pin]")!;
+    expect(pin.querySelector("[data-testid='marker']")).not.toBeNull();
+    expect(container.querySelectorAll("[data-route-leg]")).toHaveLength(1);
+  });
 });

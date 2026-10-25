@@ -38,4 +38,22 @@ describe("WayBack", () => {
     expect(legs[0]!.querySelector(".route-plane")).not.toBeNull();
     expect(legs[1]!.querySelector(".route-plane")).toBeNull();
   });
+
+  it("stands the lost avatar on the You are here stop, decorative, with the label as text", () => {
+    const { container } = render(<WayBack />);
+    const pin = container.querySelector("[data-route-pin='here']")!;
+    const avatar = pin.querySelector("[data-avatar]");
+    expect(avatar).toHaveAttribute("data-pose", "lost");
+    expect(avatar?.querySelector("img")).toHaveAttribute("alt", "");
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("You are here");
+  });
+
+  it("shows an arrow after Home and Work that assistive technology skips", () => {
+    render(<WayBack />);
+    for (const name of [/Home/, /Work/]) {
+      const link = screen.getByRole("link", { name });
+      expect(link.querySelector("[aria-hidden='true']")).toHaveTextContent("→");
+      expect(link).not.toHaveAccessibleName(/→/);
+    }
+  });
 });

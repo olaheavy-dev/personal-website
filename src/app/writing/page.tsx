@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { ComingSoon } from "@/components/site/ComingSoon";
+import { gatePage } from "@/lib/flags/gate";
 
-export const metadata: Metadata = { title: "Writing" };
+export async function generateMetadata(): Promise<Metadata> {
+  await gatePage("page.writing");
+  return { title: "Writing" };
+}
 
-export default function WritingPage() {
+export default async function WritingPage() {
+  await gatePage("page.writing");
   return (
     <main id="main">
       <ComingSoon

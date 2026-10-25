@@ -5,16 +5,21 @@
 import type { Metadata } from "next";
 import { StatusScreen } from "@/components/system/StatusScreen";
 import { WayBack } from "@/components/system/WayBack";
+import { getFlags } from "@/lib/db/queries/flags";
+import { visiblePages } from "@/lib/flags/registry";
+import { getViewer } from "@/lib/flags/visibility";
 
 export const metadata: Metadata = { title: "Wrong turn" };
 
-export default function NotFound() {
+export default async function NotFound() {
+  // Work is offered as a way back only while Work is visible.
+  const items = visiblePages(await getFlags(), await getViewer());
   return (
     <StatusScreen
       eyebrow="404 · Wrong turn"
       title="Looks like a wrong turn"
       lead="There's nothing at this address. The link may be mistyped, or the page may have moved. Here's the way back."
-      actions={<WayBack />}
+      actions={<WayBack items={items} />}
     />
   );
 }

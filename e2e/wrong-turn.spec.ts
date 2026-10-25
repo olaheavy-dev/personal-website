@@ -2,7 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 // The 404 page (issue #22). Numbers in test names are the plan's acceptance
-// criteria. /_lab/hidden exists only where LAB_PAGES=1 (Playwright's own server).
+// criteria. /_lab/hidden exists only where LAB_PAGES=1 (Playwright's own server). It stands
+// in for a page switched off by a feature flag: its flag is never set, so it is Off when the
+// site is built and answers a static 404 (decision 0018).
 const remote = Boolean(process.env.E2E_BASE_URL);
 const missing = "/this-page-does-not-exist";
 const tags = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -73,11 +75,10 @@ test("criterion 5: a hidden page is indistinguishable from a mistyped URL: Wrong
   request,
 }) => {
   test.skip(remote, "the lab page is off on remote sites");
-  await page.goto("/_lab/hidden");
-  // Status: a page that decides it is hidden while streaming still answers 200 (Next sends the
-  // static shell first), even with the check in generateMetadata. A true 404 status needs the
-  // check before streaming, like src/proxy.ts does for /_lab: that is #88's job, so it is not
-  // asserted here.
+  // A real 404 status, not a 200 with a 404 painted in (closes the caveat in #88).
+  expect((await request.get("/_lab/hidden")).status()).toBe(404);
+  const response = await page.goto("/_lab/hidden");
+  expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1, name: "Looks like a wrong turn" })).toBeVisible();
   // The hidden page's own title ("Hidden lab") must not leak.
   await expect(page).toHaveTitle("Wrong turn | Sunkanmi Olawuwo");

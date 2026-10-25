@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { ComingSoon } from "@/components/site/ComingSoon";
+import { gatePage } from "@/lib/flags/gate";
 
-export const metadata: Metadata = { title: "Work" };
+// Gated twice on purpose (decision 0018): generateMetadata keeps a hidden page's own
+// title out of the 404, and the page body renders the 404 itself.
+export async function generateMetadata(): Promise<Metadata> {
+  await gatePage("page.work");
+  return { title: "Work" };
+}
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  await gatePage("page.work");
   return (
     <main id="main">
       <ComingSoon

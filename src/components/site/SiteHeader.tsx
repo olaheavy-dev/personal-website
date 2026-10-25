@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { NavItem } from "@/lib/nav";
 import { site } from "@/lib/site";
 import { EmailButton } from "./EmailButton";
 import { MobileMenu, PillNav } from "./PillNav";
@@ -21,7 +22,7 @@ import { ThemeToggle } from "./ThemeToggle";
 // Three heights exist: the box (76 px phone, 98 px md), the visible scrolled bar
 // (60 or 66 px) and --nav-height. A future sticky element (Work filter chips, a
 // case study TOC) should sit below the visible scrolled bar, not the box.
-export function SiteHeader() {
+export function SiteHeader({ items }: { items: readonly NavItem[] }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export function SiteHeader() {
           <span className="hidden sm:inline">{site.name}</span>
           <span className="sm:hidden">{site.firstName}</span>
         </Link>
-        <PillNav />
+        <PillNav items={items} />
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <span className="hidden lg:inline-flex">
@@ -63,7 +64,7 @@ export function SiteHeader() {
           <span className="inline-flex lg:hidden">
             <EmailButton size="icon" />
           </span>
-          <MobileMenu />
+          <MobileMenu items={items} />
         </div>
       </div>
     </header>

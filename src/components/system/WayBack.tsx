@@ -14,7 +14,7 @@ import { wayBackLinks, type NavItem } from "@/lib/nav";
 // `marker`) and the route's geometry stays as it is. --wb-delta is how far the
 // avatar overhangs the pin on each side: the list is pushed in and down by it so the
 // avatar lines up with the page edge, and every stop's text is pushed clear of it.
-export function WayBack({ items }: { items?: NavItem[] }) {
+export function WayBack({ items }: { items: readonly NavItem[] }) {
   const links = wayBackLinks(items);
   return (
     <Route

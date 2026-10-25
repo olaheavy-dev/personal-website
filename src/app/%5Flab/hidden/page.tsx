@@ -1,30 +1,19 @@
-// Developer only page at /_lab/hidden: it stands in for a page switched off by a
-// feature flag (#6), so a test can see that a hidden page looks exactly like a
-// mistyped URL: the Wrong turn title, one noindex and a real 404 status.
-//
-// The pattern to copy: the "is this page off?" check runs in generateMetadata,
-// before anything streams. A static `metadata` export here would leak the hidden
-// page's own title (the 404 would be titled "Hidden lab"), and a check only in the
-// page body runs after streaming has begun, so the status would stay 200.
-// Off unless LAB_PAGES=1.
-import { notFound } from "next/navigation";
-import { connection } from "next/server";
-import { Suspense } from "react";
+// Developer only page at /_lab/hidden: the build time proof of how a page switched off by a
+// feature flag behaves (decision 0018). Its flag, "lab.hidden", is never set, so it is Off
+// when `next build` prerenders it, and the page must be a static 404 that looks exactly like
+// a mistyped URL: the Wrong turn title, noindex and a real 404 status, with no request time
+// work. It is the pattern to copy for a real page: `gatePage` first in generateMetadata, then
+// at the top of the page. A static `metadata` export would leak the hidden page's own title.
+// Off unless LAB_PAGES=1 (src/proxy.ts).
+import type { Metadata } from "next";
+import { gatePage } from "@/lib/flags/gate";
 
-export async function generateMetadata() {
-  await connection();
-  notFound();
+export async function generateMetadata(): Promise<Metadata> {
+  await gatePage("lab.hidden");
+  return { title: "Hidden lab" };
 }
 
-async function Lab(): Promise<React.ReactNode> {
-  await connection();
-  notFound();
-}
-
-export default function HiddenLabPage() {
-  return (
-    <Suspense fallback={null}>
-      <Lab />
-    </Suspense>
-  );
+export default async function HiddenLabPage() {
+  await gatePage("lab.hidden");
+  return <main id="main">This page is never shown.</main>;
 }

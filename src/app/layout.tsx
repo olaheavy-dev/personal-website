@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/site/Footer";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { ToastProvider } from "@/components/site/Toast";
+import { getFlags } from "@/lib/db/queries/flags";
+import { visiblePages } from "@/lib/flags/registry";
+import { getViewer } from "@/lib/flags/visibility";
 import { site } from "@/lib/site";
 import { themeScript } from "@/lib/theme-script";
 import { fontVariables } from "./fonts";
@@ -25,7 +28,10 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // The navigation shows the pages whose flag is visible to this viewer. getFlags() is
+  // cached and tagged, so this stays part of the prerendered shell (decision 0018).
+  const items = visiblePages(await getFlags(), await getViewer());
   return (
     <html lang="en-GB" className={fontVariables} suppressHydrationWarning>
       <head>
@@ -39,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <ToastProvider>
-          <SiteHeader />
+          <SiteHeader items={items} />
           {children}
           <Footer />
         </ToastProvider>

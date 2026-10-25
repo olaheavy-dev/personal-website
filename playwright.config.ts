@@ -42,7 +42,8 @@ export default defineConfig({
     ? undefined
     : {
         command: "pnpm serve",
-        env: { PORT: String(port), HOSTNAME: "127.0.0.1" },
+        // LAB_PAGES switches on the developer demo pages (/_lab/...); never set outside tests.
+        env: { PORT: String(port), HOSTNAME: "127.0.0.1", LAB_PAGES: "1" },
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,

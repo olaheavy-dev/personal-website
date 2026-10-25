@@ -219,3 +219,21 @@ jobs:
           path: e2e/__screenshots__/
           retention-days: 14
           if-no-files-found: ignore
+
+  docker:
+    # Builds the production image from the real build context (.dockerignore applied), so a file
+    # the image cannot see breaks the PR instead of the publish run after merge. A smoke build:
+    # no Supabase values, so gated pages are baked Off; it is never pushed.
+    name: docker image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the image and check it for private files and a root user
+        run: make docker-build && make docker-check

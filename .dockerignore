@@ -25,3 +25,5 @@ supabase
 **/*.md
 Dockerfile
 .dockerignore
+# Test-only config: it imports e2e fixtures, which are not in the build context.
+playwright.config.ts

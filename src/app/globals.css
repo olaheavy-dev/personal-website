@@ -21,39 +21,250 @@
 }
 
 @layer components {
-  /* Ticket: side notches cut with a mask; the hard shadow lives on a wrapper
-     (.ticket-drop) because masks clip box-shadow. */
+  /* Ticket (src/components/ticket/Ticket.tsx). Two pieces, a body and an optional
+     stub, each masked on its own: the body cuts half notches at its corners on the
+     stub side and the stub cuts the other halves, so together they make whole
+     notches exactly on the tear line whatever the content height. The outline and
+     the hard shadow (or lilac glow) sit on the wrapper as a drop-shadow filter,
+     because a mask would clip a box-shadow; the filter traces the joined shape. */
   .ticket {
-    --n: var(--ticket-notch);
-    background: var(--color-bg-elevated);
+    position: relative;
+    display: flex;
+    flex-direction: column;
     border-radius: var(--border-radius-lg);
-    mask:
-      radial-gradient(circle var(--n) at 0 var(--notch-y, 62%), #0000 97%, #000) left / 51% 100% no-repeat,
-      radial-gradient(circle var(--n) at 100% var(--notch-y, 62%), #0000 97%, #000) right / 51% 100% no-repeat;
-  }
-  .ticket-drop {
     filter: var(--ticket-drop);
     transition:
       filter var(--duration-normal) var(--easing-out),
-      transform var(--duration-normal) var(--easing-out);
+      translate var(--duration-normal) var(--easing-out),
+      rotate var(--duration-normal) var(--easing-out);
   }
-  .ticket-perforation {
-    border-top: 2px dashed var(--color-border-primary);
+  .ticket[data-tilt="front"] {
+    rotate: var(--ticket-tilt);
+  }
+  /* The tilted front ticket straightens on hover and on keyboard focus. */
+  .ticket[data-tilt="front"]:is(:hover, :has(:focus-visible)) {
+    rotate: 0deg;
+  }
+  .ticket[data-tilt="back"] {
+    rotate: var(--ticket-tilt-back);
+  }
+  .ticket-body,
+  .ticket-stub {
+    --n: var(--ticket-notch);
+    background: var(--ticket-bg, var(--color-bg-elevated));
+  }
+  .ticket[data-tone="lilac"] {
+    --ticket-bg: var(--color-lilac);
+    color: var(--color-text-on-accent);
+  }
+  .ticket-body {
+    flex: 1;
+    border-radius: var(--border-radius-lg);
+  }
+  .ticket-stub {
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    border-top: var(--ticket-tear-width) dashed var(--color-border-primary);
+  }
+  /* The body runs 1px under the stub (a transparent border, which still shows the
+     background, cancelled by a negative margin; --ticket-seam-overlap) so a fractional seam position can
+     never leave a hairline gap that lets the drop-shadow outline show through. */
+  .ticket[data-stub] .ticket-body {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    border-bottom: var(--ticket-seam-overlap) solid transparent;
+    margin-bottom: calc(-1 * var(--ticket-seam-overlap));
   }
 
-  /* A wide "pass" ticket with a tear-off stub on the right (md and up): the
-     notches sit top and bottom on the perforation instead of on the sides.
-     Below md the stub stacks under a dashed tear line, so no notches. */
-  .ticket.ticket-pass {
-    mask: none;
+  /* A ticket without a stub can still carry notches on its sides (the peeking
+     ticket behind the hero): data-notches="side", at --notch-line (default 62%). */
+  .ticket[data-notches="side"]:not([data-stub]) .ticket-body {
+    mask:
+      radial-gradient(circle var(--n) at 0 var(--notch-line, 62%), #0000 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle var(--n) at 100% var(--notch-line, 62%), #0000 97%, #000) right / 51% 100%
+        no-repeat;
   }
+
+  /* Stacked layout: the stub sits below the body, notches on the left and right
+     edges. The "pass" layout does the same below md, without notches. */
+  .ticket[data-layout="stacked"][data-stub] .ticket-body {
+    mask:
+      radial-gradient(circle var(--n) at 0 calc(100% - var(--ticket-seam-overlap)), #0000 97%, #000) left /
+        51% 100% no-repeat no-clip,
+      radial-gradient(circle var(--n) at 100% calc(100% - var(--ticket-seam-overlap)), #0000 97%, #000)
+        right / 51% 100% no-repeat no-clip;
+  }
+  .ticket[data-layout="stacked"] .ticket-stub {
+    mask:
+      radial-gradient(circle var(--n) at 0 0, #0000 97%, #000) left / 51% 100% no-repeat no-clip,
+      radial-gradient(circle var(--n) at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat no-clip;
+  }
+
+  /* Pass layout from md: stub on the right, notches top and bottom on the tear line. */
   @media (min-width: 48rem) {
-    .ticket.ticket-pass {
+    .ticket[data-layout="pass"] {
+      flex-direction: row;
+    }
+    .ticket[data-layout="pass"][data-stub] .ticket-body {
+      border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
+      border-bottom: 0;
+      margin-bottom: 0;
+      border-right: var(--ticket-seam-overlap) solid transparent;
+      margin-right: calc(-1 * var(--ticket-seam-overlap));
       mask:
-        radial-gradient(circle var(--n) at calc(100% - var(--ticket-stub-width)) 0, #0000 97%, #000) top /
-          100% 51% no-repeat,
-        radial-gradient(circle var(--n) at calc(100% - var(--ticket-stub-width)) 100%, #0000 97%, #000)
-          bottom / 100% 51% no-repeat;
+        radial-gradient(circle var(--n) at calc(100% - var(--ticket-seam-overlap)) 0, #0000 97%, #000) top /
+          100% 51% no-repeat no-clip,
+        radial-gradient(circle var(--n) at calc(100% - var(--ticket-seam-overlap)) 100%, #0000 97%, #000)
+          bottom / 100% 51% no-repeat no-clip;
+    }
+    .ticket[data-layout="pass"] .ticket-stub {
+      width: var(--ticket-stub-width);
+      border-top: 0;
+      border-left: var(--ticket-tear-width) dashed var(--color-border-primary);
+      border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+      mask:
+        radial-gradient(circle var(--n) at 0 0, #0000 97%, #000) top / 100% 51% no-repeat no-clip,
+        radial-gradient(circle var(--n) at 0 100%, #0000 97%, #000) bottom / 100% 51% no-repeat no-clip;
+    }
+  }
+
+  /* A ticket with an href: the title link is stretched over the whole ticket, so
+     there is one tab stop. Inner links and buttons sit above it. The mask clips
+     painting and hit testing to the border box, so each mask layer says `no-clip`;
+     the stub is a later sibling, so its blank area lets clicks fall through.
+     Known and accepted: the stretched area also covers the cut-out notches, so a
+     click in a notch still counts as a click on the link. */
+  .ticket[data-linked] .ticket-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--border-radius-lg);
+  }
+  /* One focus ring for the whole ticket instead of the global ring on the title
+     text, drawn by the filter (--ticket-drop-focus) so it follows the notches. */
+  .ticket[data-linked] .ticket-link:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  .ticket[data-linked] .ticket-stub {
+    pointer-events: none;
+  }
+  .ticket[data-linked] a:not(.ticket-link),
+  .ticket[data-linked] button,
+  .ticket[data-linked] .ticket-stub :is(a, button) {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+  }
+  /* A popover inside the stub inherits pointer-events: none; without this a tap on
+     its text would fall through to the stretched link and close it. */
+  .ticket[data-linked] :is([popover], [popover] *) {
+    pointer-events: auto;
+  }
+  .ticket[data-linked]:is(:hover, :has(.ticket-link:focus-visible)) {
+    translate: 0 var(--ticket-lift);
+  }
+  .ticket[data-linked]:hover {
+    filter: var(--ticket-drop-hover);
+  }
+  .ticket[data-linked]:has(.ticket-link:focus-visible) {
+    filter: var(--ticket-drop-focus);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticket[data-tilt="front"] {
+      rotate: none;
+    }
+    .ticket[data-linked]:is(:hover, :has(.ticket-link:focus-visible)) {
+      translate: none;
+    }
+    .ticket {
+      transition-property: filter;
+    }
+  }
+
+  /* TicketExpander: height animates by growing a grid row from 0fr to 1fr, so
+     nothing is measured. Instant with reduced motion. */
+  .ticket-expander {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--duration-normal) var(--easing-out);
+  }
+  .ticket-expander[data-open] {
+    grid-template-rows: 1fr;
+  }
+  /* The inner box clips the collapsing content. A little padding, cancelled by an
+     equal negative margin, leaves room for focus rings inside it. */
+  .ticket-expander > div {
+    min-height: 0;
+    overflow: hidden;
+    margin: calc(-1 * var(--space-1));
+    padding: var(--space-1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticket-expander {
+      transition: none;
+    }
+  }
+
+  /* SourceDisclosure: a native popover. A bottom sheet on phones and wherever CSS
+     anchor positioning is missing; beside its button from md where it works. Without
+     popover support at all, the source simply shows inline. */
+  .source-popover {
+    margin: 0;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: none;
+    padding: var(--space-5);
+    border: var(--ticket-tear-width) solid var(--color-border-strong);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+  }
+  /* Display is set here, not with utilities, so the fallbacks below can hide them
+     (utilities sit in a later layer and would win). */
+  .source-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .source-close {
+    display: flex;
+    align-items: center;
+  }
+  @supports (anchor-name: --a) {
+    @media (min-width: 48rem) {
+      .source-trigger {
+        anchor-name: var(--source-anchor);
+      }
+      .source-popover {
+        position-anchor: var(--source-anchor);
+        inset: auto;
+        top: anchor(bottom);
+        left: anchor(left);
+        width: max-content;
+        max-width: min(var(--ticket-max-width), calc(100vw - 2 * var(--gutter)));
+        margin-top: var(--space-2);
+        border-radius: var(--border-radius-md);
+        position-try-fallbacks: flip-block, flip-inline;
+      }
+      /* Anchored beside its button there is no sheet, so no Close button. */
+      .source-close {
+        display: none;
+      }
+    }
+  }
+  @supports not selector(:popover-open) {
+    .source-trigger,
+    .source-close,
+    .source-figure {
+      display: none;
+    }
+    .source-popover {
+      position: static;
+      width: auto;
+      padding: 0;
+      border: 0;
+      background: none;
     }
   }
 

@@ -135,6 +135,20 @@
      traced round the whole shape, notches included, then the hard offset. */
   --ticket-drop: drop-shadow(1px 0 0 var(--ink-900)) drop-shadow(-1px 0 0 var(--ink-900))
     drop-shadow(0 1px 0 var(--ink-900)) drop-shadow(0 -1px 0 var(--ink-900)) drop-shadow(4px 4px 0 var(--ink-900));
+  /* Hover and focus: the lifted ticket's shadow deepens (the lift itself is 4px). */
+  --ticket-drop-hover: drop-shadow(1px 0 0 var(--ink-900)) drop-shadow(-1px 0 0 var(--ink-900))
+    drop-shadow(0 1px 0 var(--ink-900)) drop-shadow(0 -1px 0 var(--ink-900))
+    drop-shadow(6px 8px 0 var(--ink-900));
+  /* Keyboard focus on a linked ticket: the hover shadow with a 2px focus ring drawn
+     like the outline, so it traces the notches. The ring sits outside the ink
+     outline and the hard offset shadow is cast behind both. */
+  --ticket-drop-focus: drop-shadow(1px 0 0 var(--ink-900)) drop-shadow(-1px 0 0 var(--ink-900))
+    drop-shadow(0 1px 0 var(--ink-900)) drop-shadow(0 -1px 0 var(--ink-900))
+      drop-shadow(2px 0 0 var(--color-border-focus))
+    drop-shadow(-2px 0 0 var(--color-border-focus))
+    drop-shadow(0 2px 0 var(--color-border-focus))
+    drop-shadow(0 -2px 0 var(--color-border-focus))
+    drop-shadow(6px 8px 0 var(--ink-900));
   --shadow-focus:  0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
 }
 
@@ -196,6 +210,14 @@
   --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
   --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
   --ticket-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
+  --ticket-drop-hover: drop-shadow(0 0 1px rgb(205 184 255 / 0.9))
+    drop-shadow(0 16px 32px rgb(205 184 255 / 0.28));
+  --ticket-drop-focus: drop-shadow(0 0 1px rgb(205 184 255 / 0.9))
+      drop-shadow(2px 0 0 var(--color-border-focus))
+      drop-shadow(-2px 0 0 var(--color-border-focus))
+      drop-shadow(0 2px 0 var(--color-border-focus))
+      drop-shadow(0 -2px 0 var(--color-border-focus))
+    drop-shadow(0 16px 32px rgb(205 184 255 / 0.28));
   --shadow-focus:  0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-border-focus);
 }
 
@@ -220,6 +242,14 @@
     --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
     --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);
     --ticket-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(0 12px 28px rgb(205 184 255 / 0.18));
+    --ticket-drop-hover: drop-shadow(0 0 1px rgb(205 184 255 / 0.9))
+      drop-shadow(0 16px 32px rgb(205 184 255 / 0.28));
+    --ticket-drop-focus: drop-shadow(0 0 1px rgb(205 184 255 / 0.9))
+        drop-shadow(2px 0 0 var(--color-border-focus))
+        drop-shadow(-2px 0 0 var(--color-border-focus))
+        drop-shadow(0 2px 0 var(--color-border-focus))
+        drop-shadow(0 -2px 0 var(--color-border-focus))
+      drop-shadow(0 16px 32px rgb(205 184 255 / 0.28));
   }
 }
 
@@ -318,8 +348,10 @@
   --ticket-tilt: 2deg;
   --ticket-tilt-back: -5deg;
   --ticket-max-width: 22rem;
-  --ticket-stub-offset: 5.6rem; /* distance from the bottom to the notch line */
   --ticket-stub-width: 18rem; /* tear-off stub of the wide "pass" ticket */
+  --ticket-lift: -0.25rem; /* hover and focus lift of a linked ticket */
+  --ticket-tear-width: 2px; /* dashed tear line and popover border */
+  --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
   --z-skip-link: 100;
 
   /* Motion */

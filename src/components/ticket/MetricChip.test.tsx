@@ -1,0 +1,65 @@
+import { render, screen } from "@testing-library/react";
+import { MetricChip } from "./MetricChip";
+
+const source = {
+  kind: "link" as const,
+  label: "Google Play listing",
+  url: "https://play.google.com/store/apps/details?id=example",
+};
+
+describe("MetricChip", () => {
+  it("shows the figure and a source button whose name says source", () => {
+    render(<MetricChip value="1M+" label="Google Play downloads" source={source} />);
+    expect(screen.getByText("1M+")).toBeInTheDocument();
+    expect(screen.getAllByText(/Google Play downloads/).length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Source for 1M+ Google Play downloads" })).toBeInTheDocument();
+  });
+
+  it("wires the button to a native popover that links to the source", () => {
+    const { container } = render(<MetricChip value="1M+" label="Google Play downloads" source={source} />);
+    const button = screen.getByRole("button", { name: /Source for/ });
+    const popover = container.querySelector("[popover]") as HTMLElement;
+    expect(popover).toHaveAttribute("popover", "auto");
+    expect(button).toHaveAttribute("popovertarget", popover.id);
+    const link = popover.querySelector("a") as HTMLAnchorElement;
+    expect(link).toHaveTextContent("Google Play listing");
+    expect(link).toHaveAttribute("href", source.url);
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+  });
+
+  it("gives the sheet a close button on phones", () => {
+    const { container } = render(<MetricChip value="1M+" label="downloads" source={source} />);
+    const popover = container.querySelector("[popover]") as HTMLElement;
+    const close = popover.querySelector("button") as HTMLButtonElement;
+    expect(close).toHaveAttribute("popovertargetaction", "hide");
+    expect(close).toHaveAttribute("popovertarget", popover.id);
+  });
+
+  it("shows an own measurement as text, with no link", () => {
+    const { container } = render(
+      <MetricChip
+        value="98"
+        label="Lighthouse performance"
+        source={{ kind: "own", note: "Mobile, 12 May 2026" }}
+      />,
+    );
+    const popover = container.querySelector("[popover]") as HTMLElement;
+    expect(popover).toHaveTextContent("Own measurement.");
+    expect(popover).toHaveTextContent("Mobile, 12 May 2026");
+    expect(popover.querySelector("a")).toBeNull();
+  });
+
+  it("does not compile without a source", () => {
+    // The claims policy in code: a figure can not be shown without where it is from.
+    // @ts-expect-error `source` is required
+    const chip = <MetricChip value="1M+" label="downloads" />;
+    expect(chip).toBeTruthy();
+  });
+
+  it("does not compile with an unlabelled source", () => {
+    // @ts-expect-error a link source needs a label and url; an own source needs a note
+    const chip = <MetricChip value="1M+" label="downloads" source={{ kind: "own" }} />;
+    expect(chip).toBeTruthy();
+  });
+});

@@ -38,7 +38,13 @@ test.describe("visual @visual", () => {
           fullPage: true,
           animations: "disabled",
           mask: [page.locator("[data-visual-mask]")],
-          maxDiffPixelRatio: 0.001,
+          // Measured noise between two CI runs of an unchanged page: most images
+          // identical, the rest at most ~100 pixels off by 3/255 in colour. So a
+          // tight colour threshold ignores that noise, and any real change (a 1 px
+          // outline, an 8 px notch move) fails. A ratio of the page would not:
+          // 0.1% of a desktop page is about 2,000 pixels.
+          threshold: 0.05,
+          maxDiffPixels: 25,
         });
       });
     }

@@ -337,6 +337,221 @@
     transform: translate(2px, -3px) rotate(-8deg);
   }
 
+  /* Route (src/components/route). Geometry is pure CSS: a leg runs from the
+     centre of one stop's pin to the centre of the next, so nothing is measured.
+     Each stop box is position: relative with its pin first, and the consumer sets
+     --route-gap (the space between two stop boxes). The base styles below are the
+     finished route: reduced motion, no JavaScript and no animation all show it. */
+  .route-leg {
+    position: absolute;
+    pointer-events: none;
+  }
+  .route-line {
+    position: absolute;
+    inset: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+  }
+  .route-dots {
+    fill: none;
+    stroke: var(--color-route-line);
+    stroke-width: var(--route-stroke);
+    stroke-linecap: round;
+    stroke-dasharray: var(--route-dash);
+  }
+  .route-mask-line {
+    fill: none;
+    stroke: white;
+    stroke-width: var(--route-pin-size);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .route-vehicle {
+    position: absolute;
+    inset: 0;
+  }
+  .route-seat {
+    position: absolute;
+    display: block;
+  }
+  .route-pin {
+    --route-pin-from: 0.6;
+    margin-top: var(--route-pin-offset, 0px);
+  }
+  /* The paper plane faces along the leg; other vehicles choose their own pose. */
+  .route {
+    --route-plane-length: calc(var(--route-plane-size) * 36 / 28); /* the plane's viewBox is 36 by 28 */
+  }
+  .route-plane {
+    rotate: var(--route-plane-turn, 0deg);
+  }
+  /* "You are here": a page coloured gap, then a ring in the active lilac. */
+  .route-pin[data-tone="current"] {
+    box-shadow:
+      0 0 0 var(--route-halo-gap) var(--color-bg-primary),
+      0 0 0 calc(var(--route-halo-gap) + var(--route-halo-width)) var(--color-route-active);
+  }
+  @media (forced-colors: active) {
+    .route-pin[data-tone="current"] {
+      outline: var(--route-halo-width) solid CanvasText;
+      outline-offset: var(--route-halo-gap);
+    }
+  }
+  @media (forced-colors: active) {
+    .route-dots {
+      stroke: CanvasText;
+    }
+  }
+
+  /* Vertical: down from the pin; the vehicle rests above the next pin, nose down. */
+  .route[data-variant="vertical"] {
+    --route-undrawn-shift: 0 -100%;
+    --route-plane-turn: 90deg;
+  }
+  .route[data-variant="vertical"] .route-leg {
+    top: calc(var(--route-pin-offset, 0px) + var(--route-pin-size) / 2);
+    left: calc((var(--route-pin-size) - var(--route-stroke)) / 2);
+    width: var(--route-stroke);
+    height: calc(100% + var(--route-gap, 0px));
+  }
+  .route[data-variant="vertical"] .route-line-v {
+    display: block;
+  }
+  .route[data-variant="vertical"] .route-line-h {
+    display: none;
+  }
+  .route[data-variant="vertical"] .route-seat {
+    top: calc(100% - var(--route-pin-size) + var(--space-1) - var(--route-plane-length) / 2);
+    left: 50%;
+    translate: -50% -50%;
+  }
+
+  /* Horizontal and inline: along from the pin; the vehicle rests before the next pin. */
+  .route:is([data-variant="horizontal"], [data-variant="inline"]) {
+    --route-undrawn-shift: -100% 0;
+    --route-plane-turn: 0deg;
+  }
+  .route:is([data-variant="horizontal"], [data-variant="inline"]) .route-leg {
+    top: calc(var(--route-pin-offset, 0px) + (var(--route-pin-size) - var(--route-stroke)) / 2);
+    left: calc(var(--route-pin-size) / 2);
+    width: calc(100% + var(--route-gap, 0px));
+    height: var(--route-stroke);
+  }
+  .route:is([data-variant="horizontal"], [data-variant="inline"]) .route-line-v {
+    display: none;
+  }
+  .route:is([data-variant="horizontal"], [data-variant="inline"]) .route-line-h {
+    display: block;
+  }
+  .route:is([data-variant="horizontal"], [data-variant="inline"]) .route-seat {
+    top: 50%;
+    left: calc(100% - var(--route-pin-size) + var(--space-1));
+    translate: -100% -50%;
+  }
+
+  /* From md the responsive variant takes over (48rem, Tailwind's md). */
+  @media (min-width: 48rem) {
+    .route[data-md-variant="vertical"] {
+      --route-undrawn-shift: 0 -100%;
+      --route-plane-turn: 90deg;
+    }
+    .route[data-md-variant="vertical"] .route-leg {
+      top: calc(var(--route-pin-offset, 0px) + var(--route-pin-size) / 2);
+      left: calc((var(--route-pin-size) - var(--route-stroke)) / 2);
+      width: var(--route-stroke);
+      height: calc(100% + var(--route-gap, 0px));
+    }
+    .route[data-md-variant="vertical"] .route-line-v {
+      display: block;
+    }
+    .route[data-md-variant="vertical"] .route-line-h {
+      display: none;
+    }
+    .route[data-md-variant="vertical"] .route-seat {
+      top: calc(100% - var(--route-pin-size) + var(--space-1) - var(--route-plane-length) / 2);
+      left: 50%;
+      translate: -50% -50%;
+    }
+    .route:is([data-md-variant="horizontal"], [data-md-variant="inline"]) {
+      --route-undrawn-shift: -100% 0;
+      --route-plane-turn: 0deg;
+    }
+    .route:is([data-md-variant="horizontal"], [data-md-variant="inline"]) .route-leg {
+      top: calc(var(--route-pin-offset, 0px) + (var(--route-pin-size) - var(--route-stroke)) / 2);
+      left: calc(var(--route-pin-size) / 2);
+      width: calc(100% + var(--route-gap, 0px));
+      height: var(--route-stroke);
+    }
+    .route:is([data-md-variant="horizontal"], [data-md-variant="inline"]) .route-line-v {
+      display: none;
+    }
+    .route:is([data-md-variant="horizontal"], [data-md-variant="inline"]) .route-line-h {
+      display: block;
+    }
+    .route:is([data-md-variant="horizontal"], [data-md-variant="inline"]) .route-seat {
+      top: 50%;
+      left: calc(100% - var(--route-pin-size) + var(--space-1));
+      translate: -100% -50%;
+    }
+  }
+
+  /* Drawing. Everything that moves, every transition and every delay lives here,
+     so reduced motion leaves the finished route with no hidden delayed frame.
+     The undrawn state applies from first paint under html[data-js] (set by the
+     head script), so there is no finished then undrawn flash. If the script never
+     arms a route, the head script's timeout sets data-route-fallback on <html>
+     and the route shows finished. Transitions apply only once drawing has started
+     (data-drawn or data-reached), so that switch never animates backwards. */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Legs and pins follow one after another when a route draws on view. */
+    .route {
+      --route-step: 0s;
+    }
+    .route[data-draw="on-view"] {
+      --route-step: var(--route-draw-duration);
+    }
+    .route-pin,
+    .route-leg {
+      --route-delay: calc(var(--route-i, 0) * var(--route-step));
+    }
+    .route[data-drawn] .route-pin,
+    .route-pin[data-reached] {
+      transition: scale var(--duration-slow) var(--easing-bounce) var(--route-delay);
+    }
+    .route[data-drawn] .route-mask-line,
+    .route-pin[data-reached] ~ .route-leg .route-mask-line {
+      transition: stroke-dashoffset var(--route-draw-duration) var(--easing-out) var(--route-delay);
+    }
+    .route[data-drawn] .route-vehicle,
+    .route-pin[data-reached] ~ .route-leg .route-vehicle {
+      transition:
+        translate var(--route-draw-duration) var(--easing-out) var(--route-delay),
+        opacity var(--route-draw-duration) var(--easing-out) var(--route-delay);
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-pin,
+    html[data-js]:not([data-route-fallback]) .route[data-draw="progressive"] .route-pin:not([data-reached]) {
+      scale: var(--route-pin-from);
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-mask-line,
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-pin:not([data-reached])
+      ~ .route-leg
+      .route-mask-line {
+      stroke-dashoffset: 1;
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-vehicle,
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-pin:not([data-reached])
+      ~ .route-leg
+      .route-vehicle {
+      translate: var(--route-undrawn-shift);
+      opacity: 0;
+    }
+  }
+
   /* Hero name highlight. The lilac fill lives on a ::before layer so it can sweep in
      without ever touching the text's opacity or visibility (the name is an LCP
      candidate). The base style is the finished highlight: reduced motion, no

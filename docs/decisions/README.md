@@ -24,10 +24,12 @@ Every significant product, technical and working decision gets a record here, na
 
 ## Easily reversible defaults
 
-| Area          | Default                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------- |
-| Licence       | Public, all rights reserved (`LICENSE`)                                                              |
-| Merge method  | Squash only; PR title becomes the commit title                                                       |
-| Theme         | Light by default, follows system, toggle persisted                                                   |
-| Contact email | Set by `NEXT_PUBLIC_CONTACT_EMAIL`                                                                   |
-| Micro-motions | Part of the motion system, not delights: they ship without a feature flag and respect reduced motion |
+| Area           | Default                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Licence        | Public, all rights reserved (`LICENSE`)                                                                                                                                |
+| Merge method   | Squash only; PR title becomes the commit title                                                                                                                         |
+| Theme          | Light by default, follows system, toggle persisted                                                                                                                     |
+| Contact email  | Set by `NEXT_PUBLIC_CONTACT_EMAIL`                                                                                                                                     |
+| Micro-motions  | Part of the motion system, not delights: they ship without a feature flag and respect reduced motion                                                                   |
+| Route layout   | Home stations run vertically on phones and horizontally from the md breakpoint; the `Route` component has no feature flag (it is the signature, not a page or delight) |
+| Lab demo pages | Developer only pages such as `/_lab/route` exist only when the runtime variable `LAB_PAGES=1` (set by Playwright, never in the image); otherwise a real 404            |

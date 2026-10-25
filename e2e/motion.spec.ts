@@ -110,7 +110,7 @@ test.describe("hero name sweep", () => {
         ink.pause();
         clip.currentTime = ink.currentTime = total * fraction;
         // Revealed share of the span (clip inset right goes 100% to 0) and the gradient edge
-        // position (background-position 100% to 0, edge at 1 - p of the padding box).
+        // position (background-position 100% to 0, edge at (1 minus p) of the padding box).
         const inset = parseFloat(
           getComputedStyle(name, "::before").clipPath.split(/[ (]/).filter(Boolean)[2] ?? "0",
         );

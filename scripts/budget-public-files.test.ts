@@ -34,6 +34,11 @@ describe("referencedPublicFiles", () => {
     ).toEqual(["/logos/hbk.svg"]);
   });
 
+  it("does not count a plain link to a file, only what the page loads", () => {
+    const html = `<a href="/logos/hbk.svg">Download</a><img src="/images/me.jpg">`;
+    expect(referencedPublicFiles([html], publicDir)).toEqual(["/images/me.jpg"]);
+  });
+
   it("ignores query strings and fragments", () => {
     expect(referencedPublicFiles([`a{mask:url(/logos/hbk.svg?v=2#x)}`], publicDir)).toEqual([
       "/logos/hbk.svg",

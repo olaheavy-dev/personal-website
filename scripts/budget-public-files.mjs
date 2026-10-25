@@ -1,19 +1,25 @@
 // Files a page pulls from public/ (logo masks, the portrait), which the page budget must
-// count like any other asset. They are found from the page's own HTML (src, href, poster,
-// srcset and url(...)) and from its stylesheets (url(...)). Only same origin paths count:
-// a full URL, a protocol relative one and anything under /_next/ (counted separately) are
-// skipped, and so is any path that is not a real file in public/ (a link to /work is a page).
+// count like any other asset. They are found in the page's own HTML (src, href, poster and
+// srcset on <link>, <img>, <source>, <video> and <script> only: an <a href> is a link the
+// visitor may never follow, not a download) and in url(...) in the HTML or the stylesheets.
+// Every stylesheet url() counts as fetched, so the total is an upper bound: a mask no
+// section on the page uses is still counted. Only same origin paths count: a full URL, a
+// protocol relative one and anything under /_next/ (counted separately) are skipped, and so
+// is any path that is not a real file in public/.
 import { existsSync, statSync } from "node:fs";
 import { join, normalize, sep } from "node:path";
 
+const tag = /<(?:link|img|source|video|script)\b[^>]*>/gi;
 const attribute = /\b(?:src|href|poster|srcset)\s*=\s*["']([^"']+)["']/gi;
 const cssUrl = /url\(\s*(["']?)([^)"']+)\1\s*\)/gi;
 
 function candidates(text) {
   const found = [];
-  for (const match of text.matchAll(attribute)) {
-    // srcset holds "path 1x, path 2x"; the others hold one path.
-    for (const part of match[1].split(",")) found.push(part.trim().split(/\s+/)[0]);
+  for (const element of text.matchAll(tag)) {
+    for (const match of element[0].matchAll(attribute)) {
+      // srcset holds "path 1x, path 2x"; the others hold one path.
+      for (const part of match[1].split(",")) found.push(part.trim().split(/\s+/)[0]);
+    }
   }
   for (const match of text.matchAll(cssUrl)) found.push(match[2].trim());
   return found;

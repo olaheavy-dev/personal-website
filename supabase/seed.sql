@@ -1,6 +1,8 @@
 -- Seed for the claims policy (decision 0005). Safe to run more than once.
 -- Settings and flags are owner-edited later, so a re-run never overwrites them;
 -- content rows are refreshed. Every link was re-opened on 2026-10-25 (checked_on).
+-- The HBK release notes link blocks automated requests, so the owner opened it in a
+-- browser on 2026-10-25 and confirmed 2025 R4 still mentions Aiana.
 -- Never here: phone, address, email, CV only dates, titles or figures, RagLab.
 
 -- Settings (mirror src/lib/site.ts). Social links start empty: the owner fills them in.
@@ -10,7 +12,7 @@ insert into public.settings (key, value) values
   ('site.url', '"https://olaheavy.dev"'),
   ('site.one_liner', '"I take products from idea to production, with AI built in."'),
   ('site.description', to_jsonb('Full-stack & AI engineer based in the UK. Ten years of software across banking, cross-border payments and edtech; today helping build HBK''s sensor-data analytics platform and the human-centred AI inside it.'::text)),
-  ('site.availability', to_jsonb(E'Open to senior & staff AI roles · consulting'::text)),
+  ('site.availability', to_jsonb(E'Open to senior & staff AI roles\u00a0\u00b7 consulting'::text)),
   ('site.time_zone', '"Europe/London"'),
   ('site.time_zone_label', '"UK"'),
   ('site.copyright_since', '2026'),
@@ -105,7 +107,7 @@ values
   ((select id from public.stops where slug = 'access-bank'), null, 1,
     '1M+', 'Google Play downloads of the QuickBucks app',
     'link', 'Google Play listing', 'https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks', date '2026-10-25',
-    'company', 'Google Play listing', 2026),
+    'company', 'Google Play', 2026),
   ((select id from public.stops where slug = 'optty'), null, 1,
     '90+', 'BNPL and local payment methods across 120+ countries on the Optty platform',
     'link', 'Optty and Triple-A announcement, 2023', 'https://triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies', date '2026-10-25',

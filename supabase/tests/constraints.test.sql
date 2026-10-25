@@ -146,6 +146,15 @@ select throws_ok(
 select lives_ok(
   $$update public.case_studies set status = 'published', tldr = array['a','b','c','d'] where slug = 't-gate'$$,
   'publishing works with 4 bullets and 3 outcomes');
+-- The removal guard locks the parent case study row before it counts, so two sessions
+-- removing outcomes take turns. pgTAP runs in one transaction and cannot start a second
+-- session, so the race itself is not tested here; this checks the guarded path still
+-- lets a removal through while 3 outcomes remain.
+insert into public.outcomes (case_study_id, figure, description, source_kind, source_note)
+  select id, '4', 'fourth', 'own', 'test' from public.case_studies where slug = 't-gate';
+select lives_ok(
+  $$delete from public.outcomes where figure = '4' and case_study_id = (select id from public.case_studies where slug = 't-gate')$$,
+  'removing a 4th outcome from a published case study is allowed');
 select throws_ok(
   $$delete from public.outcomes where id = (select id from public.outcomes where case_study_id = (select id from public.case_studies where slug = 't-gate') limit 1)$$,
   '23514', null, 'an outcome cannot be removed from a published case study below 3');

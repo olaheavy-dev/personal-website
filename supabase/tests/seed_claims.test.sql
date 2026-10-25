@@ -93,5 +93,18 @@ select is(
   'no email address or phone number in settings'
 );
 
+select is(
+  (select value #>> '{}' from public.settings where key = 'site.availability'),
+  E'Open to senior & staff AI roles\u00a0\u00b7 consulting',
+  'availability matches src/lib/site.ts, including the non-breaking space'
+);
+
+select results_eq(
+  $$select o.claim_scope::text, o.attribution, o.as_of_year::int from public.outcomes o
+    join public.stops s on s.id = o.stop_id where s.slug = 'access-bank'$$,
+  $$values ('company', 'Google Play', 2026)$$,
+  'the QuickBucks figure is attributed to Google Play, the publisher of the number'
+);
+
 select * from finish();
 rollback;

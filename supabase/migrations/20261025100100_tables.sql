@@ -168,7 +168,9 @@ create index outcomes_lab_project_idx on public.outcomes (lab_project_id);
 create index case_studies_hero_media_idx on public.case_studies (hero_media_id);
 create index lab_projects_case_study_idx on public.lab_projects (case_study_id);
 
--- Publish gate: 1 to 4 TL;DR bullets and at least 3 sourced outcomes.
+-- Publish gate: 1 to 4 TL;DR bullets and at least 3 sourced outcomes. The update that
+-- publishes already holds a lock on the case study row, and outcome removals lock the same
+-- row (below), so the count cannot change between the check and the commit.
 create function public.enforce_case_study_publish_gate()
 returns trigger
 language plpgsql
@@ -200,6 +202,13 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  if old.case_study_id is not null
+     and (tg_op = 'DELETE' or new.case_study_id is distinct from old.case_study_id)
+  then
+    -- Lock the parent first, so two concurrent removals take turns. Without the lock both
+    -- could count 3 outcomes, both delete one, and leave a published study with 2.
+    perform 1 from public.case_studies where id = old.case_study_id for update;
+  end if;
   if old.case_study_id is not null
      and (tg_op = 'DELETE' or new.case_study_id is distinct from old.case_study_id)
      and exists (

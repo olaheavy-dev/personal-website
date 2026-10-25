@@ -11,7 +11,10 @@ try {
 // variables from .env.local (or the shell). Not part of `make check`.
 export default defineConfig({
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "server-only": fileURLToPath(new URL("./vitest.server-only-stub.ts", import.meta.url)),
+    },
   },
   test: {
     environment: "node",

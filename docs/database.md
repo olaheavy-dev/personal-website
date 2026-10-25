@@ -90,9 +90,21 @@ pnpm exec supabase db push --include-seed --dry-run          # shows what would 
 pnpm exec supabase db push --include-seed                    # applies the migrations, then the seed
 ```
 
-`--include-seed` runs `supabase/seed.sql` when it has not run before or the file has changed. The seed is safe to run again: settings and flags are inserted only if missing (so it never undoes an edit made in the admin), and content rows are refreshed.
+### What the seed does
 
-Then, in the dashboard: turn off sign-ups, confirm that only `public` is exposed, and look at both Advisors (security and performance). Run `pnpm db:smoke` (it reads `.env.local`), and only after it passes disable the legacy keys.
+`supabase/seed.sql` is for the **first push** and for a local `db reset`. With CLI 2.122.0, `db push --include-seed` runs the seed statements only the first time. If the file has changed since, the CLI only refreshes its stored hash and **skips the statements**, so editing the seed does not change the hosted data.
+
+What a run does to a database that already has data:
+
+| Data                                                                                                                   | A re-run                                               |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `settings`, `feature_flags`                                                                                            | Inserts missing rows only. Never overwrites an edit    |
+| `stops`, `case_studies` (title and stop link), `case_study_sections` (title and position), `lab_projects`, `countries` | **Overwrites** the seeded columns with the seed values |
+| `outcomes` for the seeded stops and lab projects                                                                       | **Deletes and re-inserts** them                        |
+
+To apply a changed seed on purpose, run the file yourself: `psql` with the dashboard connection string (Project Settings, Database, Connection string) and `-f supabase/seed.sql`, or paste it into the dashboard SQL editor. Before the admin (#26 and #27) ships, the seed must become insert only, so a re-run cannot revert admin edits.
+
+Then, in the dashboard: turn off sign-ups, confirm that only `public` is exposed, and look at both Advisors (security and performance). `graphql_public` is also listed as exposed on hosted projects. That is expected: it honours the same grants and RLS, so it shows nothing the REST API would not, and it is not a leak. Run `pnpm db:smoke` (it reads `.env.local`), and only after it passes disable the legacy keys.
 
 ## Reading data in the app
 

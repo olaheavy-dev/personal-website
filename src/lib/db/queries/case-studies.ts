@@ -19,6 +19,8 @@ export async function loadCaseStudy(client: DbClient, slug: string): Promise<Res
   });
 }
 
+// Callers validate the slug against ^[a-z0-9]+(-[a-z0-9]+)*$ first, so crawlers cannot fill the
+// cache with entries for random slugs.
 export async function getCaseStudy(slug: string): Promise<Result<CaseStudy | null>> {
   "use cache";
   cacheTag(tags.caseStudies, tags.caseStudy(slug));

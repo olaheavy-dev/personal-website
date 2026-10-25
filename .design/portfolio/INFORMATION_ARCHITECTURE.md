@@ -220,7 +220,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | `NextStopBand` | End of every public page | Copy varies by page |
 | `GallerySheet` + `Lightbox` | Travel country/trip; case-study image sets | Travel adds trip filter |
 | `AvatarIllustration` (poses) | Hero, assistant, 404, Travel, Next stop | Pose prop |
-| `StatusBadge` | Lab ("In progress" tag), admin | Admin adds flag states |
+| `InProgressTag` | Lab ("In progress" tag) | Small tag only; the admin shows flag states with its own component |
 | `Toast` | Passport stamps, admin saves | Polite live region (Copy email prints a boarding pass instead) |
 | `CommandPalette` | Global | Secret station only for public |
 

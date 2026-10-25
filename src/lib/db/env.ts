@@ -1,3 +1,4 @@
+import "server-only";
 import { z } from "zod";
 import { failure, success, type Result } from "./result";
 

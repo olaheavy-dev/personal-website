@@ -66,6 +66,8 @@ test.describe("visual @visual", () => {
       await expect(footer.locator(".boarding-pass")).toBeVisible();
       await expect(footer).toHaveScreenshot(`footer-pass-${theme}.png`, {
         animations: "disabled",
+        // The sticky site header would otherwise sit over the footer on short phones.
+        style: "header { visibility: hidden; }",
         threshold: 0.05,
         maxDiffPixels: 25,
       });

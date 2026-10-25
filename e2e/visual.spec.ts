@@ -13,7 +13,10 @@ const routes = [
 ];
 
 test.describe("visual @visual", () => {
-  test.use({ reducedMotion: "reduce" });
+  // bypassCSP: the footer test injects a <style> tag with addStyleTag. The site's policy
+  // already allows inline styles, but this keeps a future tighter style-src from breaking
+  // a test helper. Policy behaviour is tested in security.spec.ts, not here.
+  test.use({ reducedMotion: "reduce", bypassCSP: true });
   test.beforeEach(() => {
     test.skip(test.info().project.name === "desktop-dark", "desktop-light covers both themes");
   });

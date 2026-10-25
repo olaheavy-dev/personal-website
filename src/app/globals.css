@@ -498,10 +498,11 @@
 
   /* Drawing. Everything that moves, every transition and every delay lives here,
      so reduced motion leaves the finished route with no hidden delayed frame.
-     The undrawn state applies only once RouteObserver has mounted and set
-     data-armed on the route, so if the script never loads nobody is left
-     looking at an empty route. Transitions apply only once drawing has started
-     (data-drawn or data-reached), so arming itself never animates backwards. */
+     The undrawn state applies from first paint under html[data-js] (set by the
+     head script), so there is no finished then undrawn flash. If the script never
+     arms a route, the head script's timeout sets data-route-fallback on <html>
+     and the route shows finished. Transitions apply only once drawing has started
+     (data-drawn or data-reached), so that switch never animates backwards. */
   @media (prefers-reduced-motion: no-preference) {
     /* Legs and pins follow one after another when a route draws on view. */
     .route {
@@ -528,16 +529,24 @@
         translate var(--route-draw-duration) var(--easing-out) var(--route-delay),
         opacity var(--route-draw-duration) var(--easing-out) var(--route-delay);
     }
-    .route[data-armed][data-draw="on-view"]:not([data-drawn]) .route-pin,
-    .route[data-armed][data-draw="progressive"] .route-pin:not([data-reached]) {
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-pin,
+    html[data-js]:not([data-route-fallback]) .route[data-draw="progressive"] .route-pin:not([data-reached]) {
       scale: var(--route-pin-from);
     }
-    .route[data-armed][data-draw="on-view"]:not([data-drawn]) .route-mask-line,
-    .route[data-armed][data-draw="progressive"] .route-pin:not([data-reached]) ~ .route-leg .route-mask-line {
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-mask-line,
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-pin:not([data-reached])
+      ~ .route-leg
+      .route-mask-line {
       stroke-dashoffset: 1;
     }
-    .route[data-armed][data-draw="on-view"]:not([data-drawn]) .route-vehicle,
-    .route[data-armed][data-draw="progressive"] .route-pin:not([data-reached]) ~ .route-leg .route-vehicle {
+    html[data-js]:not([data-route-fallback]) .route[data-draw="on-view"]:not([data-drawn]) .route-vehicle,
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-pin:not([data-reached])
+      ~ .route-leg
+      .route-vehicle {
       translate: var(--route-undrawn-shift);
       opacity: 0;
     }

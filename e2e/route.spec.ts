@@ -336,9 +336,37 @@ test.describe("home journey", () => {
     await context.close();
   });
 
-  test("criterion 17b: if the script never loads, the route is finished", async ({ page }) => {
+  test("criterion 17c: no flash, the route is undrawn at first paint and then draws (1920 x 1080)", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto("/", { waitUntil: "commit" });
+    const pin = page.locator("#journey .route-pin").first();
+    await pin.waitFor({ state: "attached" });
+    const scale = () => pin.evaluate((el) => getComputedStyle(el).scale);
+    const dashOffset = () =>
+      page
+        .locator("#journey .route-mask-line")
+        .first()
+        .evaluate((el) => getComputedStyle(el).strokeDashoffset);
+    // Journey is on the first screen: before it draws it must be undrawn, never finished.
+    expect(await scale()).not.toBe("none");
+    expect(await dashOffset()).toBe("1px");
+    await page.waitForLoadState("domcontentloaded");
+    expect(await page.locator("#journey [data-route]").getAttribute("data-drawn")).toBeNull();
+    await expect(page.locator("#journey [data-route]")).toHaveAttribute("data-drawn", "");
+    await expect.poll(scale).toBe("none");
+    await expect.poll(dashOffset).toBe("0px");
+  });
+
+  test("criterion 17b: if the script never loads, the route is finished after the fallback", async ({
+    page,
+  }) => {
     await page.route("**/_next/static/**/*.js", (route) => route.abort());
     await page.goto("/");
+    // The inline head script still runs; once its timeout passes without an armed route
+    // it switches the undrawn state off.
+    await expect(page.locator("html")).toHaveAttribute("data-route-fallback", "", { timeout: 8000 });
     const state = await page.locator("#journey").evaluate((section) => {
       const root = section.querySelector("[data-route]")!;
       const line = section.querySelector<SVGElement>(".route-mask-line")!;

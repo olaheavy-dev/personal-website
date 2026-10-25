@@ -77,7 +77,7 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
           timer = window.setTimeout(go, entranceTimeout());
           void Promise.all(waiting).then(go);
         },
-        { rootMargin: "0px 0px -10% 0px" },
+        { rootMargin: "0px" },
       );
       io.observe(root);
       return () => {

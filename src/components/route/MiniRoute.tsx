@@ -3,9 +3,9 @@
 // climbs away towards "production". An idea is a sheet of paper; folded into
 // shape, it flies. CSS only (keyframes in globals.css): it plays once on load,
 // lifts a little on hover, and with reduced motion it simply rests in flight.
-// The full Route component (vertical/horizontal variants with scroll drawing)
-// is built in the "Route signature component" task.
+// The full Route component lives beside it; the plane drawing is shared.
 import { useId } from "react";
+import { PaperPlane } from "./PaperPlane";
 
 export function MiniRoute() {
   const maskId = useId();
@@ -39,23 +39,7 @@ export function MiniRoute() {
         strokeWidth="3"
       />
       <g className="mini-route-plane">
-        <g className="mini-route-plane-hover">
-          {/* Top wing, keel (teal, the colour of "production") and the fold */}
-          <path
-            d="M16 0 L-16 -11 L-6 2 Z"
-            fill="var(--color-plane-paper)"
-            stroke="var(--color-border-strong)"
-            strokeWidth="2.25"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M16 0 L-6 2 L-12 10 Z"
-            fill="var(--color-route-pin)"
-            stroke="var(--color-border-strong)"
-            strokeWidth="2.25"
-            strokeLinejoin="round"
-          />
-        </g>
+        <PaperPlane className="mini-route-plane-hover" />
       </g>
     </svg>
   );

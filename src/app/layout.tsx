@@ -42,9 +42,10 @@ export const viewport: Viewport = {
   ],
 };
 
-// Applies a saved theme before first paint. With no saved choice the
+// Marks that JavaScript runs (data-js, which gates the route's undrawn state) and applies a saved theme
+// before first paint. With no saved choice the
 // stylesheet follows prefers-color-scheme, so there is nothing to set.
-const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
+const themeScript = `(function(){document.documentElement.setAttribute("data-js","");try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

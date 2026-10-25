@@ -335,9 +335,11 @@
   --ticket-perforation: 6px;       /* dash length of the stub divider */
 
   /* Route */
-  --route-stroke: 2px;
-  --route-dash: 2 8;               /* SVG stroke-dasharray, round caps → dots */
+  --route-stroke: 3px;
+  --route-dash: 0.1 8;               /* SVG stroke-dasharray: a zero length dash with round caps draws true round dots */
   --route-pin-size: 1.25rem;
+  --route-draw-duration: var(--duration-slow); /* one leg of the route drawing */
+  --route-plane-size: 1.5rem; /* paper plane riding a leg */
 
   /* Optical details: deliberate em-relative tweaks that scale with the type
      they sit in (hero name highlight, inline portrait, dotted mini-route) */

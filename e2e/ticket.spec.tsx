@@ -20,12 +20,12 @@ const markup = renderToStaticMarkup(
       eyebrow="Stop 04"
       chips={
         <MetricChip
-          value="1M+"
-          label="Google Play downloads"
+          value="90+"
+          label="BNPL and local payment methods"
           source={{
             kind: "link",
-            label: "Google Play listing",
-            url: "https://play.google.com/store/apps/details?id=example",
+            label: "Optty, 2023",
+            url: "https://example.com/optty-2023",
           }}
         />
       }
@@ -45,9 +45,9 @@ async function showTicket(page: Page, html = markup) {
 
 const chip = (
   <MetricChip
-    value="1M+"
-    label="Google Play downloads"
-    source={{ kind: "link", label: "Google Play listing", url: "https://example.com/source" }}
+    value="90+"
+    label="BNPL and local payment methods"
+    source={{ kind: "link", label: "Optty, 2023", url: "https://example.com/source" }}
   />
 );
 
@@ -97,13 +97,13 @@ test.describe("ticket", () => {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Optty" })).toBeFocused();
     await page.keyboard.press("Tab");
-    const button = page.getByRole("button", { name: "Source for 1M+ Google Play downloads" });
+    const button = page.getByRole("button", { name: "Source for 90+ BNPL and local payment methods" });
     await expect(button).toBeFocused();
 
     await page.keyboard.press("Enter");
     const popover = page.locator("[popover]");
     await expect(popover).toBeVisible();
-    await expect(popover.getByRole("link", { name: /Google Play listing/ })).toBeVisible();
+    await expect(popover.getByRole("link", { name: /Optty, 2023/ })).toBeVisible();
 
     await page.keyboard.press("Escape");
     await expect(popover).toBeHidden();
@@ -169,7 +169,7 @@ test.describe("ticket", () => {
     await page.getByRole("button", { name: /Source for/ }).click();
     const popover = page.locator("[popover]");
     await expect(popover).toBeVisible();
-    await popover.getByText("1M+ Google Play downloads").click();
+    await popover.getByText("90+ BNPL and local payment methods").click();
     await expect(popover).toBeVisible();
     expect(new URL(page.url()).hash).toBe("");
   });

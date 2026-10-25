@@ -96,6 +96,16 @@ on conflict (slug) do update set
   case_study_id = excluded.case_study_id, links_checked_on = excluded.links_checked_on,
   position = excluded.position, status = excluded.status;
 
+-- Home copy, approved by the owner on 25 Oct 2026 (issue #9). No pronouns. The same statements
+-- are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
+-- before this copy existed, because `db push --include-seed` skips a seed that has changed.
+update public.stops set summary = 'Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.' where slug = 'hbk';
+update public.stops set summary = 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.' where slug = 'optty';
+update public.stops set summary = 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.' where slug = 'access-bank';
+update public.lab_projects set summary = 'A personal finance workspace where AI agents check their own advice before it reaches you, and every number has a receipt.' where slug = 'foresight';
+update public.lab_projects set summary = 'A production RAG system for learning FastAPI: understand, watch, practise.' where slug = 'fastpilot';
+update public.lab_projects set summary = 'A home decision workspace for people buying or renting in England, at the research and concept stage.' where slug = 'homescout';
+
 -- Outcomes: only what the claims policy allows. None for Stanbic IBTC, Mukuru or uLesson.
 delete from public.outcomes
 where stop_id in (select id from public.stops where slug in ('access-bank', 'optty', 'galooli', 'hbk'))

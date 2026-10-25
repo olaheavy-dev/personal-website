@@ -76,6 +76,30 @@ describe("supabase/seed.sql", () => {
     expect(code).not.toMatch(/\S [-] \S/);
   });
 
+  it("holds the six approved home summaries word for word, and the hosted snippet matches", () => {
+    const summaries = {
+      hbk: "Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.",
+      optty:
+        "Design and delivery of the integrations behind Optty's payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.",
+      "access-bank":
+        "Built and shipped QuickBucks and Instant Account, Access Bank's mobile banking products, in a regulated, high-stakes production environment.",
+      foresight:
+        "A personal finance workspace where AI agents check their own advice before it reaches you, and every number has a receipt.",
+      fastpilot: "A production RAG system for learning FastAPI: understand, watch, practise.",
+      homescout:
+        "A home decision workspace for people buying or renting in England, at the research and concept stage.",
+    };
+    const snippet = readFileSync("supabase/snippets/2026-10-25-home-copy.sql", "utf8");
+    const stops = new Set(["hbk", "optty", "access-bank"]);
+    for (const [slug, text] of Object.entries(summaries)) {
+      const table = stops.has(slug) ? "stops" : "lab_projects";
+      const statement = `update public.${table} set summary = '${text.replaceAll("'", "''")}' where slug = '${slug}';`;
+      expect(code, `${slug} in the seed`).toContain(statement);
+      expect(snippet, `${slug} in the snippet`).toContain(statement);
+    }
+    expect([...snippet.matchAll(/^update /gm)]).toHaveLength(6);
+  });
+
   it("starts with only the home flag on", () => {
     const flags = code.slice(
       code.indexOf("insert into public.feature_flags"),

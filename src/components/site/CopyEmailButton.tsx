@@ -2,24 +2,28 @@
 
 import { useState } from "react";
 import { site } from "@/lib/site";
-import { useToast } from "./Toast";
+import { Ticket } from "@/components/ticket/Ticket";
+
+type Outcome = "copied" | "select";
 
 // Secondary contact action for visitors without a mail app. Clicking always
-// reveals the address as selectable text, so it works even where copying
-// doesn't (no Clipboard API, or permission refused); the toast says which.
+// prints a small boarding pass with the address as selectable text, so it works
+// even where copying doesn't (no Clipboard API, or permission refused); the pass
+// says which. The status region is always rendered (and empty until the first
+// click) so screen readers announce each new pass; the counter in the key
+// reprints, and so reannounces, on every click.
 export function CopyEmailButton() {
-  const { show } = useToast();
-  const [revealed, setRevealed] = useState(false);
+  const [pass, setPass] = useState<{ outcome: Outcome; count: number } | null>(null);
 
   async function copy() {
-    setRevealed(true);
+    let outcome: Outcome = "copied";
     try {
       if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
       await navigator.clipboard.writeText(site.email);
-      show(`Email copied: ${site.email}`);
     } catch {
-      show(`Email: ${site.email}`);
+      outcome = "select";
     }
+    setPass((previous) => ({ outcome, count: (previous?.count ?? 0) + 1 }));
   }
 
   return (
@@ -44,9 +48,23 @@ export function CopyEmailButton() {
         </svg>
         Copy email
       </button>
-      {revealed ? (
-        <span className="font-mono text-sm break-all text-text-primary select-all">{site.email}</span>
-      ) : null}
+      <div role="status" className="w-full empty:absolute">
+        {pass ? (
+          <Ticket
+            key={pass.count}
+            as="div"
+            size="mini"
+            className="boarding-pass w-full sm:w-fit"
+            eyebrow={<span aria-hidden="true">Next stop: your email</span>}
+          >
+            <p className="text-sm font-medium">
+              {pass.outcome === "copied" ? "Email copied" : "Select to copy"}
+              <span className="sr-only">, </span>
+            </p>
+            <p className="font-mono text-sm break-all select-all">{site.email}</p>
+          </Ticket>
+        ) : null}
+      </div>
     </>
   );
 }

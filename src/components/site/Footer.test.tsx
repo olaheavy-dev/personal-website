@@ -45,4 +45,10 @@ describe("Footer", () => {
       expect(within(profiles).getByRole("link", { name })).toHaveAttribute("target", "_blank");
     }
   });
+
+  it("marks only Email me as the tear-off trigger (criterion 17)", () => {
+    renderFooter();
+    expect(screen.getByRole("link", { name: /Email me/ })).toHaveClass("ticket-tear-trigger");
+    expect(screen.getByRole("button", { name: "Copy email" })).not.toHaveClass("ticket-tear-trigger");
+  });
 });

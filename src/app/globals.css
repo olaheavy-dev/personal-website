@@ -127,6 +127,32 @@
     }
   }
 
+  /* Tear-off hint: hovering or focusing a .ticket-tear-trigger inside the ticket lifts
+     its stub a degree, hinged at the bottom notch (md and up) or the left end of the
+     tear line (below md). Transforms only, so layout never moves and the wrapper's
+     filter keeps tracing the outline. No lift under reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ticket[data-stub] .ticket-stub {
+      transform-origin: 0 0;
+      transition: rotate var(--duration-normal) var(--easing-bounce);
+    }
+    .ticket[data-stub]:has(.ticket-tear-trigger:is(:hover, :focus-visible)) .ticket-stub {
+      rotate: var(--ticket-tear-angle);
+    }
+    @media (min-width: 48rem) {
+      .ticket[data-layout="pass"][data-stub] .ticket-stub {
+        transform-origin: 0 100%;
+      }
+    }
+  }
+
+  /* Boarding pass printed by the Copy email button: a printer-style reveal. */
+  @media (prefers-reduced-motion: no-preference) {
+    .boarding-pass {
+      animation: pass-print var(--duration-slow) var(--easing-out) backwards;
+    }
+  }
+
   /* A ticket with an href: the title link is stretched over the whole ticket, so
      there is one tab stop. Inner links and buttons sit above it. The mask clips
      painting and hit testing to the border box, so each mask layer says `no-clip`;
@@ -276,18 +302,43 @@
     transform-box: view-box;
     transform-origin: 0 0;
     transform: translate(102px, 9px) rotate(-12deg);
-    animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+    animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--hero-takeoff) both;
   }
   .mini-route-reveal {
     transform-box: fill-box;
     transform-origin: left center;
-    animation: mini-route-trail var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+    animation: mini-route-trail var(--duration-flight) var(--easing-out) var(--hero-takeoff) both;
   }
   .mini-route-plane-hover {
     transition: transform var(--duration-slow) var(--easing-bounce);
   }
   :hover > .mini-route .mini-route-plane-hover {
     transform: translate(2px, -3px) rotate(-8deg);
+  }
+
+  /* Hero name highlight. The lilac fill lives on a ::before layer so it can sweep in
+     without ever touching the text's opacity or visibility (the name is an LCP
+     candidate). The base style is the finished highlight: reduced motion, no
+     animation and no JavaScript all show it. */
+  .name-sweep {
+    position: relative;
+    isolation: isolate;
+  }
+  .name-sweep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-lilac);
+    border-radius: var(--highlight-radius);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .name-sweep {
+      animation: name-ink var(--hero-takeoff) var(--easing-out) both;
+    }
+    .name-sweep::before {
+      animation: name-sweep var(--hero-takeoff) var(--easing-out) both;
+    }
   }
 
   /* Mono station label */
@@ -323,5 +374,29 @@
   }
   100% {
     transform: scaleX(1);
+  }
+}
+
+@keyframes name-sweep {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes name-ink {
+  from {
+    color: var(--color-text-primary);
+  }
+}
+
+@keyframes pass-print {
+  from {
+    clip-path: inset(-2rem -2rem 100% -2rem);
+  }
+  to {
+    clip-path: inset(-2rem);
   }
 }

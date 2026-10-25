@@ -352,6 +352,7 @@
   --ticket-lift: -0.25rem; /* hover and focus lift of a linked ticket */
   --ticket-tear-width: 2px; /* dashed tear line and popover border */
   --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
+  --ticket-tear-angle: 1deg; /* how far the stub lifts when Email me is hovered or focused */
   --z-skip-link: 100;
 
   /* Motion */
@@ -361,6 +362,7 @@
   --duration-slow:    400ms;   /* reveals, sheets */
   --duration-slower:  600ms;   /* route drawing segments, camera moves start */
   --duration-flight:  1400ms;  /* hero paper plane, idea to production */
+  --hero-takeoff:     var(--duration-slow); /* name highlight sweep length and the plane's start delay, one timeline */
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-in:      cubic-bezier(0.4, 0, 1, 1);
   --easing-out:     cubic-bezier(0.22, 1, 0.36, 1);   /* expo-out: signature */

@@ -65,7 +65,7 @@ export function Footer() {
             Tell me about it.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <EmailButton size="lg" />
+            <EmailButton size="lg" className="ticket-tear-trigger" />
             <CopyEmailButton />
           </div>
         </Ticket>

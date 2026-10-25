@@ -19,4 +19,12 @@ describe("createRateLimiter", () => {
     expect(allow("a", 59_999)).toBe(false);
     expect(allow("a", 60_000)).toBe(true);
   });
+
+  it("remembers a bounded number of keys, dropping the oldest, so rotating keys cannot grow it", () => {
+    const allow = createRateLimiter(1, 60_000, 3);
+    for (const key of ["a", "b", "c", "d"]) allow(key, 0);
+    // "a" was the oldest and has been forgotten, so it starts afresh; "d" is still counted.
+    expect(allow("a", 1)).toBe(true);
+    expect(allow("d", 1)).toBe(false);
+  });
 });

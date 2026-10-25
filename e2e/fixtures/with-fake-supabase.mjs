@@ -5,7 +5,7 @@
 //
 //   node e2e/fixtures/with-fake-supabase.mjs pnpm build
 import { spawn } from "node:child_process";
-import { fakePublishableKey, fakeUrl } from "./fake-constants.mjs";
+import { fakePort, fakePublishableKey, fakeUrl } from "./fake-constants.mjs";
 import { startFakeSupabase } from "./fake-supabase.mjs";
 
 const command = process.argv.slice(2);
@@ -14,7 +14,25 @@ if (command.length === 0) {
   process.exit(2);
 }
 
-const fake = await startFakeSupabase();
+// A fake already running on the port (a leftover, or `node e2e/fixtures/fake-supabase.mjs`) is
+// reused. Anything else on that port is a mistake worth one clear line, not a stack trace.
+let fake;
+try {
+  fake = await startFakeSupabase();
+} catch (error) {
+  if (error?.code !== "EADDRINUSE") throw error;
+  const running = await fetch(`${fakeUrl}/__control`).then(
+    (r) => r.ok,
+    () => false,
+  );
+  if (!running) {
+    console.error(
+      `Port ${fakePort} is in use by something that is not the fake Supabase server. Stop it and retry.`,
+    );
+    process.exit(1);
+  }
+  console.log(`Reusing the fake Supabase server already running on port ${fakePort}.`);
+}
 const child = spawn(command[0], command.slice(1), {
   stdio: "inherit",
   env: {
@@ -26,5 +44,5 @@ const child = spawn(command[0], command.slice(1), {
 const code = await new Promise((resolve) =>
   child.on("exit", (exit, signal) => resolve(exit ?? (signal ? 1 : 0))),
 );
-await fake.close();
+await fake?.close();
 process.exit(code);

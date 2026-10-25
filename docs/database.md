@@ -140,11 +140,11 @@ The public role only sees flags that are On, so a missing key means Off, and Pre
 
 ### Set up the webhook (owner, once, after the first deploy that has `/api/revalidate`)
 
-The webhook is made by hand in the dashboard, never in a migration: its Authorization header holds a secret, and a migration would put that secret in this public repository. **Never run `supabase db pull`.** It would write the webhook, header and secret included, into a migration file. `scripts/check-supabase-webhook.test.ts` fails if anything under `supabase/` contains `http_request` or `Authorization`, so a pull cannot be committed by accident.
+The webhook is made by hand in the dashboard, never in a migration: its Authorization header holds a secret, and a migration would put that secret in this public repository. **Never run `supabase db pull`, and never share a schema dump** (`supabase db dump`, a dashboard export): the webhook trigger and its header, secret included, appear in any dump of the database, not only in a pull. It would write the webhook, header and secret included, into a migration file. `scripts/check-supabase-webhook.test.ts` fails if anything under `supabase/` contains `http_request` or `Authorization`, so a pull cannot be committed by accident.
 
 1. Make a secret: `openssl rand -hex 32`. Keep it in your password manager.
 2. Put it on the server, with the other runtime secrets (`docs/deploy.md`): add `REVALIDATE_SECRET=<the secret>` to `/home/apps/personal-website/.env` (mode 600) through the infra helper, then recreate the container so it reads it. Until it is set, `/api/revalidate` answers 503 and does nothing.
-3. In the Supabase dashboard, open **Database, Webhooks, Create a new hook** and set:
+3. In the Supabase dashboard, open **Integrations, Database Webhooks** (older dashboards: **Database, Webhooks**) and choose **Create a new hook** and set:
    - **Name:** `revalidate_flags`
    - **Table:** `public.feature_flags`
    - **Events:** Insert, Update and Delete
@@ -153,7 +153,7 @@ The webhook is made by hand in the dashboard, never in a migration: its Authoriz
    - **URL:** `https://staging.olaheavy.dev/api/revalidate` (staging and production share this project and these flags, so add a second hook with `https://olaheavy.dev/api/revalidate` once production is live)
    - **HTTP headers:** keep `Content-Type: application/json`, and add `Authorization` with the value `Bearer <the secret>`
    - **Timeout:** 5000 ms
-4. Test it: change one flag in the Table Editor (for example set `page.lab` to `off`), wait a couple of seconds, and open `/lab` (it should be a 404 and Lab should have left the navigation). Set it back to `on` and check Lab returns. **Delivery log:** Database, Webhooks, the hook's logs show each call and its status (200 is success; 401 means the secret differs; 503 means the server has no secret; 429 means more than 30 calls a minute).
+4. Test it: change one flag in the Table Editor (for example set `page.lab` to `off`), wait a couple of seconds, and open `/lab` (it should be a 404 and Lab should have left the navigation). Set it back to `on` and check Lab returns. **Delivery log:** Database, Webhooks, the hook's logs show each call and its status (200 is success; 401 means the secret differs; 503 means the server has no secret; 429 means more than 30 wrong attempts a minute from one address).
 5. If a webhook call is ever lost, the pages catch up within an hour on their own (the `cacheLife("hours")` backstop). To refresh at once, send the call by hand: `curl -X POST -H "Authorization: Bearer <the secret>" -H "Content-Type: application/json" -d '{"tag":"flags"}' https://staging.olaheavy.dev/api/revalidate`.
 
 To rotate the secret, change it on the server and in the hook's header, in that order, and recreate the container. Only a call with the right secret can refresh anything, and the route only accepts the `flags` tag.

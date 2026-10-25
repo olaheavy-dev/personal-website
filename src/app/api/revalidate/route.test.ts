@@ -92,20 +92,36 @@ describe("POST /api/revalidate", () => {
     expect((await POST(request)).status).toBe(400);
   });
 
-  it("allows 30 requests a minute from one address and then answers 429", async () => {
+  it("allows 30 wrong attempts a minute from one address and then answers 429", async () => {
     const { POST } = await load();
     const statuses: number[] = [];
-    for (let i = 0; i < 32; i++) statuses.push((await POST(post({ ip: "203.0.113.9" }))).status);
-    expect(statuses.slice(0, 30).every((status) => status === 200)).toBe(true);
+    for (let i = 0; i < 32; i++) {
+      statuses.push((await POST(post({ auth: "Bearer nope", ip: "203.0.113.9" }))).status);
+    }
+    expect(statuses.slice(0, 30).every((status) => status === 401)).toBe(true);
     expect(statuses.slice(30)).toEqual([429, 429]);
     // Another address is unaffected.
-    expect((await POST(post({ ip: "203.0.113.10" }))).status).toBe(200);
+    expect((await POST(post({ auth: "Bearer nope", ip: "203.0.113.10" }))).status).toBe(401);
   });
 
-  it("counts wrong secrets towards the limit, so guessing is slow", async () => {
+  it("ignores a spoofed cf-connecting-ip, so rotating it does not change the bucket", async () => {
     const { POST } = await load();
-    for (let i = 0; i < 30; i++) await POST(post({ auth: "Bearer nope", ip: "203.0.113.9" }));
-    expect((await POST(post({ ip: "203.0.113.9" }))).status).toBe(429);
+    const statuses: number[] = [];
+    for (let i = 0; i < 32; i++) {
+      const request = post({ auth: "Bearer nope", ip: "203.0.113.9" });
+      request.headers.set("cf-connecting-ip", `198.51.100.${i}`);
+      statuses.push((await POST(request)).status);
+    }
+    expect(statuses.slice(30)).toEqual([429, 429]);
+  });
+
+  it("never limits a caller with the right secret, even from an address that has been guessing", async () => {
+    const { POST } = await load();
+    for (let i = 0; i < 40; i++) await POST(post({ auth: "Bearer nope", ip: "203.0.113.9" }));
+    expect((await POST(post({ ip: "203.0.113.9" }))).status).toBe(200);
+    for (let i = 0; i < 40; i++) {
+      expect((await POST(post({ ip: "203.0.113.11" }))).status).toBe(200);
+    }
   });
 
   it("exports no other method, so Next answers 405 for them", async () => {

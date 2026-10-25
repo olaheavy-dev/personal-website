@@ -52,6 +52,7 @@ The app is the only source of the site's security headers (decision 0017). They 
 - **Trailing slash redirects** (for example `/work/` to `/work`) are answered before the headers rules run, so those 308 responses carry no security headers. They have no body, which is accepted (decision 0017).
 - **Cloudflare:** Email Obfuscation, Rocket Loader and Web Analytics must stay off. Each injects script or loads from another origin, and the policy would block it.
 - **Cloudflare must not cache HTML for more than 60 seconds** (#54). A flag change refreshes the site's own pages at once, but an edge copy would keep showing the old page, and a hidden page's 404, until it expires (decision 0018).
+- **`/api/revalidate` counts wrong guesses per address from `X-Forwarded-For`**, and ignores `cf-connecting-ip`: staging is not behind Cloudflare (its DNS record is not proxied), so that header is always supplied by the caller. Without `trusted_proxies`, Caddy replaces a client's `X-Forwarded-For` with the connecting address, so the app reads its one entry. When #54 turns on the Cloudflare proxy: set Caddy `trusted_proxies` to Cloudflare's ranges, restrict the origin to Cloudflare, and only then switch the app to `cf-connecting-ip`. The secret is the real protection either way: a right secret is never limited, and a wrong one is never accepted.
 - **The smoke test checks them live.** `e2e/security.spec.ts` runs against staging in the post-deploy smoke: exact policy per path, every base header present, and no header repeated.
 - **Checking by hand:** `curl -sI https://staging.olaheavy.dev/` and look for one `Content-Security-Policy`, or scan the URL at securityheaders.com (target grade A).
 - **Adding a third party** (analytics, an embed, a font host): add its origin to `buildCsp` in `headers.ts` with a test, never `*`.
@@ -70,7 +71,7 @@ docker run --rm -p 127.0.0.1:3000:3000 --cap-drop ALL personal-website:local
 curl -s http://127.0.0.1:3000/healthz
 ```
 
-`make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image.
+`make docker-build` passes `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from your shell when both are set. Otherwise it builds with `SUPABASE_OPTIONAL=1`, a local smoke image with Supabase unconfigured. Never publish that image: every gated page is baked Off, so the site is all 404s.
 
 ## Roll back
 

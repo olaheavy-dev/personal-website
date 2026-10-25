@@ -41,6 +41,12 @@ select is(
   'anon and authenticated cannot execute public functions'
 );
 
+-- A function created later starts closed too, despite PostgreSQL's global default
+-- of EXECUTE for PUBLIC.
+create function public.zz_new_function() returns int language sql set search_path = '' as 'select 1';
+select ok(not has_function_privilege('anon', 'public.zz_new_function()', 'execute'), 'a new function cannot be executed by anon');
+select ok(not has_function_privilege('authenticated', 'public.zz_new_function()', 'execute'), 'a new function cannot be executed by authenticated');
+
 select hasnt_column('public', 'photos', 'latitude', 'photos carry no latitude');
 select is(
   (select count(*) from information_schema.columns

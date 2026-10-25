@@ -12,6 +12,10 @@ alter default privileges for role postgres in schema public
   revoke all on sequences from anon, authenticated;
 alter default privileges for role postgres in schema public
   revoke all on functions from public, anon, authenticated;
+-- PostgreSQL grants EXECUTE on every new function to PUBLIC by a global default that a
+-- schema scoped revoke cannot remove, so it is revoked globally as well.
+alter default privileges for role postgres
+  revoke execute on functions from public;
 
 -- Row level security on every table.
 alter table public.settings enable row level security;

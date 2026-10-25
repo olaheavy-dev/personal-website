@@ -8,3 +8,6 @@ supporting-documents/
 # Design-flow outputs are hand-authored documents; keep their formatting as written.
 .design/
 .artifacts/
+# Supabase CLI local state (git ignores it through supabase/.gitignore, which Prettier does not read).
+supabase/.temp/
+supabase/.branches/

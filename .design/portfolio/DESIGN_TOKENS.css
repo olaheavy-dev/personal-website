@@ -321,7 +321,7 @@
   --max-width-content: 68ch;     /* reading measure */
   --max-width-wide:    75rem;    /* 1200: main container */
   --max-width-page:    90rem;    /* 1440 */
-  --nav-height: 4.5rem;
+  --nav-height: 4.5rem; /* nominal; the scrolled header bar is 60 to 66 px, so sticky elements under it should use that */
   --dock-height: 4rem;
 
   /* Radius */

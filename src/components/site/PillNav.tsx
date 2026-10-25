@@ -149,7 +149,7 @@ export function MobileMenu() {
         id={panelId}
         aria-label="Main"
         hidden={!open}
-        className="absolute inset-x-(--gutter) top-full mt-2 rounded-lg border border-border-strong bg-bg-elevated p-2 shadow-lg"
+        className="absolute inset-x-(--gutter) top-full mt-2 rounded-lg border border-border-strong bg-bg-elevated p-2 shadow-lg in-data-scrolled:mt-0"
       >
         <ul className="flex flex-col">
           {navItems.map((item) => {

@@ -63,7 +63,18 @@
   }
   .ticket-stub {
     border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
-    border-top: var(--ticket-tear-width) dashed var(--color-border-primary);
+    /* The tear line: a transparent border keeps its room in the layout, and a
+       repeating gradient paints the dashes in it (--ticket-perforation long, with an
+       equal gap), so every browser draws the same dashes. */
+    border-top: var(--ticket-tear-width) solid transparent;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-border-primary) 0 var(--ticket-perforation),
+      transparent var(--ticket-perforation) calc(2 * var(--ticket-perforation))
+    );
+    background-size: 100% var(--ticket-tear-width);
+    background-repeat: no-repeat;
+    background-origin: border-box;
   }
   /* The body runs 1px under the stub (a transparent border, which still shows the
      background, cancelled by a negative margin; --ticket-seam-overlap) so a fractional seam position can
@@ -119,7 +130,13 @@
     .ticket[data-layout="pass"] > .ticket-stub {
       width: var(--ticket-stub-width);
       border-top: 0;
-      border-left: var(--ticket-tear-width) dashed var(--color-border-primary);
+      border-left: var(--ticket-tear-width) solid transparent;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        var(--color-border-primary) 0 var(--ticket-perforation),
+        transparent var(--ticket-perforation) calc(2 * var(--ticket-perforation))
+      );
+      background-size: var(--ticket-tear-width) 100%;
       border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
       mask:
         radial-gradient(circle var(--n) at 0 0, #0000 97%, #000) top / 100% 51% no-repeat no-clip,

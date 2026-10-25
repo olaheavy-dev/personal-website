@@ -96,3 +96,47 @@ test.describe("mobile menu", () => {
     await expect(page.getByRole("button", { name: "Menu" })).toHaveAttribute("aria-expanded", "false");
   });
 });
+
+test.describe("scrolled header", () => {
+  async function scrolled(page: import("@playwright/test").Page) {
+    await page.goto("/");
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await expect(page.locator("header[data-scrolled]")).toHaveCount(1);
+  }
+
+  test("the strip below the visible bar does not catch clicks", async ({ page }) => {
+    await scrolled(page);
+    const insideHeader = await page.evaluate(() => {
+      const header = document.querySelector("header")!;
+      const el = document.elementFromPoint(innerWidth / 2, header.getBoundingClientRect().bottom - 4);
+      return !!el && header.contains(el);
+    });
+    expect(insideHeader).toBe(false);
+  });
+
+  test("the brand, theme toggle, Email me and navigation stay clickable", async ({ page }, testInfo) => {
+    await scrolled(page);
+    const header = page.getByRole("banner");
+    await header
+      .getByRole("button", { name: /theme|dark|light/i })
+      .first()
+      .click();
+    await expect(header.getByRole("link", { name: "Email me" }).first()).toBeVisible();
+    await header.getByRole("link", { name: "Email me" }).first().hover();
+    if (testInfo.project.use.isMobile) {
+      const button = header.getByRole("button", { name: "Menu" });
+      await button.click();
+      await expect(header.getByRole("button", { name: "Close" })).toHaveAttribute("aria-expanded", "true");
+      await header.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "About" }).click();
+    } else {
+      await header.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "About" }).click();
+    }
+    await expect(page).toHaveURL(/\/about$/);
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: /Sunkanmi/ })
+      .first()
+      .click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+});

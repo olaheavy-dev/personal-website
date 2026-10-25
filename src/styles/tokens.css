@@ -343,7 +343,7 @@
   --max-width-content: 68ch; /* reading measure */
   --max-width-wide: 75rem; /* 1200: main container */
   --max-width-page: 90rem; /* 1440 */
-  --nav-height: 4.5rem;
+  --nav-height: 4.5rem; /* nominal; the scrolled header bar is 60 to 66 px, so sticky elements under it should use that */
   --dock-height: 4rem;
 
   /* Radius */
@@ -574,6 +574,8 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

@@ -684,3 +684,9 @@
     clip-path: inset(calc(-1 * var(--ticket-print-bleed)));
   }
 }
+
+/* The 404's way back: how far the avatar (--avatar-pin-size) overhangs a normal pin
+   on each side. See src/components/system/WayBack.tsx. */
+.way-back {
+  --wb-delta: calc((var(--avatar-pin-size) - var(--route-pin-size)) / 2);
+}

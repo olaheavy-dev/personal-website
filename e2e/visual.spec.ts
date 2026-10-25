@@ -10,6 +10,7 @@ const themes = ["light", "dark"] as const;
 const routes = [
   { name: "home", path: "/" },
   { name: "work", path: "/work" },
+  { name: "wrong-turn", path: "/this-page-does-not-exist" },
 ];
 
 test.describe("visual @visual", () => {

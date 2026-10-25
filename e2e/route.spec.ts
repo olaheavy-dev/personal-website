@@ -156,9 +156,11 @@ test.describe("lab page", () => {
 
 test.describe("lab page absent on remote sites", () => {
   test.skip(!remote, "only meaningful against a deployed site");
-  test("criterion 10: /_lab/route answers 404", async ({ request }) => {
+  test("criterion 10: /_lab/route answers 404 with the Wrong turn page", async ({ request, page }) => {
     const response = await request.get(lab);
     expect(response.status()).toBe(404);
+    await page.goto(lab);
+    await expect(page.getByRole("heading", { level: 1, name: "Looks like a wrong turn" })).toBeVisible();
   });
 });
 

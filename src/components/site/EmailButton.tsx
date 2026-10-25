@@ -5,7 +5,13 @@ import { useToast } from "./Toast";
 
 // Primary CTA. A plain mailto link (works without JavaScript); with JavaScript
 // it also copies the address and says so, for visitors without a mail app.
-export function EmailButton({ size = "md" }: { size?: "md" | "lg" | "icon" }) {
+export function EmailButton({
+  size = "md",
+  className = "",
+}: {
+  size?: "md" | "lg" | "icon";
+  className?: string;
+}) {
   const { show } = useToast();
 
   function copy() {
@@ -49,7 +55,7 @@ export function EmailButton({ size = "md" }: { size?: "md" | "lg" | "icon" }) {
     <a
       href={`mailto:${site.email}`}
       onClick={copy}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-primary font-medium text-text-inverse transition-colors duration-150 hover:bg-accent-primary-hover active:bg-accent-primary-active ${padding}`}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-primary font-medium text-text-inverse transition-colors duration-150 hover:bg-accent-primary-hover active:bg-accent-primary-active ${padding} ${className}`.trim()}
     >
       Email me
       <svg

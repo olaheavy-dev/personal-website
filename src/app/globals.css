@@ -68,7 +68,7 @@
   /* The body runs 1px under the stub (a transparent border, which still shows the
      background, cancelled by a negative margin; --ticket-seam-overlap) so a fractional seam position can
      never leave a hairline gap that lets the drop-shadow outline show through. */
-  .ticket[data-stub] .ticket-body {
+  .ticket[data-stub] > .ticket-body {
     border-end-start-radius: 0;
     border-end-end-radius: 0;
     border-bottom: var(--ticket-seam-overlap) solid transparent;
@@ -86,14 +86,14 @@
 
   /* Stacked layout: the stub sits below the body, notches on the left and right
      edges. The "pass" layout does the same below md, without notches. */
-  .ticket[data-layout="stacked"][data-stub] .ticket-body {
+  .ticket[data-layout="stacked"][data-stub] > .ticket-body {
     mask:
       radial-gradient(circle var(--n) at 0 calc(100% - var(--ticket-seam-overlap)), #0000 97%, #000) left /
         51% 100% no-repeat no-clip,
       radial-gradient(circle var(--n) at 100% calc(100% - var(--ticket-seam-overlap)), #0000 97%, #000)
         right / 51% 100% no-repeat no-clip;
   }
-  .ticket[data-layout="stacked"] .ticket-stub {
+  .ticket[data-layout="stacked"] > .ticket-stub {
     mask:
       radial-gradient(circle var(--n) at 0 0, #0000 97%, #000) left / 51% 100% no-repeat no-clip,
       radial-gradient(circle var(--n) at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat no-clip;
@@ -104,7 +104,7 @@
     .ticket[data-layout="pass"] {
       flex-direction: row;
     }
-    .ticket[data-layout="pass"][data-stub] .ticket-body {
+    .ticket[data-layout="pass"][data-stub] > .ticket-body {
       border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
       border-bottom: 0;
       margin-bottom: 0;
@@ -116,7 +116,7 @@
         radial-gradient(circle var(--n) at calc(100% - var(--ticket-seam-overlap)) 100%, #0000 97%, #000)
           bottom / 100% 51% no-repeat no-clip;
     }
-    .ticket[data-layout="pass"] .ticket-stub {
+    .ticket[data-layout="pass"] > .ticket-stub {
       width: var(--ticket-stub-width);
       border-top: 0;
       border-left: var(--ticket-tear-width) dashed var(--color-border-primary);
@@ -124,6 +124,53 @@
       mask:
         radial-gradient(circle var(--n) at 0 0, #0000 97%, #000) top / 100% 51% no-repeat no-clip,
         radial-gradient(circle var(--n) at 0 100%, #0000 97%, #000) bottom / 100% 51% no-repeat no-clip;
+    }
+  }
+
+  /* Tear-off hint: hovering or focusing a .ticket-tear-trigger inside the ticket lifts
+     its stub by --ticket-tear-angle, hinged at the bottom notch (md and up) or the right
+     end of the tear line (below md, turning the other way so the left edge stays aligned). Transforms only, so layout never moves and the wrapper's
+     filter keeps tracing the outline. No lift under reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ticket[data-stub] > .ticket-stub {
+      transform-origin: 100% 0;
+      transition: rotate var(--duration-normal) var(--easing-bounce);
+    }
+    .ticket[data-stub]:has(.ticket-tear-trigger:focus-visible) > .ticket-stub {
+      rotate: calc(-1 * var(--ticket-tear-angle));
+    }
+    /* Hover only on devices that really hover, so a tap never leaves the stub lifted. */
+    @media (hover: hover) {
+      .ticket[data-stub]:has(.ticket-tear-trigger:hover) > .ticket-stub {
+        rotate: calc(-1 * var(--ticket-tear-angle));
+      }
+    }
+    @media (min-width: 48rem) {
+      .ticket[data-layout="pass"][data-stub] > .ticket-stub {
+        transform-origin: 0 100%;
+      }
+      .ticket[data-layout="pass"][data-stub]:has(.ticket-tear-trigger:focus-visible) > .ticket-stub {
+        rotate: var(--ticket-tear-angle);
+      }
+      @media (hover: hover) {
+        .ticket[data-layout="pass"][data-stub]:has(.ticket-tear-trigger:hover) > .ticket-stub {
+          rotate: var(--ticket-tear-angle);
+        }
+      }
+    }
+  }
+
+  /* Boarding pass printed by the Copy email button: a small two part pass (label and
+     status, then the address on a stub) with tighter notches and corners than the big
+     tickets, a flat outline instead of the nested glow, and a printer-style reveal. */
+  .boarding-pass {
+    --ticket-notch: var(--ticket-notch-mini);
+    --border-radius-lg: var(--border-radius-md);
+    --ticket-drop: var(--ticket-drop-flat);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .boarding-pass {
+      animation: pass-print var(--duration-slow) var(--easing-out) backwards;
     }
   }
 
@@ -145,7 +192,7 @@
     outline: none;
     box-shadow: none;
   }
-  .ticket[data-linked] .ticket-stub {
+  .ticket[data-linked] > .ticket-stub {
     pointer-events: none;
   }
   .ticket[data-linked] a:not(.ticket-link),
@@ -276,18 +323,66 @@
     transform-box: view-box;
     transform-origin: 0 0;
     transform: translate(102px, 9px) rotate(-12deg);
-    animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+    animation: mini-route-flight var(--duration-flight) var(--easing-out) var(--hero-takeoff) both;
   }
   .mini-route-reveal {
     transform-box: fill-box;
     transform-origin: left center;
-    animation: mini-route-trail var(--duration-flight) var(--easing-out) var(--duration-slow) both;
+    animation: mini-route-trail var(--duration-flight) var(--easing-out) var(--hero-takeoff) both;
   }
   .mini-route-plane-hover {
     transition: transform var(--duration-slow) var(--easing-bounce);
   }
   :hover > .mini-route .mini-route-plane-hover {
     transform: translate(2px, -3px) rotate(-8deg);
+  }
+
+  /* Hero name highlight. The lilac fill lives on a ::before layer so it can sweep in
+     without ever touching the text's opacity or visibility (the name is an LCP
+     candidate). The base style is the finished highlight: reduced motion, no
+     animation and no JavaScript all show it. */
+  .name-sweep {
+    position: relative;
+    isolation: isolate;
+  }
+  .name-sweep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-lilac);
+    border-radius: var(--highlight-radius);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* The text colour boundary travels with the lilac edge: a hard-stop gradient
+       (ink left half, page text right half) clipped to the glyphs, twice the width of
+       the inner text span's padding box (the same box the lilac layer covers), slides over exactly as far as the clip reveals. Swept
+       letters are ink on lilac, unswept letters stay light on the page, so contrast
+       is safe at every frame. The same duration, easing and delay as the reveal. */
+    .name-sweep-text {
+      background-image: linear-gradient(
+        to right,
+        var(--color-text-on-accent) 50%,
+        var(--color-text-primary) 50%
+      );
+      background-size: 200% 100%;
+      background-clip: text;
+      animation: name-ink var(--hero-takeoff) var(--easing-out) backwards;
+    }
+    .name-sweep::before {
+      animation: name-sweep var(--hero-takeoff) var(--easing-out) backwards;
+    }
+  }
+  /* Forced colours replace backgrounds, so the gradient text would vanish: use a real system colour. */
+  @media (forced-colors: active) {
+    .name-sweep-text {
+      background: none;
+      animation: none;
+      color: CanvasText;
+    }
+    .name-sweep::before {
+      animation: none;
+    }
   }
 
   /* Mono station label */
@@ -323,5 +418,37 @@
   }
   100% {
     transform: scaleX(1);
+  }
+}
+
+@keyframes name-sweep {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes name-ink {
+  from {
+    background-position: 100% 0;
+    color: transparent;
+  }
+  to {
+    background-position: 0 0;
+    color: transparent;
+  }
+}
+
+@keyframes pass-print {
+  from {
+    clip-path: inset(
+      calc(-1 * var(--ticket-print-bleed)) calc(-1 * var(--ticket-print-bleed)) 100%
+        calc(-1 * var(--ticket-print-bleed))
+    );
+  }
+  to {
+    clip-path: inset(calc(-1 * var(--ticket-print-bleed)));
   }
 }

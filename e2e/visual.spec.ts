@@ -49,4 +49,28 @@ test.describe("visual @visual", () => {
       });
     }
   }
+  for (const theme of themes) {
+    test(`footer boarding pass looks the same in ${theme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme });
+      // A resolved copy, so the pass says "Email copied" whatever the browser allows.
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, "clipboard", {
+          value: { writeText: () => Promise.resolve() },
+          configurable: true,
+        });
+      });
+      await page.goto("/");
+      await page.evaluate(() => document.fonts.ready);
+      await page.getByRole("button", { name: "Copy email" }).click();
+      const footer = page.locator("section[aria-labelledby='next-stop-title']");
+      await expect(footer.locator(".boarding-pass")).toBeVisible();
+      // The sticky site header would otherwise sit over the footer on short phones.
+      await page.addStyleTag({ content: "header { visibility: hidden; }" });
+      await expect(footer).toHaveScreenshot(`footer-pass-${theme}.png`, {
+        animations: "disabled",
+        threshold: 0.05,
+        maxDiffPixels: 25,
+      });
+    });
+  }
 });

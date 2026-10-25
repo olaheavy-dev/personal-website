@@ -24,9 +24,10 @@ Every significant product, technical and working decision gets a record here, na
 
 ## Easily reversible defaults
 
-| Area          | Default                                            |
-| ------------- | -------------------------------------------------- |
-| Licence       | Public, all rights reserved (`LICENSE`)            |
-| Merge method  | Squash only; PR title becomes the commit title     |
-| Theme         | Light by default, follows system, toggle persisted |
-| Contact email | Set by `NEXT_PUBLIC_CONTACT_EMAIL`                 |
+| Area          | Default                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| Licence       | Public, all rights reserved (`LICENSE`)                                                              |
+| Merge method  | Squash only; PR title becomes the commit title                                                       |
+| Theme         | Light by default, follows system, toggle persisted                                                   |
+| Contact email | Set by `NEXT_PUBLIC_CONTACT_EMAIL`                                                                   |
+| Micro-motions | Part of the motion system, not delights: they ship without a feature flag and respect reduced motion |

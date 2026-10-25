@@ -10,6 +10,15 @@ test.describe("home", () => {
 
   test("has no detectable accessibility violations", async ({ page }) => {
     await page.goto("/");
+    // Let the hero motion finish, so axe never reads a half-faded colour.
+    await page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => null)),
+      ),
+    );
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
       .analyze();

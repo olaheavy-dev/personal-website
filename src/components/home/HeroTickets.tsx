@@ -1,33 +1,30 @@
+import { Ticket } from "@/components/ticket/Ticket";
+
 // Two stacked, slightly tilted tickets beside the hero: the current stop (HBK)
-// in front, the previous one peeking behind. Uses the ticket utilities from
-// globals.css; the full Ticket component arrives in the "Ticket component" task.
+// in front, the previous one peeking behind. Built on the shared Ticket component.
 // Copy follows the claims policy in .design/portfolio/DESIGN_BRIEF.md.
 export function HeroTickets() {
   return (
     <div className="relative mx-auto w-full max-w-(--ticket-max-width) pt-10 pb-6 lg:mx-0 lg:ml-auto">
       {/* Previous stop, peeking behind */}
-      <div className="ticket-drop absolute inset-x-6 top-0 rotate-(--ticket-tilt-back)" aria-hidden="true">
-        <div className="ticket bg-lilac px-5 pt-4 pb-16 text-text-on-accent">
-          <p className="label-mono">Stop 02 · Optty · via Deimos</p>
-        </div>
-      </div>
+      <Ticket
+        as="div"
+        tone="lilac"
+        tilt="back"
+        className="absolute inset-x-6 top-0"
+        bodyPadding="px-5 pt-4 pb-16"
+        eyebrow="Stop 02 · Optty · via Deimos"
+        aria-hidden="true"
+      />
 
       {/* Current stop */}
-      <article className="ticket-drop group relative rotate-(--ticket-tilt) transition-transform duration-(--duration-normal) ease-out-expo hover:rotate-0 motion-reduce:rotate-0">
-        <div className="ticket px-6 pt-5 pb-5 [--notch-y:calc(100%-var(--ticket-stub-offset))]">
-          <div className="flex items-center justify-between gap-3">
-            <p className="label-mono text-text-tertiary">Stop 01 · Now</p>
-            <p className="label-mono rounded-full bg-teal-soft px-2.5 py-1 text-teal-text">HBK</p>
-          </div>
-          <h2 className="mt-4 font-display text-display-sm leading-snug tracking-tight">
-            Advantage Insights
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            HBK&rsquo;s sensor-data analytics platform for test and durability engineers. I help build the
-            product and the AI across it, from Aiana, the docs assistant, to newer features for code, voice
-            and file analysis.
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="What I build here">
+      <Ticket
+        tilt="front"
+        eyebrow="Stop 01 · Now"
+        badge="HBK"
+        title="Advantage Insights"
+        chips={
+          <ul className="flex flex-wrap gap-1.5" aria-label="What I build here">
             {["Analytics platform", "AI agents", "RAG"].map((chip) => (
               <li
                 key={chip}
@@ -37,8 +34,9 @@ export function HeroTickets() {
               </li>
             ))}
           </ul>
-          <div className="ticket-perforation -mx-6 mt-5" aria-hidden="true" />
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 text-sm">
+        }
+        stub={
+          <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm">
             <span className="inline-flex items-center gap-2 font-medium whitespace-nowrap">
               <span className="size-2 rounded-full bg-live" aria-hidden="true" />
               Aiana live since 2025 R4
@@ -65,8 +63,14 @@ export function HeroTickets() {
               </svg>
             </a>
           </div>
-        </div>
-      </article>
+        }
+      >
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+          HBK&rsquo;s sensor-data analytics platform for test and durability engineers. I help build the
+          product and the AI across it, from Aiana, the docs assistant, to newer features for code, voice and
+          file analysis.
+        </p>
+      </Ticket>
     </div>
   );
 }

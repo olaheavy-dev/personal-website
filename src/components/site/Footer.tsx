@@ -1,5 +1,6 @@
 import type { ProfileKey } from "@/lib/site";
 import { configuredProfiles, site } from "@/lib/site";
+import { Ticket } from "@/components/ticket/Ticket";
 import { CopyEmailButton } from "./CopyEmailButton";
 import { EmailButton } from "./EmailButton";
 
@@ -13,25 +14,14 @@ export function Footer() {
   return (
     <footer className="mt-(--section-gap)">
       <section aria-labelledby="next-stop-title" className="mx-auto w-full max-w-wide px-(--gutter) pb-12">
-        <div className="ticket-drop">
-          <div className="ticket ticket-pass flex flex-col md:flex-row">
-            <div className="flex-1 px-6 pt-8 pb-8 md:px-10 md:pt-10">
-              <p className="label-mono text-text-tertiary">Next stop</p>
-              <h2 id="next-stop-title" className="mt-3 text-display-lg leading-display">
-                Yours.
-              </h2>
-              <p className="mt-4 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
-                Hiring for a senior or staff AI role, or building something that has to hold up with real
-                users? Tell me about it.
-              </p>
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <EmailButton size="lg" />
-                <CopyEmailButton />
-              </div>
-            </div>
-
-            <div aria-hidden="true" className="border-t-2 border-dashed border-border-primary md:hidden" />
-            <div className="flex flex-col gap-6 px-6 py-6 md:w-(--ticket-stub-width) md:justify-between md:border-l-2 md:border-dashed md:border-border-primary md:px-7 md:py-10">
+        <Ticket
+          as="div"
+          layout="pass"
+          eyebrow="Next stop"
+          title="Yours."
+          titleId="next-stop-title"
+          stub={
+            <>
               <div>
                 <p className="label-mono text-text-tertiary">Availability</p>
                 <p className="mt-3 flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
@@ -67,9 +57,18 @@ export function Footer() {
                   ) : null}
                 </ul>
               ) : null}
-            </div>
+            </>
+          }
+        >
+          <p className="mt-4 max-w-(--max-width-lead) text-md leading-relaxed text-text-secondary">
+            Hiring for a senior or staff AI role, or building something that has to hold up with real users?
+            Tell me about it.
+          </p>
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <EmailButton size="lg" />
+            <CopyEmailButton />
           </div>
-        </div>
+        </Ticket>
       </section>
 
       <div className="border-t border-border-secondary">

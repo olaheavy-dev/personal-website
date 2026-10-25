@@ -354,11 +354,34 @@
     border-radius: var(--highlight-radius);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .name-sweep {
-      animation: name-ink var(--hero-takeoff) var(--easing-out) both;
+    /* The text colour boundary travels with the lilac edge: a hard-stop gradient
+       (ink left half, page text right half) clipped to the glyphs, twice the width of
+       the inner text span's padding box (the same box the lilac layer covers), slides over exactly as far as the clip reveals. Swept
+       letters are ink on lilac, unswept letters stay light on the page, so contrast
+       is safe at every frame. The same duration, easing and delay as the reveal. */
+    .name-sweep-text {
+      background-image: linear-gradient(
+        to right,
+        var(--color-text-on-accent) 50%,
+        var(--color-text-primary) 50%
+      );
+      background-size: 200% 100%;
+      background-clip: text;
+      animation: name-ink var(--hero-takeoff) var(--easing-out) backwards;
     }
     .name-sweep::before {
-      animation: name-sweep var(--hero-takeoff) var(--easing-out) both;
+      animation: name-sweep var(--hero-takeoff) var(--easing-out) backwards;
+    }
+  }
+  /* Forced colours replace backgrounds, so the gradient text would vanish: use a real system colour. */
+  @media (forced-colors: active) {
+    .name-sweep-text {
+      background: none;
+      animation: none;
+      color: CanvasText;
+    }
+    .name-sweep::before {
+      animation: none;
     }
   }
 
@@ -409,7 +432,12 @@
 
 @keyframes name-ink {
   from {
-    color: var(--color-text-primary);
+    background-position: 100% 0;
+    color: transparent;
+  }
+  to {
+    background-position: 0 0;
+    color: transparent;
   }
 }
 

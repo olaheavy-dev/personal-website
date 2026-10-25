@@ -25,8 +25,10 @@ export function Hero() {
               fetchPriority="high"
               className="mx-(--inline-portrait-gap) inline-block size-(--inline-portrait-size) rotate-(--inline-portrait-tilt) rounded-full border-(length:--inline-portrait-border) border-border-strong bg-bg-tertiary object-cover object-top align-(--inline-portrait-baseline)"
             />{" "}
-            <span className="name-sweep inline-block rotate-(--highlight-tilt) px-(--highlight-pad-x) pb-(--highlight-pad-bottom) text-text-on-accent transition-transform duration-(--duration-normal) ease-bounce hover:rotate-0 motion-reduce:rotate-0">
-              {site.firstName}
+            <span className="name-sweep inline-block rotate-(--highlight-tilt) text-text-on-accent transition-transform duration-(--duration-normal) ease-bounce hover:rotate-0 motion-reduce:rotate-0">
+              <span className="name-sweep-text inline-block px-(--highlight-pad-x) pb-(--highlight-pad-bottom)">
+                {site.firstName}
+              </span>
             </span>
           </span>
           <span className="mt-3 block text-display-md leading-(--line-height-display-sub) text-text-secondary md:mt-4">

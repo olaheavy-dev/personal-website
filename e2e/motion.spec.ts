@@ -84,6 +84,76 @@ test.describe("hero name sweep", () => {
     expect(timings.sweepEnd).toBeLessThanOrEqual(timings.planeStart);
   });
 
+  test("criterion 25: the ink boundary and the lilac edge share one timeline and stay together", async ({
+    page,
+  }) => {
+    // Freeze the document timeline (Chromium) so the 400 ms sweep can be inspected frame by frame.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Animation.enable");
+    await cdp.send("Animation.setPlaybackRate", { playbackRate: 0 });
+    await page.goto("/");
+    const frames = await page.evaluate(() => {
+      const named = (name: string) =>
+        document.getAnimations().find((a) => (a as CSSAnimation).animationName === name)!;
+      const clip = named("name-sweep");
+      const ink = named("name-ink");
+      const timing = (a: Animation) => {
+        const t = a.effect!.getTiming();
+        const c = a.effect!.getComputedTiming();
+        return { duration: c.duration, delay: t.delay, easing: t.easing, iterations: t.iterations };
+      };
+      const total = Number(clip.effect!.getComputedTiming().duration);
+      const name = document.querySelector<HTMLElement>(".name-sweep")!;
+      const out = [];
+      for (const fraction of [0.25, 0.5, 0.75]) {
+        clip.pause();
+        ink.pause();
+        clip.currentTime = ink.currentTime = total * fraction;
+        // Revealed share of the span (clip inset right goes 100% to 0) and the gradient edge
+        // position (background-position 100% to 0, edge at 1 - p of the padding box).
+        const inset = parseFloat(
+          getComputedStyle(name, "::before").clipPath.split(/[ (]/).filter(Boolean)[2] ?? "0",
+        );
+        const position = parseFloat(
+          getComputedStyle(name.querySelector(".name-sweep-text")!).backgroundPositionX,
+        );
+        out.push({ fraction, revealed: 1 - inset / 100, inkEdge: 1 - position / 100 });
+      }
+      return { clip: timing(clip), ink: timing(ink), out };
+    });
+    expect(frames.ink).toEqual(frames.clip);
+    expect(frames.clip.iterations).toBe(1);
+    for (const frame of frames.out) {
+      expect(frame.inkEdge).toBeCloseTo(frame.revealed, 2);
+      expect(frame.revealed).toBeGreaterThan(0);
+      expect(frame.revealed).toBeLessThan(1);
+    }
+  });
+
+  for (const width of [360, 1440]) {
+    test(`criterion 25: capture of the sweep mid flight in dark at ${width}`, async ({ page }) => {
+      test.skip(test.info().project.name !== "desktop-dark", "one project captures it");
+      await page.setViewportSize({ width, height: 700 });
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Animation.enable");
+      await cdp.send("Animation.setPlaybackRate", { playbackRate: 0 });
+      await page.goto("/");
+      await page.evaluate(() => {
+        for (const a of document.getAnimations()) {
+          const name = (a as CSSAnimation).animationName;
+          if (name === "name-sweep" || name === "name-ink") {
+            a.pause();
+            a.currentTime = 50;
+          }
+        }
+      });
+      await page.screenshot({
+        path: `.artifacts/motion/sweep-mid-dark-${width}.png`,
+        clip: { x: 0, y: 150, width, height: 330 },
+      });
+    });
+  }
+
   test("criterion 2: the name is visible from first paint", async ({ page }) => {
     await page.goto("/", { waitUntil: "commit" });
     const name = page.locator(".name-sweep");

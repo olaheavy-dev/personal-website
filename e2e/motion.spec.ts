@@ -383,3 +383,20 @@ test.describe("boarding pass", () => {
     });
   });
 });
+
+test.describe("reduced motion (issue #70)", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("the hero paper plane is fully visible straight after load, with no delayed pop-in", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const plane = page.locator(".mini-route-plane").first();
+    const read = () =>
+      plane.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { opacity: style.opacity, delay: style.animationDelay };
+      });
+    expect(await read()).toEqual({ opacity: "1", delay: "0s" });
+  });
+});

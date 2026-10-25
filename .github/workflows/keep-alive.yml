@@ -1,0 +1,38 @@
+# Reads one public row from the hosted Supabase project once a day, so the free tier never
+# pauses the project for inactivity. It uses only the publishable key (public by design) and
+# a row that row level security already lets everyone read. No checkout, no token.
+name: Keep Supabase alive
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-supabase-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Read the page.home flag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Read feature_flags and expect page.home
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          body=$(curl -sf --max-time 20 \
+            -H "apikey: $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/feature_flags?select=key&key=eq.page.home")
+          case "$body" in
+            *page.home*) echo "Supabase answered and page.home is present." ;;
+            *)
+              echo "::error::The feature_flags read did not return page.home."
+              exit 1
+              ;;
+          esac

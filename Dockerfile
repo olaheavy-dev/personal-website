@@ -16,6 +16,14 @@ COPY . .
 # The commit this image was built from; /healthz reports it.
 ARG BUILD_SHA=dev
 ENV BUILD_SHA=$BUILD_SHA NEXT_TELEMETRY_DISABLED=1
+# The Supabase browser values. Next.js writes NEXT_PUBLIC_* into the build, so they must be
+# present here; the runtime stage below does not need them. They are public by design (the
+# URL and the publishable key), and the guard refuses a missing or malformed value. Only a
+# local smoke build may skip it, with SUPABASE_OPTIONAL=1 (docs/deploy.md).
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+ARG SUPABASE_OPTIONAL=0
+RUN if [ "$SUPABASE_OPTIONAL" != "1" ]; then node scripts/check-build-env.mjs; fi
 RUN pnpm build
 
 FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime

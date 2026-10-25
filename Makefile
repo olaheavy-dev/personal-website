@@ -63,8 +63,16 @@ visual-accept: ## Download the proposed baselines from a failed CI run: make vis
 shots: ## Full-page screenshots of every route, light and dark, at 360, 768 and 1440 px (after build)
 	node scripts/screenshots.mjs
 
-docker-build: ## Build the production image locally as personal-website:local
-	docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) -t personal-website:local .
+docker-build: ## Build the production image locally as personal-website:local (uses NEXT_PUBLIC_SUPABASE_* from your shell if set, else a smoke build with no Supabase)
+	@if [ -n "$$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then \
+		docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) \
+			--build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
+			-t personal-website:local .; \
+	else \
+		echo "docker-build: no Supabase values in the shell, so this is a local smoke build (SUPABASE_OPTIONAL=1). Never publish it."; \
+		docker build --build-arg BUILD_SHA=$$(git rev-parse HEAD) --build-arg SUPABASE_OPTIONAL=1 \
+			-t personal-website:local .; \
+	fi
 
 docker-check: ## Check the local image for private files and a root user
 	bash scripts/check-image.sh personal-website:local

@@ -99,23 +99,36 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       }
       reachedCount = Math.max(reachedCount, upTo + 1);
       if (reachedCount >= pins.length) {
+        window.removeEventListener("resize", onResize);
         pinObserver.disconnect();
         endObserver.disconnect();
       }
     };
-    const pinObserver = new IntersectionObserver(
-      (entries) => {
-        let highest = -1;
-        for (const entry of entries) {
-          const bottom = entry.rootBounds?.bottom ?? window.innerHeight;
-          if (entry.isIntersecting || entry.boundingClientRect.top < bottom) {
-            highest = Math.max(highest, pins.indexOf(entry.target as HTMLElement));
+    // The spec text on percentage root margins is read differently by engines (some
+    // resolve the bottom edge against the width), so the 40% is turned into pixels of
+    // the viewport height and the observer is rebuilt when the window resizes.
+    const observePins = () =>
+      new IntersectionObserver(
+        (entries) => {
+          let highest = -1;
+          for (const entry of entries) {
+            const bottom = entry.rootBounds?.bottom ?? window.innerHeight;
+            if (entry.isIntersecting || entry.boundingClientRect.top < bottom) {
+              highest = Math.max(highest, pins.indexOf(entry.target as HTMLElement));
+            }
           }
-        }
-        if (highest >= reachedCount) reach(highest);
-      },
-      { rootMargin: "0px 0px -40% 0px" },
-    );
+          if (highest >= reachedCount) reach(highest);
+        },
+        { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.4)}px 0px` },
+      );
+    let pinObserver = observePins();
+    const onResize = () => {
+      if (reachedCount >= pins.length) return;
+      pinObserver.disconnect();
+      pinObserver = observePins();
+      for (const pin of pins.slice(reachedCount)) pinObserver.observe(pin);
+    };
+    window.addEventListener("resize", onResize);
     // The last pin can sit closer to the page end than 40% of the viewport (a tall
     // screen, a short footer), so it could never pass the line above. Once it is
     // visible at all, every remaining pin counts as reached.
@@ -126,6 +139,7 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
     const last = pins.at(-1);
     if (last) endObserver.observe(last);
     return () => {
+      window.removeEventListener("resize", onResize);
       pinObserver.disconnect();
       endObserver.disconnect();
     };

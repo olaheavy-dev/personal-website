@@ -18,6 +18,9 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 
+# Agent worktrees: full copies of the repository made by Claude Code
+/.claude/worktrees/
+
 # Visual regression baselines: only Linux images (made in CI) are committed
 /e2e/__screenshots__/*-darwin.png
 /e2e/__screenshots__/*-win32.png

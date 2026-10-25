@@ -104,19 +104,39 @@ test("@flags a hidden page answers like a mistyped URL: same status and robots h
 test("@flags after a revalidation the 404 never holds a visitor's address", async ({ request }) => {
   // The 404 reads the flags, so it is rebuilt after each revalidation. Without the proxy's one
   // fixed path it would be rebuilt for whichever address came first and then served to all.
-  await request.get("/first-missing-aaa");
-  await applyFlags(request, flagsWithout("page.lab"), "203.0.113.14");
-  const bodies: string[] = [];
-  for (const path of ["/second-missing-bbb", "/third-missing-ccc", "/fourth-missing-ddd/deeper"]) {
-    const response = await request.get(path);
-    expect(response.status(), path).toBe(404);
-    bodies.push(await response.text());
-  }
-  for (const body of bodies) {
-    for (const word of ["first-missing", "second-missing", "third-missing", "fourth-missing"]) {
-      expect(body).not.toContain(word);
+  // So each kind of address goes first right after its own revalidation, then a clean address
+  // follows, and neither response may hold any requested path.
+  const first = [
+    "/first-missing-aaa",
+    "/missing/person@example.com",
+    "/missing-dotted.html",
+    "/api/nope-api",
+    "/_next/nope-next",
+    "/logos/nope-logo.svg",
+  ];
+  for (const path of first) {
+    await applyFlags(request, flagsWithout("page.lab"), "203.0.113.14");
+    const one = await request.get(path);
+    const two = await request.get("/follow-up-missing-zzz/deeper");
+    for (const response of [one, two]) {
+      expect(response.status(), path).toBe(404);
+      const body = await response.text();
+      for (const word of [
+        "first-missing",
+        "person@example",
+        "missing-dotted",
+        "nope-api",
+        "nope-next",
+        "nope-logo",
+        "follow-up-missing",
+      ]) {
+        expect(body, `${path} leaked ${word}`).not.toContain(word);
+      }
     }
   }
+  // An unknown API address keeps the API policy, not the page policy.
+  const api = await request.get("/api/nope-api");
+  expect(api.headers()["content-security-policy"]).toBe("default-src 'none'; frame-ancestors 'none'");
 });
 
 test("@flags a switched on page comes back after one revalidation", async ({ page, request }) => {

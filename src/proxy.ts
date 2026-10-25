@@ -9,23 +9,31 @@
 //    address, it would store that address in the page and serve it to everyone. Under one
 //    fixed path the cached page can never contain a visitor's URL (decision 0018).
 //
-// The matcher must be a constant. It runs for every path except: _next, api, healthz, files
-// with an extension (favicon.ico, images, sitemap.xml), and the routes that exist: Home and
-// the flagged pages. Keep that list in step with src/lib/flags/registry.ts (proxy.test.ts
-// fails if they drift).
+// The matcher must be a constant. The proxy skips only what exists or is handled elsewhere:
+// built assets (_next/static, _next/image), the endpoints /api/revalidate, /healthz and
+// /sitemap.xml, the favicon, each file in public/ by name, the fixed path itself, Home and the
+// flagged pages. Everything else, dotted addresses, unknown /api/* and unknown /_next/* paths
+// included, is rewritten. proxy.test.ts fails if public/ gains a file that is not listed here
+// or the registry gains a page that is not.
 import { NextResponse, type NextRequest } from "next/server";
 import { labPagesEnabled } from "@/lib/lab-pages";
 
 /** A path no route owns, so the site's own not found page is served with status 404. */
 export const unmatchedPath = "/not-found-unmatched";
+/**
+ * The same for an unknown /api address. The security header rules are matched against the
+ * rewritten path, so it must stay under /api to keep the API policy (default-src 'none').
+ */
+export const unmatchedApiPath = "/api/not-found-unmatched";
 
 export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/_lab/") && labPagesEnabled()) return NextResponse.next();
-  return NextResponse.rewrite(new URL(unmatchedPath, request.url));
+  const target = request.nextUrl.pathname.startsWith("/api/") ? unmatchedApiPath : unmatchedPath;
+  return NextResponse.rewrite(new URL(target, request.url));
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/|api/|healthz$|not-found-unmatched$|.*\\..*|work$|lab$|writing$|travel$|about$|$).*)",
+    "/((?!_next/static/|_next/image$|api/revalidate$|api/not-found-unmatched$|healthz$|sitemap\\.xml$|favicon\\.ico$|images/sunkanmi-256\\.jpg$|logos/(?:access-bank|deimos|galooli|hbk|mukuru|optty|stanbic-ibtc-mono|stanbic-ibtc|ulesson-mono|ulesson)\\.svg$|not-found-unmatched$|work$|lab$|writing$|travel$|about$|$).*)",
   ],
 };

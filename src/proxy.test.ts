@@ -1,3 +1,5 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { pageRegistry } from "@/lib/flags/registry";
@@ -30,25 +32,57 @@ describe("proxy (unknown addresses)", () => {
 
   it("rewrites an unknown address to one fixed path, whatever the address", () => {
     expect(rewritten("/first-missing-aaa")).toBe("https://example.test/not-found-unmatched");
+    expect(rewritten("/api/nope")).toBe("https://example.test/api/not-found-unmatched");
     expect(rewritten("/work/nope?secret=1")).toBe("https://example.test/not-found-unmatched");
   });
 
-  it("runs for unknown addresses and /_lab, not for real routes, assets or the api", () => {
-    for (const path of ["/zzz", "/work/nope", "/_lab/route", "/a/b/c"]) {
+  it("runs for every unknown address, dotted, under /api or under /_next included, and /_lab", () => {
+    for (const path of [
+      "/zzz",
+      "/work/nope",
+      "/_lab/route",
+      "/a/b/c",
+      "/missing/person@example.com",
+      "/missing.html",
+      "/api/nope",
+      "/api/revalidate/x",
+      "/_next/nope",
+      "/logos/nope.svg",
+      "/images/nope.jpg",
+      "/robots.txt",
+    ]) {
       expect(matches(path), path).toBe(true);
     }
+  });
+
+  it("skips what exists or is handled: assets, endpoints, the favicon, the sitemap, the fixed path", () => {
     for (const path of [
       "/",
       "/healthz",
       "/not-found-unmatched",
+      "/api/not-found-unmatched",
       "/api/revalidate",
-      "/_next/static/a.js",
+      "/_next/static/chunks/a.js",
+      "/_next/image",
       "/favicon.ico",
       "/sitemap.xml",
-      "/logos/a.svg",
+      "/logos/hbk.svg",
+      "/images/sunkanmi-256.jpg",
     ]) {
       expect(matches(path), path).toBe(false);
     }
+  });
+
+  it("skips every file in public/, so a new asset must be listed in the matcher", () => {
+    const files = (directory: string): string[] =>
+      readdirSync(join(__dirname, "..", "public", directory), { withFileTypes: true }).flatMap((entry) =>
+        entry.isDirectory() ? files(join(directory, entry.name)) : [`/${join(directory, entry.name)}`],
+      );
+    const all = readdirSync(join(__dirname, "..", "public"), { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? files(entry.name) : [`/${entry.name}`],
+    );
+    expect(all.length).toBeGreaterThan(5);
+    for (const path of all) expect(matches(path), path).toBe(false);
   });
 
   it("leaves every registered page alone, so the matcher stays in step with the registry", () => {

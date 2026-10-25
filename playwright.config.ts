@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { fakeUrl } from "./e2e/fixtures/fake-constants.mjs";
 
 // End-to-end and accessibility checks run against the standalone server from
 // `next build` (`pnpm serve`), the same artefact the Docker image ships.
@@ -40,12 +41,28 @@ export default defineConfig({
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : {
-        command: "pnpm serve",
-        // LAB_PAGES switches on the developer demo pages (/_lab/...); never set outside tests.
-        env: { PORT: String(port), HOSTNAME: "127.0.0.1", LAB_PAGES: "1" },
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-      },
+    : [
+        {
+          // The stand in for Supabase that the build read its flags from (make build starts
+          // the same server). Tests change its answer through /__control (e2e/flags.spec.ts).
+          command: "node e2e/fixtures/fake-supabase.mjs",
+          url: `${fakeUrl}/__control`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 15_000,
+        },
+        {
+          command: "pnpm serve",
+          // LAB_PAGES switches on the developer demo pages (/_lab/...); never set outside tests.
+          // REVALIDATE_SECRET is a throwaway value that only these tests know.
+          env: {
+            PORT: String(port),
+            HOSTNAME: "127.0.0.1",
+            LAB_PAGES: "1",
+            REVALIDATE_SECRET: "e2e-revalidate-secret",
+          },
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 60_000,
+        },
+      ],
 });

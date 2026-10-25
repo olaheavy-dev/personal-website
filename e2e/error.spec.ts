@@ -89,8 +89,37 @@ test.describe("javascript off", () => {
   });
 });
 
-// Criterion 31 (zero CSP violations on the 404 and error states) runs once the
-// security headers land in #86.
-test.skip("criterion 31: no securitypolicyviolation events on the 404 and error states", () => {
-  // Blocked on https://github.com/olaheavy-dev/personal-website/pull/86.
+// The page policy (decision 0017) must block nothing on the 404 or the error states,
+// including after Try again re-renders the page.
+test("criterion 31: no securitypolicyviolation events on the 404 and error states", async ({
+  page,
+  baseURL,
+}) => {
+  const blocked: string[] = [];
+  page.on("console", (message) => {
+    if (/content security policy|refused to (load|execute|apply)/i.test(message.text())) {
+      blocked.push(message.text());
+    }
+  });
+  await page.addInitScript(() => {
+    const w = window as unknown as { __csp: string[] };
+    w.__csp = [];
+    document.addEventListener("securitypolicyviolation", (event) => {
+      w.__csp.push(`${event.violatedDirective} blocked ${event.blockedURI || "inline"}`);
+    });
+  });
+  const seen = () => page.evaluate(() => (window as unknown as { __csp: string[] }).__csp);
+
+  const notFound = await page.goto("/this-page-does-not-exist");
+  expect(notFound?.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
+  await expect(page.getByRole("heading", { level: 1, name: "Looks like a wrong turn" })).toBeVisible();
+  expect(await seen()).toEqual([]);
+
+  await broken(page, baseURL);
+  await expect(errorHeading(page)).toBeVisible();
+  await page.context().clearCookies();
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Recovered" })).toBeVisible();
+  expect(await seen()).toEqual([]);
+  expect(blocked).toEqual([]);
 });

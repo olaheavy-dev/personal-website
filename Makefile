@@ -52,7 +52,10 @@ visual: ## Screenshot comparison against the Linux baselines (after build; CI ru
 
 visual-accept: ## Download the proposed baselines from a failed CI run: make visual-accept RUN=<run id>
 	@test -n "$(RUN)" || { echo "Usage: make visual-accept RUN=<run id>"; exit 1; }
-	gh run download $(RUN) --repo olaheavy-dev/personal-website -n visual-baselines -D e2e/__screenshots__
+	rm -rf .artifacts/visual-baselines
+	gh run download $(RUN) --repo olaheavy-dev/personal-website -n visual-baselines -D .artifacts/visual-baselines
+	cp .artifacts/visual-baselines/*.png e2e/__screenshots__/
+	@git status --short e2e/__screenshots__
 
 shots: ## Full-page screenshots of every route, light and dark, at 360, 768 and 1440 px (after build)
 	node scripts/screenshots.mjs

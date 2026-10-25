@@ -11,7 +11,7 @@ import { chromium } from "@playwright/test";
 
 const routes = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : ["/", "/work", "/lab", "/writing", "/travel", "/about"];
+  : ["/", "/work", "/lab", "/writing", "/travel", "/about", "/this-page-does-not-exist"];
 const widths = [
   { name: "360", width: 360, height: 740 },
   { name: "768", width: 768, height: 1024 },

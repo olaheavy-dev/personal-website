@@ -28,9 +28,15 @@ export interface RoutePinProps {
   vehicle?: ReactNode;
   /** The last stop has no leg after it. Implied by tone "end"; use it for a last stop that is also the current one. */
   last?: boolean;
+  /**
+   * Something larger drawn over the pin, centred on it (the 404 uses the avatar). The pin
+   * stays its normal size, so legs, vehicles and neighbouring pins keep their geometry; the
+   * consumer makes room for the overhang. It scales in with the pin.
+   */
+  marker?: ReactNode;
 }
 
-export function RoutePin({ id, tone = "default", index = 0, vehicle, last = false }: RoutePinProps) {
+export function RoutePin({ id, tone = "default", index = 0, vehicle, last = false, marker }: RoutePinProps) {
   const style = { "--route-i": index } as React.CSSProperties;
   return (
     <>
@@ -40,7 +46,11 @@ export function RoutePin({ id, tone = "default", index = 0, vehicle, last = fals
         data-tone={tone}
         style={style}
         className={`route-pin relative z-10 size-(--route-pin-size) shrink-0 rounded-full border-2 border-border-strong ${pinToneClass[tone]}`}
-      />
+      >
+        {marker != null && (
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{marker}</span>
+        )}
+      </span>
       {tone !== "end" && !last && <RouteLeg style={style}>{vehicle}</RouteLeg>}
     </>
   );

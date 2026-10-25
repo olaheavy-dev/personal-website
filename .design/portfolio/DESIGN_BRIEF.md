@@ -35,7 +35,7 @@ Behind the public site sits his own admin: image pipeline, Hashnode sync, assist
 | Access QuickBucks | Public figure only: **1M+ Google Play downloads**. No internal revenue or user counts. |
 | Stanbic EZ Cash | Reliability work described qualitatively; no failure-rate number. |
 | Optty | Public, dated: **90+ BNPL & local payment methods across 120+ countries (Optty, 2023)**, framed as the platform he built integrations for. |
-| uLesson | "~50% faster incident triage after structured logging and tracing; ~30% faster page loads after the web redesign" (his figures, worded precisely). |
+| uLesson | No figures, like Stanbic IBTC. The work is described qualitatively. |
 | Galooli | Galooli's published Nigeria result (~11% fuel saving across several hundred sites, 2021) cited as company context, not a personal claim. |
 | Mukuru | Integration work only; do not imply he built the Oct 2024 Malawi wallet launch. |
 | Personal projects | Repo-verified figures only (e.g. Foresight 17 eval suites; FastPilot faithfulness 0.992, ~210 tests, 90% coverage gate). |
@@ -75,7 +75,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 |---|---|
 | Home | 5-second answer + journey + selected stops + email CTA (≤ 5 viewports at 1440×900) |
 | Work index + Case studies | HBK Aiana (flagship), Optty, Access QuickBucks / Instant Account, Foresight (flagship personal), plus shorter entries for Mukuru, uLesson, Stanbic, Galooli |
-| Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (coming soon); GIF and screenshot-led cards |
+| Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (in progress); GIF and screenshot-led cards |
 | Writing | Hashnode posts rendered natively at `/writing/<slug>`, canonical to olaheavy.dev |
 | Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, UK 2022 to now, Albania 2026) |
 | About | Story, portrait, career-as-route, certifications, education, colophon (perf/a11y badges) |
@@ -96,7 +96,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 | Case-study layout | New | Meta grid, TL;DR ≤ 4 bullets, sticky TOC with scroll-spy, numbered sections, next-stop footer |
 | Architecture diagram block | New | Built from HTML boxes/SVG, theme-aware, captioned |
 | Decision (V1→V2) block | New | Before/after with rationale |
-| Lab card (GIF/video-led) | New | Lazy GIF/MP4, status badge (Live / In progress / Coming soon), repo + demo links |
+| Lab card (GIF/video-led) | New | Lazy GIF/MP4, evidence links (GitHub, demo video or GIF, write-up or case study), "Try it" only while a live URL is set, small "In progress" tag; no Live or Coming soon badges |
 | Writing list + article renderer | New | Hashnode GraphQL; code highlighting; reading time; canonical |
 | Travel globe (r3f) + timeline scrubber + journey arcs | New | Lazy-loaded; static map placeholder; list fallback |
 | Country gallery sheet + lightbox | New | Masonry, blurhash placeholders, keyboard nav, captions |

@@ -49,4 +49,13 @@ describe("Home", () => {
     expect(within(route).getByText(/user feedback and continuous evaluation/)).toBeInTheDocument();
     expect(route).not.toHaveTextContent(/\.NET|Python|TypeScript/);
   });
+
+  it("puts the logo rail between the hero and the journey stations", () => {
+    render(<Home />);
+    const hero = screen.getByRole("region", { name: /Hi, I.m/ });
+    const rail = screen.getByRole("region", { name: "Where I've shipped" });
+    const route = screen.getByRole("region", { name: /The route, every time/ });
+    expect(hero.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(rail.compareDocumentPosition(route) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

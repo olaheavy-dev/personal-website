@@ -125,6 +125,15 @@
   --color-selection-bg:    var(--lilac-200);
   --color-highlight:       var(--lilac-200); /* "Hi, I'm [Sunkanmi]" object word */
 
+  /* Logo hover colours: each from the company's own file (docs/references/logos.md), 3:1 or more on the page. */
+  --color-logo-hbk: #00335a;
+  --color-logo-access-bank: #004185;
+  --color-logo-galooli: #0f1d3d;
+  --color-logo-mukuru: #f15323;
+  --color-logo-ulesson: #2b5ca9;
+  --color-logo-stanbic-ibtc: #005ca4;
+  --color-logo-optty: var(--ink-900);
+
   /* Shadows (warm, ink-tinted) */
   --shadow-sm:     0 1px 2px rgb(20 20 24 / 0.06);
   --shadow-md:     0 4px 14px -4px rgb(20 20 24 / 0.12), 0 1px 3px rgb(20 20 24 / 0.06);
@@ -208,6 +217,14 @@
   --color-selection-bg:    rgb(205 184 255 / 0.35);
   --color-highlight:       var(--lilac-200);
 
+  --color-logo-hbk: #2ea39f;
+  --color-logo-access-bank: #f58220;
+  --color-logo-galooli: #6eaa04;
+  --color-logo-mukuru: #f15323;
+  --color-logo-ulesson: #2ca1da;
+  --color-logo-stanbic-ibtc: #7bbbe8;
+  --color-logo-optty: var(--ink-100);
+
   --shadow-sm:     0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md:     0 6px 18px -6px rgb(0 0 0 / 0.55);
   --shadow-lg:     0 24px 48px -16px rgb(0 0 0 / 0.7);
@@ -245,6 +262,14 @@
     --color-status-success: var(--green-400); --color-status-warning: var(--amber-400); --color-status-error: var(--red-400);
     --color-status-info: var(--lilac-200); --color-status-live: var(--teal-400);
     --color-surface-overlay: rgb(5 5 8 / 0.65); --color-selection-bg: rgb(205 184 255 / 0.35); --color-highlight: var(--lilac-200);
+
+    --color-logo-hbk: #2ea39f;
+    --color-logo-access-bank: #f58220;
+    --color-logo-galooli: #6eaa04;
+    --color-logo-mukuru: #f15323;
+    --color-logo-ulesson: #2ca1da;
+    --color-logo-stanbic-ibtc: #7bbbe8;
+    --color-logo-optty: var(--ink-100);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4); --shadow-md: 0 6px 18px -6px rgb(0 0 0 / 0.55); --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.7);
     --shadow-ticket: 0 0 0 1px rgb(205 184 255 / 0.35), 0 10px 30px -12px rgb(205 184 255 / 0.25);
     --shadow-ticket-hover: 0 0 0 1px rgb(205 184 255 / 0.6), 0 14px 36px -10px rgb(205 184 255 / 0.35);

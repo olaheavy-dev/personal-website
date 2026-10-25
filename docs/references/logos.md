@@ -20,3 +20,19 @@ The rail shows each logo in one colour from the design tokens and the brand colo
 `scripts/check-logos.test.ts` checks every file for scripts, handlers, embedded images and outside references, and that the `-mono` files draw only in `currentColor`.
 
 Galooli's homepage referenced a 2026 "Motive" logo upload; no acquisition or rebrand was found, so the name stands. Recheck before launch.
+
+## Hover colours (logo rail, #9)
+
+At rest every logo is `--color-text-tertiary`. On hover (pointer devices only) it takes its company's colour, one token per client in `src/styles/tokens.css` and `.design/portfolio/DESIGN_TOKENS.css` (`--color-logo-<slug>`, light and dark). Every value is a fill that appears in that company's own file in `public/logos/` (for the `-mono` ones, the original colour file). Nothing is invented. Each colour must reach 3:1 against the page background (`#faf8f5` light, `#131217` dark), because a hover colour is a graphical object; `src/lib/logos.test.ts` checks it. The company's name is also in text, so the rail never relies on colour.
+
+| Company      | Light            | Dark            | Source                                                                                                                                                                |
+| ------------ | ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HBK          | `#00335A` (12.2) | `#2EA39F` (6.1) | `hbk.svg` fills: the wordmark navy in light (the owner default), and in dark the teal that sits beside it, because the navy is 1.4:1 on the dark page                 |
+| Access Bank  | `#004185` (9.5)  | `#F58220` (7.2) | `access-bank.svg`: the wordmark blue and the mark's orange. The orange is 2.5:1 on paper, so light uses the file's blue; dark uses the orange, which is the signature |
+| Galooli      | `#0F1D3D` (15.7) | `#6EAA04` (6.6) | `galooli.svg` classes `.st1` navy and `.st0` green. The green is 2.7:1 on paper, so light uses the file's navy                                                        |
+| Mukuru       | `#F15323` (3.3)  | `#F15323` (5.3) | `mukuru.svg`, its only fill                                                                                                                                           |
+| uLesson      | `#2B5CA9` (6.2)  | `#2CA1DA` (6.4) | `ulesson.svg` gradient stops (its solid navy fills `#1A3B5F` and `#213D5B` are 1.6:1 in dark)                                                                         |
+| Stanbic IBTC | `#005CA4` (6.5)  | `#7BBBE8` (9.0) | `stanbic-ibtc.svg` gradient stops: the shield's blue, and its light blue for dark mode (the dark end `#002445` would vanish)                                          |
+| Optty        | full ink (17.1)  | full ink (15.8) | `optty.svg` is white only, so there is no brand colour to take. Hover goes to the page's full text colour (`--ink-900` light, `--ink-100` dark)                       |
+
+Contrast ratios are in brackets. The small "via Deimos" credit takes the label's text colour and has no hover token (its file is one grey, `#424242`). If the owner supplies a brand colour for Optty, or prefers Access Bank's orange and Galooli's green on light despite the lower contrast, it is a change to two token lines in each file.

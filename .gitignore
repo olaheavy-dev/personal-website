@@ -18,6 +18,10 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 
+# Visual regression baselines: only Linux images (made in CI) are committed
+/e2e/__screenshots__/*-darwin.png
+/e2e/__screenshots__/*-win32.png
+
 # Environment files: only the example is committed
 .env*
 !.env.example

@@ -40,7 +40,7 @@ export function AvailabilityChip() {
       </span>
       <span className="label-mono text-text-tertiary">
         {site.timeZoneLabel}{" "}
-        <time id={id} suppressHydrationWarning className="text-text-secondary tabular-nums">
+        <time id={id} data-visual-mask suppressHydrationWarning className="text-text-secondary tabular-nums">
           {time ?? "--:--"}
         </time>
       </span>

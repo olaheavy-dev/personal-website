@@ -9,9 +9,10 @@
 //   GET  /__control               { flags, status, content, reads }
 //   POST /__control               { flags?: { key: "on" }, status?: 500, content?: "ok" | "empty" | "error", reset?: true }
 //
-// Run on its own with `node e2e/fixtures/fake-supabase.mjs`, or wrapped around a command
+// Run on its own with `node e2e/fixtures/fake-supabase.mjs` (FAKE_PORT=<port> to change the port), or wrapped around a command
 // with `node e2e/fixtures/with-fake-supabase.mjs <command>`. It listens on 127.0.0.1 only
 // and is never part of the app, the image or the deploy.
+import { realpathSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { defaultFlags, fakePort } from "./fake-constants.mjs";
@@ -86,7 +87,7 @@ export function startFakeSupabase({ port = fakePort } = {}) {
     server.once("error", reject);
     server.listen(port, "127.0.0.1", () =>
       resolve({
-        url: `http://127.0.0.1:${port}`,
+        url: `http://127.0.0.1:${server.address().port}`,
         close: () => new Promise((done) => server.close(done)),
       }),
     );
@@ -94,8 +95,10 @@ export function startFakeSupabase({ port = fakePort } = {}) {
 }
 
 // Started directly: stay up until stopped.
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const fake = await startFakeSupabase();
+// (compared by real path, so a symlinked or odd path still starts it)
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  // FAKE_PORT picks another port (0 = any free one), for tests that must not meet a running fake.
+  const fake = await startFakeSupabase(process.env.FAKE_PORT ? { port: Number(process.env.FAKE_PORT) } : {});
   console.log(`fake supabase on ${fake.url}`);
   for (const signal of ["SIGINT", "SIGTERM"]) {
     process.on(signal, () => fake.close().then(() => process.exit(0)));

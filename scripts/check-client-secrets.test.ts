@@ -1,3 +1,7 @@
+import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { checkBundleText, checkSourceText } from "./check-client-secrets.mjs";
 
 const b64 = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -42,5 +46,34 @@ describe("checkSourceText", () => {
 
   it("allows a server file to import it", () => {
     expect(checkSourceText("route.ts", 'import { createAdminClient } from "@/lib/db/admin";')).toEqual([]);
+  });
+});
+
+// Issue #93: the command must run its checks wherever it is started from. A raw
+// `file://` + path comparison skipped main() for a path with a space (or a symlink) and exited 0.
+// Run from a folder with no build, the real check exits 1 and says so.
+describe("check-client-secrets command", () => {
+  const script = join(process.cwd(), "scripts", "check-client-secrets.mjs");
+
+  function runFrom(kind: "space" | "symlink") {
+    const dir = mkdtempSync(join(tmpdir(), "check client secrets "));
+    try {
+      const target = join(dir, kind === "space" ? "check-client-secrets.mjs" : "real.mjs");
+      copyFileSync(script, target);
+      let entry = target;
+      if (kind === "symlink") {
+        entry = join(dir, "link.mjs");
+        symlinkSync(target, entry);
+      }
+      return spawnSync("node", [entry], { cwd: dir, encoding: "utf8" });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it.each(["space", "symlink"] as const)("still runs its checks from a path with a %s", (kind) => {
+    const result = runFrom(kind);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(".next/static not found");
   });
 });

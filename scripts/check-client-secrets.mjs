@@ -10,8 +10,9 @@
 // Run it with `make client-secrets` (part of `make check`, after the build).
 
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const secretKey = /sb_secret_[A-Za-z0-9_-]{8,}/;
 const secretNames = /SUPABASE_SECRET_KEY|SUPABASE_SERVICE_ROLE_KEY|REVALIDATE_SECRET/;
@@ -93,4 +94,4 @@ function main() {
   console.log("check-client-secrets: no server secret can reach the browser.");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) main();

@@ -32,6 +32,28 @@ async function scrollThrough(page: Page) {
   }
 }
 
+// Opens the lab page and waits until it is ready to be scrolled and measured. goto resolves on
+// the load event, but the demo page streams its content: src/app/%5Flab/route/page.tsx awaits
+// connection() inside a <Suspense fallback={null}>, so on a busy machine the load event can come
+// before the routes exist. The document was then 720 px tall with the pin at top 0, scrollTo
+// clamped to 0, and the pin never crossed the line (issue #89, about 1 in 400 runs under CPU
+// load). This is the demo page's own boundary, not a product bug. Ready means: the vertical
+// route has been armed by its client code (its pin observers exist) and the pins have a place in
+// the laid out page.
+async function gotoLab(page: Page) {
+  await page.goto(lab);
+  const vertical = page.getByTestId("lab-vertical");
+  await expect(vertical.locator("[data-route][data-armed]")).toHaveCount(1);
+  await expect
+    .poll(() =>
+      vertical
+        .locator("[data-route-pin]")
+        .nth(2)
+        .evaluate((pin) => pin.getBoundingClientRect().top),
+    )
+    .toBeGreaterThan(0);
+}
+
 async function layoutShift(page: Page, path: string) {
   await page.addInitScript(() => {
     const w = window as unknown as { __cls: number; __sources: string[] };
@@ -69,7 +91,7 @@ test.describe("lab page", () => {
   test.skip(remote, "the lab page is off on remote sites");
 
   test("criterion 9: shows the vertical, responsive, inline and static routes", async ({ page }) => {
-    await page.goto(lab);
+    await gotoLab(page);
     await expect(page.getByRole("heading", { level: 1, name: "Route lab" })).toBeVisible();
     for (const id of ["vertical", "horizontal", "inline", "static"]) {
       await expect(page.getByTestId(`lab-${id}`).locator("[data-route]")).toHaveCount(1);
@@ -82,7 +104,7 @@ test.describe("lab page", () => {
     test(`criterion 11: no sideways scroll at ${width}, before and after drawing`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       for (const path of [lab, "/"]) {
-        await page.goto(path);
+        await (path === lab ? gotoLab(page) : page.goto(path));
         expect(await overflow(page)).toBeLessThanOrEqual(0);
         await scrollThrough(page);
         await settle(page);
@@ -97,7 +119,7 @@ test.describe("lab page", () => {
 
   test("criterion 15: pins below the fold are reached only when scrolled to, in order", async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 700 });
-    await page.goto(lab);
+    await gotoLab(page);
     const reached = () =>
       page
         .getByTestId("lab-vertical")
@@ -124,7 +146,7 @@ test.describe("lab page", () => {
     // The trigger line is a pixel margin from the viewport height, so a wide, short
     // screen still reaches pins one by one, whatever an engine does with percentages.
     await page.setViewportSize({ width: 1920, height: 720 });
-    await page.goto(lab);
+    await gotoLab(page);
     const pins = page.getByTestId("lab-vertical").locator("[data-route-pin]");
     const reached = () => pins.evaluateAll((all) => all.map((p) => p.hasAttribute("data-reached")));
     // Put stop 3 at 30% of the viewport height: above the 60% line, still on screen.
@@ -137,7 +159,7 @@ test.describe("lab page", () => {
   });
 
   test("criterion 19: the route adds no tab stops", async ({ page }) => {
-    await page.goto(lab);
+    await gotoLab(page);
     const count = await page.evaluate(
       () =>
         document.querySelectorAll("[data-route] :is(a, button, input, select, textarea, [tabindex])").length,
@@ -146,7 +168,7 @@ test.describe("lab page", () => {
   });
 
   test("criterion 20: the lab page passes axe", async ({ page }) => {
-    await page.goto(lab);
+    await gotoLab(page);
     await scrollThrough(page);
     await settle(page);
     const results = await new AxeBuilder({ page }).withTags(tags).analyze();

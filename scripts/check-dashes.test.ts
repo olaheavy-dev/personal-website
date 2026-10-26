@@ -1,3 +1,7 @@
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { checkText } from "./check-dashes.mjs";
 
 const EM = String.fromCharCode(0x2014);
@@ -67,5 +71,22 @@ describe("check-dashes", () => {
     expect(
       fails(`<!-- BEGIN:nextjs-agent-rules -->\nchanges ${EM} APIs\n<!-- END:nextjs-agent-rules -->`, ".md"),
     ).toBe(false);
+  });
+});
+
+// Issue #93, same fault: a path comparison without realpath skipped main() and exited 0 in
+// silence when the script was started through a symlink or a folder name that is encoded.
+describe("check-dashes command", () => {
+  it("still runs its check when started through a symlink in a folder with a space", () => {
+    const dir = mkdtempSync(join(tmpdir(), "check dashes "));
+    try {
+      const link = join(dir, "link.mjs");
+      symlinkSync(join(process.cwd(), "scripts", "check-dashes.mjs"), link);
+      const result = spawnSync("node", [link], { cwd: process.cwd(), encoding: "utf8" });
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("dashes ok");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

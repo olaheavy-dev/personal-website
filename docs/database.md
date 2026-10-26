@@ -79,7 +79,17 @@ CI runs `make db-check` in the `database` job, with Postgres only.
 3. `make db-check`; commit the regenerated `database.types.ts`.
 4. Merge. The **Publish image** workflow applies the pending migration to the hosted project before it builds the image (below). Nothing to run by hand.
 
+**Migration timestamps must increase.** `supabase db push` (CLI 2.122.0) refuses to run when a local migration is older than the newest one already applied to the hosted project, which would block every publish. Create migrations with `migration new` on a branch that is up to date with `main`. The `database` job runs `make migration-order` (`scripts/check-migration-order.mjs`), which fetches the tip of `main` and fails when a file your branch adds is not newer than every migration on `main`. If two branches race and yours loses, rename your migration file to a newer timestamp (`git mv`): that is safe because the hosted history never recorded it, so only a migration that has already been applied must keep its name.
+
 **Keep each migration backwards compatible with the running image.** The old image keeps serving for the minutes between the migration and the deploy. Add a column, table or enum value before any code uses it; remove or rename something only in a later migration, after the code has stopped reading it.
+
+### When the migrate job fails
+
+Open the failed **Publish image** run: nothing was built or published, and the site is still on the previous image. Then:
+
+- **A migration failed partway, or the history disagrees with the files.** `pnpm exec supabase link --project-ref qixsdwyfuewbhxbcaufl`, then `pnpm exec supabase migration list` shows local and remote side by side. If a migration is recorded but should not be, `pnpm exec supabase migration repair --status reverted <version>`; if it was applied by hand and is missing from the history, `pnpm exec supabase migration repair --status applied <version>`. Fix the cause on a branch (a failed migration that was never recorded is fixed in place; one that was applied is fixed by a new migration), merge it, and the next run applies it.
+- **The environment, a secret or the variable is missing or wrong.** Fix it in GitHub (`docs/deploy.md`, Owner setup), then re-run the failed **Publish image** run. It publishes only if `main` still points at the commit CI checked; if `main` has moved on, the run fails on purpose and the next merge publishes instead.
+- **Out of order** (`supabase db push` reports a remote migration missing locally, or a local migration older than the newest remote one). The CI check normally stops this. Rename the never applied file to a newer timestamp as above and merge.
 
 ### Changing content (until the admin ships)
 

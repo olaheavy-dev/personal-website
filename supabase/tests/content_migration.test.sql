@@ -17,6 +17,12 @@ select is(
   'the content migration was applied and recorded'
 );
 
+select is(
+  (select cardinality(statements) from supabase_migrations.schema_migrations where name = 'selected_stops_content'),
+  4,
+  'four statements were recorded, so the replay below runs something'
+);
+
 do $$
 declare
   stmt text;

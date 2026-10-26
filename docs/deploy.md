@@ -46,12 +46,14 @@ After that, every merge to `main` rolls out on its own.
 
 ## Owner setup for migrations (once, before the first merge that uses it)
 
-The `migrate` job reads three values from a GitHub environment. Until they exist the publish run fails at the first step, naming the missing value. The agent never sees them.
+The `migrate` job reads three values from a GitHub environment. If one is missing, the `migrate` job fails at its "Supabase deploy values are present" step (after checkout, the main guard and the install), naming the missing value, and nothing is built or published. The agent never sees them.
+
+**Create the environment yourself, with the branch restriction, before the first merge that uses it.** GitHub creates an environment automatically the first time a workflow names it, with no branch restriction, and its secrets would then be readable from any branch that can run a workflow on it.
 
 1. GitHub, the repository's Settings, **Environments**, **New environment**, name it exactly `supabase-production`.
 2. Under **Deployment branches and tags**, choose **Selected branches and tags** and add `main`, so no other branch can read the values.
 3. Add two **environment secrets**:
-   - `SUPABASE_ACCESS_TOKEN`: a personal access token from the Supabase dashboard, Account, **Access Tokens**, **Generate new token**. Name it something like `github-migrations`.
+   - `SUPABASE_ACCESS_TOKEN`: a **scoped** access token from the Supabase dashboard, Account, **Access Tokens**, **Generate new token**. Name it something like `github-migrations`, limit it to the project `qixsdwyfuewbhxbcaufl` only, and give it only the permissions the pinned CLI lists (`supabase link --help` and `supabase db push --help`, CLI 2.122.0): `project_admin_read`, `api_gateway_keys_read` and `api_gateway_keys_secret_read` (required by `link`), and `database_pooling_config_read` (read by `link` and `db push`; optional). `database_write` is only needed when `db push` runs without a password, and we pass `SUPABASE_DB_PASSWORD`, so leave it off. If a run says a permission is missing, add that one. Note that `link` reads the project's secret API key, so a token with these permissions can read it: treat the token like the secret key.
    - `SUPABASE_DB_PASSWORD`: the hosted project's database password (the one you typed for `supabase link`). If it is lost, reset it in the dashboard under Project Settings, **Database**, then update this secret.
 4. Add one **environment variable** (not a secret): `SUPABASE_PROJECT_REF` with the project ref (`qixsdwyfuewbhxbcaufl`, as in `docs/database.md`).
 5. Do not turn on required reviewers unless you want to approve every publish by hand: a waiting approval holds the whole publish.

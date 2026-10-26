@@ -32,6 +32,7 @@ The hosted project only got new content through snippets the owner pasted into t
 
 1. **Keep pasting snippets by hand.** No new access to production, but it relies on remembering, and the order against the image build is easy to get wrong.
 2. **Apply migrations on merge (chosen).** Production data is changed by CI, so a bad migration reaches production on merge.
+   - **Variant: `supabase db push --db-url`** with the connection string instead of an access token and `link`. It needs no token (and so no way to read the secret key), but it needs the session pooler URL (the direct host is IPv6 only and GitHub runners are IPv4), a percent-encoded password in a URL, and puts the whole connection string in a secret. The token route follows the Supabase guide, so we chose it; this variant stays open if the token proves too broad.
 3. **Apply migrations from the deploy server.** Needs database credentials on the VPS and cannot run before the image build.
 
 ## Consequences

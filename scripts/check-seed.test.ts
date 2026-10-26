@@ -136,6 +136,8 @@ describe("supabase/seed.sql", () => {
       .map((line) => line.trim().replace(/\)$/, ""));
     expect(valueLines).toHaveLength(3);
     for (const line of valueLines) expect(migration, line).toContain(line);
+    // Position 1 and no lab project, as in the seed row.
+    expect(migration).toContain("id, null, 1,");
     expect(migration).toContain("from public.stops where slug = 'mukuru';");
     expect(migration).toContain(
       "delete from public.outcomes where stop_id = (select id from public.stops where slug = 'mukuru');",

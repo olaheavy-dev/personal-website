@@ -98,8 +98,9 @@ on conflict (slug) do update set
 
 -- Home copy, approved by the owner on 25 Oct 2026 (issue #9). No pronouns. The same statements
 -- (except the HBK and Mukuru lines, which are from 26 Oct 2026, issue #102, and live in
--- supabase/snippets/2026-10-26-selected-stops.sql) are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
--- before this copy existed, because `db push --include-seed` skips a seed that has changed.
+-- supabase/migrations/20261026132128_selected_stops_content.sql) are in supabase/snippets/2026-10-25-home-copy.sql
+-- for a hosted project that was seeded before this copy existed, because `db push --include-seed`
+-- skips a seed that has changed.
 update public.stops set summary = 'Designing and building HBK''s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.' where slug = 'hbk';
 update public.stops set summary = 'Integrations that land Mukuru''s cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.' where slug = 'mukuru';
 update public.stops set summary = 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.' where slug = 'optty';

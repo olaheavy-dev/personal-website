@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install check lint dashes format format-check typecheck test coverage build budget e2e e2e-flags e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
+.PHONY: help install migration-order check lint dashes format format-check typecheck test coverage build budget e2e e2e-flags e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -103,6 +103,9 @@ db-check: db-start db-reset db-test db-lint ## Database gate: reset, pgTAP tests
 	cp src/lib/db/database.types.ts .artifacts/database.types.committed.ts
 	$(MAKE) db-types
 	diff -u .artifacts/database.types.committed.ts src/lib/db/database.types.ts || { echo "database.types.ts is out of date: run make db-types and commit it"; exit 1; }
+
+migration-order: ## Fail if a new migration is not newer than every migration on origin/main (needs network)
+	node scripts/check-migration-order.mjs
 
 db-stop: ## Stop the local database containers
 	pnpm exec supabase stop

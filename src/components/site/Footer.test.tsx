@@ -14,7 +14,7 @@ function renderFooter() {
 describe("Footer", () => {
   it("ends the route with a next stop and both contact actions", () => {
     renderFooter();
-    expect(screen.getByRole("heading", { level: 2, name: "Yours." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Yours?" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Email me/ })).toHaveAttribute("href", `mailto:${site.email}`);
     expect(screen.getByRole("button", { name: "Copy email" })).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe("Footer", () => {
 
   it("shows the profiles inside the ticket, each opening in a new tab", () => {
     renderFooter();
-    const ticket = screen.getByRole("region", { name: "Yours." });
+    const ticket = screen.getByRole("region", { name: "Yours?" });
     const profiles = within(ticket).getByRole("list", { name: "Profiles" });
     expect(within(profiles).getByRole("link", { name: /GitHub/ })).toHaveAttribute(
       "href",

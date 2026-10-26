@@ -14,7 +14,7 @@
 //   node scripts/check-dashes.mjs --env A,B       check the text in environment variables A and B
 //                                                 (CI uses this for the PR title and description)
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { extname } from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
@@ -181,4 +181,4 @@ function main() {
   console.log("dashes ok");
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) main();

@@ -12,6 +12,7 @@
 // Run on its own with `node e2e/fixtures/fake-supabase.mjs`, or wrapped around a command
 // with `node e2e/fixtures/with-fake-supabase.mjs <command>`. It listens on 127.0.0.1 only
 // and is never part of the app, the image or the deploy.
+import { realpathSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { defaultFlags, fakePort } from "./fake-constants.mjs";
@@ -87,7 +88,8 @@ export function startFakeSupabase({ port = fakePort } = {}) {
 }
 
 // Started directly: stay up until stopped.
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// (compared by real path, so a symlinked or odd path still starts it)
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const fake = await startFakeSupabase();
   console.log(`fake supabase on ${fake.url}`);
   for (const signal of ["SIGINT", "SIGTERM"]) {

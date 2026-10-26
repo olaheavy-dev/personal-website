@@ -4,15 +4,15 @@ The site's content, flags and travel data live in hosted Supabase (decision 0004
 
 ## How it fits together
 
-| Piece                          | What it is                                                                                                |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `supabase/migrations/*.sql`    | The schema: extensions and enums, tables and constraints, then grants and row level security              |
-| `supabase/seed.sql`            | The first content, from the claims policy only (decision 0005). Safe to run again                         |
-| `supabase/snippets/*.sql`      | One off statements for the owner to paste into the hosted SQL editor when a changed seed cannot be re-run |
-| `supabase/tests/*.test.sql`    | pgTAP tests of the rules above (`make db-test`)                                                           |
-| `src/lib/db/database.types.ts` | Types generated from the schema (`make db-types`). Never edit by hand                                     |
-| `src/lib/db/queries/*`         | Typed, cached reads for the pages                                                                         |
-| `src/lib/db/admin.ts`          | The secret key client for the server (admin and webhooks later). ESLint limits who may import it          |
+| Piece                          | What it is                                                                                                                                                                                               |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `supabase/migrations/*.sql`    | The schema (extensions and enums, tables and constraints, grants and row level security) and, until the admin ships, content changes (decision 0019). Applied to the hosted project when a change merges |
+| `supabase/seed.sql`            | The first content, from the claims policy only (decision 0005). Safe to run again                                                                                                                        |
+| `supabase/snippets/*.sql`      | Older one off statements pasted into the hosted SQL editor by hand. New content changes are migrations instead (decision 0019)                                                                           |
+| `supabase/tests/*.test.sql`    | pgTAP tests of the rules above (`make db-test`)                                                                                                                                                          |
+| `src/lib/db/database.types.ts` | Types generated from the schema (`make db-types`). Never edit by hand                                                                                                                                    |
+| `src/lib/db/queries/*`         | Typed, cached reads for the pages                                                                                                                                                                        |
+| `src/lib/db/admin.ts`          | The secret key client for the server (admin and webhooks later). ESLint limits who may import it                                                                                                         |
 
 ## Keys
 
@@ -74,14 +74,30 @@ CI runs `make db-check` in the `database` job, with Postgres only.
 
 ### Changing the schema
 
-1. `pnpm exec supabase migration new short_name`, then write the SQL. Migrations are never edited after they have been pushed.
+1. `pnpm exec supabase migration new short_name`, then write the SQL. Migrations are never edited after they have been merged; fix a mistake with a new migration.
 2. Add or update the tests in `supabase/tests/`.
 3. `make db-check`; commit the regenerated `database.types.ts`.
-4. The owner pushes it (below).
+4. Merge. The **Publish image** workflow applies the pending migration to the hosted project before it builds the image (below). Nothing to run by hand.
 
-## Pushing to the hosted project (owner only)
+**Keep each migration backwards compatible with the running image.** The old image keeps serving for the minutes between the migration and the deploy. Add a column, table or enum value before any code uses it; remove or rename something only in a later migration, after the code has stopped reading it.
+
+### Changing content (until the admin ships)
+
+Content changes are migrations too (decision 0019), because the seed does not re-run on a hosted project:
+
+1. Write the migration so it can run twice and on a fresh database: `update ... where slug = '...'`, and for outcomes `delete from public.outcomes where stop_id = (select id from public.stops where slug = '...')` then `insert ... select ... from public.stops where slug = '...'`, which inserts nothing when the stop does not exist yet.
+2. Put the same values in `supabase/seed.sql`, so a local reset gives the same content.
+3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP test `supabase/tests/content_migration.test.sql` replays the 26 Oct content migration on seeded data and checks nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
+
+When the admin (#26, #27) ships, content migrations stop: content is edited in the admin, and migrations are for structure only.
+
+## Pushing to the hosted project
+
+**Normally you do nothing.** When a change merges to `main` and CI passes, the `migrate` job in `.github/workflows/publish.yml` runs before the image is built: `supabase link`, then `supabase db push --dry-run` (the log lists what is pending), then `supabase db push` with no `--include-seed`. The image build waits for it, so the prerendered pages read the new data, and a failed migration stops the publish. It uses the `supabase-production` environment (`docs/deploy.md`, Owner setup).
 
 The project is `qixsdwyfuewbhxbcaufl` (London, Free plan). The agent never has its keys or its database password.
+
+The first push of a brand new project, and any repair, is still done by the owner by hand:
 
 ```sh
 pnpm install
@@ -103,7 +119,7 @@ What a run does to a database that already has data:
 | `stops` (including `summary`), `case_studies` (title and stop link), `case_study_sections` (title and position), `lab_projects` (including `summary`), `countries` | **Overwrites** the seeded columns with the seed values |
 | `outcomes` for the seeded stops and lab projects (figure, description, source)                                                                                     | **Deletes and re-inserts** them                        |
 
-To apply a changed seed on purpose, run the file yourself: `psql` with the dashboard connection string (Project Settings, Database, Connection string) and `-f supabase/seed.sql`, or paste it into the dashboard SQL editor. Before the admin (#26 and #27) ships, the seed must become insert only, so a re-run cannot revert admin edits.
+To apply a changed seed on purpose, run the file yourself (or, better, ship the change as a content migration, above): `psql` with the dashboard connection string (Project Settings, Database, Connection string) and `-f supabase/seed.sql`, or paste it into the dashboard SQL editor. Before the admin (#26 and #27) ships, the seed must become insert only, so a re-run cannot revert admin edits.
 
 Then, in the dashboard: turn off sign-ups, confirm that only `public` is exposed, and look at both Advisors (security and performance). `graphql_public` is also listed as exposed on hosted projects. That is expected: it honours the same grants and RLS, so it shows nothing the REST API would not, and it is not a leak. Run `pnpm db:smoke` (it reads `.env.local`), and only after it passes disable the legacy keys.
 

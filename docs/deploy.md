@@ -7,7 +7,8 @@ The site runs as one Docker container on the owner's SoloForge VPS (decision 000
 ```mermaid
 flowchart LR
   pr["Pull request"] -->|CI green, merged| main["main"]
-  main -->|CI on main passes| publish["Publish image workflow"]
+  main -->|CI on main passes| migrate["migrate job: supabase db push"]
+  migrate -->|migrations applied| publish["Publish image job"]
   publish -->|build, check-image, /healthz| ghcr["ghcr.io/olaheavy-dev/personal-website :main + :sha-commit"]
   ghcr -->|scope personal-website-staging| watchtower["watchtower-personal-website"]
   watchtower --> app["personal-website container"]
@@ -17,7 +18,7 @@ flowchart LR
 ```
 
 1. CI passes on `main` (`make check`, e2e and accessibility, dependency review, workflow lint).
-2. **Publish image** first checks the Supabase build values are present (see Environment below), builds the image with the commit and those values baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, runs the candidate image with no Supabase variables and checks that `/healthz` reports the commit and `"supabase":"configured"` (which proves the values were written into the build), then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
+2. **Publish image** first runs the `migrate` job: it checks `main` still points at the commit CI checked, then `supabase link`, `supabase db push --dry-run` (logged) and `supabase db push` against the hosted project (decision 0019). The image is built only after that, so the prerendered pages read the new data, and a failed migration stops the run with nothing published. Then the publish job checks the Supabase build values are present (see Environment below), builds the image with the commit and those values baked in, refuses it if `scripts/check-image.sh` finds private files or a root user, runs the candidate image with no Supabase variables and checks that `/healthz` reports the commit and `"supabase":"configured"` (which proves the values were written into the build), then pushes `:sha-<commit>` and `:main`. It refuses to publish if `main` has moved on since CI checked it.
 3. Watchtower on the VPS pulls the new `:main` and recreates only the `personal-website` container.
 4. **Post-deploy smoke** waits up to 15 minutes for `/healthz` to report the new commit, checks it reports `"supabase":"configured"`, checks staging is hidden from search engines, then runs the Playwright journeys and axe against the live URL.
 
@@ -43,6 +44,20 @@ GitHub creates a new package as private, and Watchtower can't pull a private ima
 
 After that, every merge to `main` rolls out on its own.
 
+## Owner setup for migrations (once, before the first merge that uses it)
+
+The `migrate` job reads three values from a GitHub environment. Until they exist the publish run fails at the first step, naming the missing value. The agent never sees them.
+
+1. GitHub, the repository's Settings, **Environments**, **New environment**, name it exactly `supabase-production`.
+2. Under **Deployment branches and tags**, choose **Selected branches and tags** and add `main`, so no other branch can read the values.
+3. Add two **environment secrets**:
+   - `SUPABASE_ACCESS_TOKEN`: a personal access token from the Supabase dashboard, Account, **Access Tokens**, **Generate new token**. Name it something like `github-migrations`.
+   - `SUPABASE_DB_PASSWORD`: the hosted project's database password (the one you typed for `supabase link`). If it is lost, reset it in the dashboard under Project Settings, **Database**, then update this secret.
+4. Add one **environment variable** (not a secret): `SUPABASE_PROJECT_REF` with the project ref (`qixsdwyfuewbhxbcaufl`, as in `docs/database.md`).
+5. Do not turn on required reviewers unless you want to approve every publish by hand: a waiting approval holds the whole publish.
+
+To rotate either secret, change it in the environment; the next publish run uses it.
+
 ## Security headers
 
 The app is the only source of the site's security headers (decision 0017). They are set in `next.config.ts` from `src/lib/security/headers.ts`: a Content Security Policy per kind of path, HSTS (`max-age=31536000`, no `includeSubDomains`, no `preload`), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and `X-Frame-Options`.
@@ -59,7 +74,7 @@ The app is the only source of the site's security headers (decision 0017). They 
 
 ## Expected red runs
 
-- **Publish image: "main moved on".** When two merges land close together, the older commit's publish run fails on purpose, because `main` no longer points at it. The newer commit's run publishes, so nothing is lost.
+- **Publish image: "main moved on".** When two merges land close together, the older commit's run fails on purpose (in the `migrate` job, or in the publish job if main moves later), because `main` no longer points at it. The newer commit's run publishes, so nothing is lost.
 - **Post-deploy smoke: notice, not failure.** If a newer commit reaches the site before an older commit's smoke sees its own, that smoke stops with a notice and the newer commit's smoke does the testing.
 
 ## Build and check the image locally

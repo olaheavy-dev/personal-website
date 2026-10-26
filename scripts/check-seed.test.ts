@@ -110,24 +110,36 @@ describe("supabase/seed.sql", () => {
     }
   });
 
-  it("holds the 26 Oct summaries and the Mukuru figure word for word, and the hosted snippet matches", () => {
+  it("holds the 26 Oct summaries and the Mukuru figure word for word, and the content migration matches", () => {
     const summaries = {
       hbk: "Designing and building HBK's sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.",
       mukuru:
         "Integrations that land Mukuru's cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.",
     };
-    const snippet = readFileSync("supabase/snippets/2026-10-26-selected-stops.sql", "utf8");
+    const migration = readFileSync("supabase/migrations/20261026132128_selected_stops_content.sql", "utf8");
     for (const [slug, text] of Object.entries(summaries)) {
       const statement = `update public.stops set summary = '${text.replaceAll("'", "''")}' where slug = '${slug}';`;
       expect(code, `${slug} in the seed`).toContain(statement);
-      expect(snippet, `${slug} in the snippet`).toContain(statement);
+      expect(migration, `${slug} in the migration`).toContain(statement);
     }
     const row = `where slug = 'mukuru'), null, 1,
     '17M+', 'customers served',
     'link', 'Techzim, 20 years of Mukuru', 'https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey', date '2026-10-26',
     'company', 'Mukuru', 2025)`;
     expect(code).toContain(row);
-    expect(snippet).toContain(row);
+
+    // The migration inserts the same row through "insert ... select": its value lines must be
+    // the seed row's lines.
+    const valueLines = row
+      .split("\n")
+      .slice(1)
+      .map((line) => line.trim().replace(/\)$/, ""));
+    expect(valueLines).toHaveLength(3);
+    for (const line of valueLines) expect(migration, line).toContain(line);
+    expect(migration).toContain("from public.stops where slug = 'mukuru';");
+    expect(migration).toContain(
+      "delete from public.outcomes where stop_id = (select id from public.stops where slug = 'mukuru');",
+    );
   });
 
   it("starts with only the home flag on", () => {

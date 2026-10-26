@@ -4,7 +4,7 @@ import { Ticket } from "@/components/ticket/Ticket";
 import { getFlags } from "@/lib/db/queries/flags";
 import { getStops } from "@/lib/db/queries/stops";
 import { getViewer } from "@/lib/flags/visibility";
-import { buildSelectedStops, chipYear, type SelectedStopsModel } from "@/lib/home/selected-stops";
+import { buildSelectedStops, type SelectedStopsModel } from "@/lib/home/selected-stops";
 
 // Home section 4: depth on the three strongest proofs, from the database (stops.summary and
 // each stop's first sourced outcome). The text lives in the database so the owner can edit it
@@ -36,8 +36,6 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
                     label={ticket.outcome.description}
                     source={ticket.outcome.source}
                     attribution={ticket.outcome.scope === "company" ? ticket.outcome.attribution : null}
-                    year={chipYear(ticket.outcome)}
-                    checkedOn={ticket.outcome.checkedOn}
                   />
                 ) : undefined
               }

@@ -160,16 +160,35 @@ export const stops = [
     end_year: 2024,
     via: "Deimos",
   }),
-  stopRow(6, {
-    slug: "mukuru",
-    number: 6,
-    name: "Mukuru",
-    kind: "compact",
-    filters: ["payments"],
-    start_year: 2022,
-    end_year: 2024,
-    via: "Deimos",
-  }),
+  stopRow(
+    6,
+    {
+      slug: "mukuru",
+      number: 6,
+      name: "Mukuru",
+      kind: "compact",
+      filters: ["payments"],
+      start_year: 2022,
+      end_year: 2024,
+      via: "Deimos",
+      summary:
+        "Integrations that land Mukuru's cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.",
+    },
+    [
+      {
+        position: 1,
+        figure: "17M+",
+        description: "customers served",
+        source_kind: "link",
+        source_label: "Techzim, 20 years of Mukuru",
+        source_url: "https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey",
+        checked_on: "2026-10-26",
+        claim_scope: "company",
+        attribution: "Mukuru",
+        as_of_year: 2025,
+      },
+    ],
+  ),
   stopRow(
     7,
     {
@@ -180,7 +199,7 @@ export const stops = [
       filters: ["ai", "data_iot"],
       start_year: 2024,
       summary:
-        "Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.",
+        "Designing and building HBK's sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.",
     },
     [
       {

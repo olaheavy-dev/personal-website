@@ -14,7 +14,7 @@ export function HeroTickets() {
         notches="side"
         className="absolute inset-x-6 top-0"
         bodyPadding="px-5 pt-4 pb-16"
-        eyebrow="Stop 06 · Mukuru · via Deimos"
+        eyebrow="Stop 01 · Galooli"
         aria-hidden="true"
       />
 
@@ -67,9 +67,9 @@ export function HeroTickets() {
         }
       >
         <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-          HBK&rsquo;s sensor-data analytics platform for test and durability engineers. I help build the
-          product and the AI across it, from Aiana, the docs assistant, to newer features for code, voice and
-          file analysis.
+          Designing and building HBK&rsquo;s sensor-data analytics platform for test, durability and fatigue
+          engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like
+          Python code suggestions and file data analysis.
         </p>
       </Ticket>
     </div>

@@ -78,7 +78,7 @@
   --color-bg-primary: var(--paper-100);
   --color-bg-secondary: var(--paper-200);
   --color-bg-tertiary: var(--paper-300);
-  --color-bg-elevated: var(--paper-50); /* nav pill, panels, popovers */
+  --color-bg-elevated: var(--paper-50); /* nav pill, tickets, status chips, skip link */
   --color-bg-inverse: var(--ink-900);
 
   /* Text */
@@ -404,7 +404,7 @@
   --ticket-max-width: 22rem;
   --ticket-stub-width: 18rem; /* tear-off stub of the wide "pass" ticket */
   --ticket-lift: -0.25rem; /* hover and focus lift of a linked ticket */
-  --ticket-tear-width: 2px; /* dashed tear line and popover border */
+  --ticket-tear-width: 2px; /* dashed tear line on tickets */
   --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
   --ticket-tear-angle: 0.6deg; /* how far the stub lifts when Email me is hovered or focused */
   --z-skip-link: 100;

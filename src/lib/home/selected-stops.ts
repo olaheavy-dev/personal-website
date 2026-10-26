@@ -12,8 +12,8 @@ import { isFlagVisible, type Viewer } from "@/lib/flags/visibility";
 // What the home page's Selected stops section shows, worked out from the database rows and
 // the flags. Pure: no reading, no rendering, so every state is a plain unit test.
 
-/** The three stops shown, newest first (owner decision, 25 Oct 2026). */
-export const selectedStopSlugs = ["hbk", "optty", "access-bank"] as const;
+/** The three stops shown, newest first (owner decision, 26 Oct 2026). */
+export const selectedStopSlugs = ["mukuru", "optty", "access-bank"] as const;
 
 export type SelectedTicket = {
   slug: string;
@@ -90,13 +90,4 @@ export function buildSelectedStops(
   }
   if (tickets.length === 0) return null;
   return { tickets, routeLink: workVisible ? "/work" : null };
-}
-
-/**
- * The year a chip shows beside its attribution. A claim from this year needs no year ("Google
- * Play"); an older one keeps it ("Optty, 2023"). Only company claims are attributed.
- */
-export function chipYear(outcome: Outcome): number | null {
-  if (outcome.scope !== "company" || outcome.asOfYear === null || outcome.checkedOn === null) return null;
-  return outcome.asOfYear < Number(outcome.checkedOn.slice(0, 4)) ? outcome.asOfYear : null;
 }

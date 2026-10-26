@@ -63,7 +63,7 @@ const fixtureOutcomes = () => [
 
 describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
   it("parses every seeded outcome (a guard for the parser itself)", () => {
-    expect(seededOutcomes().size).toBe(8);
+    expect(seededOutcomes().size).toBe(9);
   });
 
   it("equals the seed record for every stop: slug, name, kind, filters, years, via and summary", () => {

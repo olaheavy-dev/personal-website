@@ -1,4 +1,4 @@
-import type { MetricSource } from "@/components/ticket/SourceDisclosure";
+import type { MetricSource } from "@/components/ticket/MetricChip";
 import type { Database } from "./database.types";
 
 // What the site works with, in camelCase and with the database details tidied away.

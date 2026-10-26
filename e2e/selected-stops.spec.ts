@@ -120,12 +120,17 @@ test.describe("selected stops", () => {
   test("spaces every home section by the same gap, down to the footer", async ({ page }) => {
     await page.goto("/");
     const gaps = await page.evaluate(() => {
-      const blocks = ["main > section:first-child", "#shipped", "#journey", "#selected-stops", "footer"].map(
-        (selector) => document.querySelector(selector)!.getBoundingClientRect(),
-      );
+      const blocks = [
+        "main > section:first-child",
+        "#shipped",
+        "#journey",
+        "#selected-stops",
+        "#lab-writing",
+        "footer",
+      ].map((selector) => document.querySelector(selector)!.getBoundingClientRect());
       return blocks.slice(1).map((box, index) => Math.round(box.top - blocks[index]!.bottom));
     });
-    expect(gaps).toHaveLength(4);
+    expect(gaps).toHaveLength(5);
     for (const gap of gaps) expect(Math.abs(gap - gaps[0]!)).toBeLessThanOrEqual(1);
   });
 

@@ -455,3 +455,57 @@ test("@flags the fake content server answers empty or with an error on request, 
   }
   expect((await request.get(`${fakeUrl}/rest/v1/lab_projects`)).status()).toBe(200);
 });
+
+test("@flags the Lab strip on Home follows page.lab: Off removes the whole section with no gap, On brings it back", async ({
+  page,
+  request,
+}) => {
+  const gaps = () =>
+    page.evaluate(() => {
+      const boxes = ["#selected-stops", "#lab-writing", "footer"]
+        .map((selector) => document.querySelector(selector))
+        .filter((el): el is Element => el !== null)
+        .map((el) => el.getBoundingClientRect());
+      return boxes.slice(1).map((box, index) => Math.round(box.top - boxes[index]!.bottom));
+    });
+
+  await applyFlags(request, flagsWithout("page.lab"), "203.0.113.31");
+  await page.goto("/");
+  await expect(page.locator("#lab-strip")).toHaveCount(0);
+  // Writing is on but has no posts yet, so with Lab off there is no two-up at all.
+  await expect(page.locator("#lab-writing")).toHaveCount(0);
+  await expect(page.locator("#latest-writing")).toHaveCount(0);
+  const html = await (await request.get("/")).text();
+  expect(html).not.toContain("In the lab");
+  expect(html).not.toContain("foresight.olaheavy.dev");
+  // Nothing is left between Selected stops and the footer but the one section gap.
+  const [closed] = await gaps();
+  await applyFlags(request, defaultFlags, "203.0.113.31");
+  await page.goto("/");
+  await expect(page.locator("#lab-strip")).toBeVisible();
+  const [selectedToLab, labToFooter] = await gaps();
+  expect(Math.abs(selectedToLab! - closed!)).toBeLessThanOrEqual(1);
+  expect(Math.abs(labToFooter! - closed!)).toBeLessThanOrEqual(1);
+});
+
+test("@flags Writing on without posts leaves the Lab strip spanning, and Lab with Writing off still shows", async ({
+  page,
+  request,
+}) => {
+  await applyFlags(request, defaultFlags, "203.0.113.32");
+  await page.goto("/");
+  await expect(page.locator("#latest-writing")).toHaveCount(0);
+  await expect(page.locator("#lab-strip")).toBeVisible();
+  const spans = await page.evaluate(() => {
+    const row = document.querySelector("#lab-writing")!;
+    const style = getComputedStyle(row);
+    const room = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    return Math.abs(room - document.querySelector("#lab-strip")!.getBoundingClientRect().width);
+  });
+  expect(spans).toBeLessThanOrEqual(1);
+
+  await applyFlags(request, flagsWithout("page.writing"), "203.0.113.32");
+  await page.goto("/");
+  await expect(page.locator("#lab-strip")).toBeVisible();
+  await expect(page.locator('a[href="/writing"]')).toHaveCount(0);
+});

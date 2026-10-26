@@ -298,14 +298,21 @@ test.describe("footer stub lift", () => {
     await emailMe(page).scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     const before = await layoutBoxes(page);
-    const buttonBefore = await emailMe(page).boundingBox();
+    // Page coordinates, not viewport ones: on a touch device the lift is reached by Tab, and the
+    // browser may scroll to show the focused link, which is not a layout shift.
+    const pagePosition = () =>
+      emailMe(page).evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return { x: box.x + scrollX, y: box.y + scrollY, width: box.width, height: box.height };
+      });
+    const buttonBefore = await pagePosition();
     await liftStub(page);
     await expect.poll(() => stubRotate(page)).not.toBe("none");
     expect(await layoutBoxes(page)).toEqual(before);
     // Sub-pixel scroll settling can move the button by a hundredth of a pixel; a layout shift would be whole pixels.
-    const buttonAfter = await emailMe(page).boundingBox();
+    const buttonAfter = await pagePosition();
     for (const key of ["x", "y", "width", "height"] as const) {
-      expect(buttonAfter![key]).toBeCloseTo(buttonBefore![key], 0);
+      expect(buttonAfter[key]).toBeCloseTo(buttonBefore[key], 0);
     }
   });
 

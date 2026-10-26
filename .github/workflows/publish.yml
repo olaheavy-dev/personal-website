@@ -1,6 +1,8 @@
 # Publish the image to GHCR only after CI passes on main (decision 0003).
 # Watchtower on the VPS (scope personal-website-staging) rolls out the new :main image.
 # Pull requests never publish.
+# Pending Supabase migrations are applied first (decision 0019), so the pages prerendered at image
+# build read the new data. A failed migration stops the run before anything is built or pushed.
 name: Publish image
 
 on:
@@ -18,8 +20,86 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  migrate:
+    name: Apply database migrations
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Holds the Supabase access token, database password and project ref (docs/deploy.md, Owner
+    # setup). The environment is limited to main, so no other branch can read them.
+    environment: supabase-production
+    permissions:
+      contents: read
+    steps:
+      # The same guard as the publish job: never migrate a commit CI did not check.
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Main still points at the commit CI checked
+        env:
+          CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$CHECKED_SHA" ]; then
+            echo "::error::main moved on since CI checked $CHECKED_SHA; the newer commit's CI run will migrate and publish."
+            exit 1
+          fi
+
+      - name: Set up pnpm (version from package.json)
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js (version from .nvmrc)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # The Supabase CLI version is the one pinned in package.json.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Values are checked by name only, so a missing one fails here without printing any value.
+      - name: Supabase deploy values are present
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          missing=0
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set in the supabase-production environment (docs/deploy.md, Owner setup)."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Link the hosted project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: pnpm exec supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      # Logged so the run shows which migrations are about to be applied.
+      - name: Show the pending migrations (dry run)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: pnpm exec supabase db push --dry-run
+
+      # No --include-seed: the seed is for the first push and local resets only (docs/database.md).
+      - name: Apply the pending migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: pnpm exec supabase db push
+
   publish:
     name: Build, check and push
+    needs: migrate
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20

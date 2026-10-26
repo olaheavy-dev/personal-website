@@ -3,7 +3,7 @@
 -- 25 Oct 2026): five summaries, then the three shortened chip descriptions. Safe to run again:
 -- it only sets the same text. Each outcome statement matches exactly one row, the first outcome
 -- of its stop.
--- The HBK summary moved to 2026-10-26-selected-stops.sql, which sets the newer text.
+-- The HBK summary moved to the migration 20261026132128_selected_stops_content.sql, which sets the newer text.
 
 update public.stops set summary = 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.' where slug = 'optty';
 update public.stops set summary = 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.' where slug = 'access-bank';

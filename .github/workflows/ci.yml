@@ -135,6 +135,11 @@ jobs:
       - name: Check the database
         run: make db-check
 
+      # A new migration older than the newest one on main would make `supabase db push` fail
+      # on every publish (decision 0019). Fetches the tip of main itself (shallow checkout).
+      - name: New migrations are newer than main's
+        run: make migration-order
+
   visual:
     name: visual regression
     runs-on: ubuntu-24.04

@@ -353,11 +353,35 @@ const pageKeys: Record<(typeof pagePaths)[number], string> = {
 // has to be decided while the page is prerendered (see docs/flags.md, "The rule: nothing request
 // bound before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
 // the Wrong turn page a visitor sees.
+// After /api/revalidate the NEXT request is the first one rebuilt from the new flags, except
+// when it arrives while a render that began before the revalidation is still running for the
+// same page (the previous test's browser prefetches the other pages). It then shares that
+// render and gets the old answer once, and the request after it is rebuilt (measured in CI run
+// 40361033845 and locally, 3 failures in 30 runs: first 200 with x-nextjs-cache MISS, 250 ms
+// later 404). So a journey waits for the new status by condition, never by a fixed sleep, and
+// then requires it to hold for the requests that follow. See docs/flags.md.
+async function expectStatusToSettle(
+  request: Parameters<typeof revalidate>[0],
+  path: string,
+  expected: number,
+) {
+  await expect
+    .poll(async () => (await request.get(path)).status(), {
+      message: `${path} should settle on ${expected} after the revalidation`,
+      timeout: 5000,
+    })
+    .toBe(expected);
+  for (let i = 0; i < 3; i++) {
+    expect((await request.get(path)).status(), `${path} stays ${expected}`).toBe(expected);
+  }
+}
+
 async function expectRealWrongTurn(
   request: Parameters<typeof revalidate>[0],
   page: Page,
   path: (typeof pagePaths)[number],
 ) {
+  await expectStatusToSettle(request, path, 404);
   const response = await request.get(path);
   expect(response.status(), `${path} status`).toBe(404);
   const html = await response.text();
@@ -386,7 +410,7 @@ for (const path of pagePaths) {
     await expectRealWrongTurn(request, page, path);
 
     await applyFlags(request, defaultFlags, address);
-    expect((await request.get(path)).status(), `${path} back On`).toBe(200);
+    await expectStatusToSettle(request, path, 200);
     const back = await page.goto(path);
     expect(back?.status()).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Looks like a wrong turn");

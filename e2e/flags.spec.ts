@@ -350,8 +350,8 @@ const pageKeys: Record<(typeof pagePaths)[number], string> = {
 
 // Issue #88. A page that is Off or Preview must answer a real 404 status, not a 200 that only
 // looks like a 404. Next.js fixes the status when the response starts streaming, so the gate
-// has to be decided while the page is prerendered (see docs/flags.md, "Nothing request bound
-// before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
+// has to be decided while the page is prerendered (see docs/flags.md, "The rule: nothing request
+// bound before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
 // the Wrong turn page a visitor sees.
 async function expectRealWrongTurn(
   request: Parameters<typeof revalidate>[0],
@@ -396,7 +396,12 @@ for (const path of pagePaths) {
 test("@flags the site reads its flags from the fake, never from .env.local", async ({ request }) => {
   // A build or server that fell back to the hosted project (.env.local) would ignore the fake
   // and every journey above would fail in a confusing way. `make build` sets the fake's address
-  // explicitly, which wins over .env.local; this proves the running site really uses it.
+  // explicitly, which wins over .env.local (node_modules/next/dist/docs/01-app/02-guides/
+  // environment-variables.md, "Environment Variable Load Order": process.env is looked up first,
+  // then the .env files), and Playwright passes its own environment on
+  // to the server it starts (playwright 1.64.1, lib/runner/index.js, webServer env is
+  // { ...DEFAULT_ENVIRONMENT_VARIABLES, ...process.env }). This proves the running site really
+  // uses the fake.
   const before = (await control(request, { reset: true })).reads;
   expect((await revalidate(request, "203.0.113.60")).status()).toBe(200);
   expect((await request.get("/")).status()).toBe(200);

@@ -187,7 +187,7 @@ To rotate the secret, change it on the server and in the hook's header, in that 
 
 ### In tests
 
-`make build` and `make e2e` do not use the hosted project. `e2e/fixtures/fake-supabase.mjs` is a small test only server that answers `feature_flags` like the public role does (On rows only), and `stops` and `lab_projects` with their outcomes from `e2e/fixtures/fake-content.mjs` (a unit test checks every figure, wording and link in it against `supabase/seed.sql`; `POST /__control {"content": "empty" | "error"}` switches its answer). `make build` starts it so `next build` can read the flags, and Playwright starts it for the run. `make e2e-flags` runs the `@flags` journeys, which change its answer and call `/api/revalidate` like the webhook does; they run alone, one at a time, because they share that state.
+`make build` and `make e2e` do not use the hosted project. `e2e/fixtures/fake-supabase.mjs` is a small test only server that answers `feature_flags` like the public role does (On rows only), and `stops` and `lab_projects` with their outcomes from `e2e/fixtures/fake-content.mjs` (a unit test checks every figure, wording and link in it against `supabase/seed.sql`; `POST /__control {"content": "empty" | "error"}` switches its answer). `make build` starts it so `next build` can read the flags, and Playwright starts it for the run. `make e2e-flags` runs the `@flags` journeys, which change its answer and call `/api/revalidate` like the webhook does; they run alone, one at a time, because they share that state. `FAKE_FLAGS_OFF=page.work,page.lab` starts the fake (and every reset) without those flags, so `make e2e-cold` can build with pages Off.
 
 ## Backups
 

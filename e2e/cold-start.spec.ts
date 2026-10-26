@@ -28,6 +28,18 @@ for (const path of ["/work", "/lab", "/writing", "/travel", "/about"]) {
   });
 }
 
+test("@cold nothing links to a hidden page: the sitemap lists only Home and the home HTML has no link to them", async ({
+  request,
+}) => {
+  const xml = await (await request.get("/sitemap.xml")).text();
+  const paths = [...xml.matchAll(/<loc>https:\/\/olaheavy\.dev([^<]*)<\/loc>/g)].map((m) => m[1] || "/");
+  expect(paths).toEqual(["/"]);
+  const home = await (await request.get("/")).text();
+  for (const path of ["/work", "/lab", "/writing", "/travel", "/about"]) {
+    expect(home, path).not.toContain(`href="${path}"`);
+  }
+});
+
 test("@cold the flags that are still On at build time are untouched", async ({ request }) => {
   expect((await request.get("/")).status()).toBe(200);
 });

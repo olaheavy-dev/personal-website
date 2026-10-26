@@ -97,7 +97,8 @@ on conflict (slug) do update set
   position = excluded.position, status = excluded.status;
 
 -- Home copy, approved by the owner on 25 Oct 2026 (issue #9). No pronouns. The same statements
--- are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
+-- (except the HBK and Mukuru lines, which are from 26 Oct 2026, issue #102, and live in
+-- supabase/snippets/2026-10-26-selected-stops.sql) are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
 -- before this copy existed, because `db push --include-seed` skips a seed that has changed.
 update public.stops set summary = 'Designing and building HBK''s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.' where slug = 'hbk';
 update public.stops set summary = 'Integrations that land Mukuru''s cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.' where slug = 'mukuru';

@@ -77,7 +77,7 @@ describe("supabase/seed.sql", () => {
     expect(code).not.toMatch(/\S [-] \S/);
   });
 
-  it("holds the six approved home summaries word for word, and the hosted snippet matches", () => {
+  it("holds the five approved home summaries word for word, and the hosted snippet matches", () => {
     const summaries = {
       optty:
         "Design and delivery of the integrations behind Optty's payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.",
@@ -97,8 +97,7 @@ describe("supabase/seed.sql", () => {
       expect(code, `${slug} in the seed`).toContain(statement);
       expect(snippet, `${slug} in the snippet`).toContain(statement);
     }
-    // The snippet also holds the old HBK summary, which the 26 Oct snippet replaced.
-    expect([...snippet.matchAll(/^update public\.(?:stops|lab_projects) /gm)]).toHaveLength(6);
+    expect([...snippet.matchAll(/^update public\.(?:stops|lab_projects) /gm)]).toHaveLength(5);
 
     // Each outcome statement sets the description the seed inserts for the same stop and figure.
     const statement =

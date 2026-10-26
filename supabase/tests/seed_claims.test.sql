@@ -27,15 +27,15 @@ select is(
 
 select results_eq(
   $$select s.slug, o.figure from public.outcomes o join public.stops s on s.id = o.stop_id order by s.slug$$,
-  $$values ('access-bank','1M+'),('galooli','~11%'),('hbk','2025 R4'),('optty','90+')$$,
-  'outcomes exist only for Access Bank, Galooli, HBK and Optty'
+  $$values ('access-bank','1M+'),('galooli','~11%'),('hbk','2025 R4'),('mukuru','17M+'),('optty','90+')$$,
+  'outcomes exist only for Access Bank, Galooli, HBK, Mukuru and Optty'
 );
 
 select is(
   (select count(*) from public.outcomes o join public.stops s on s.id = o.stop_id
-   where s.slug in ('stanbic-ibtc', 'mukuru', 'ulesson')),
+   where s.slug in ('stanbic-ibtc', 'ulesson')),
   0::bigint,
-  'no outcomes for Stanbic IBTC, Mukuru or uLesson'
+  'no outcomes for Stanbic IBTC or uLesson'
 );
 
 select results_eq(
@@ -52,8 +52,8 @@ select is(
 
 select results_eq(
   $$select s.slug, o.claim_scope::text, o.attribution, o.as_of_year::int from public.outcomes o
-    join public.stops s on s.id = o.stop_id where s.slug in ('optty','galooli','hbk') order by s.slug$$,
-  $$values ('galooli','company','Galooli',2021),('hbk','company','HBK',2025),('optty','company','Optty',2023)$$,
+    join public.stops s on s.id = o.stop_id where s.slug in ('optty','galooli','hbk','mukuru') order by s.slug$$,
+  $$values ('galooli','company','Galooli',2021),('hbk','company','HBK',2025),('mukuru','company','Mukuru',2025),('optty','company','Optty',2023)$$,
   'company figures are attributed and dated'
 );
 
@@ -62,9 +62,10 @@ select results_eq(
   $$select slug, summary from public.stops where summary is not null order by slug$$,
   $$values
     ('access-bank', 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.'),
-    ('hbk', 'Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.'),
+    ('hbk', 'Designing and building HBK''s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.'),
+    ('mukuru', 'Integrations that land Mukuru''s cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.'),
     ('optty', 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.')$$,
-  'the three Selected stops have their approved summaries and no other stop has one'
+  'the Selected stops and HBK have their approved summaries and no other stop has one'
 );
 
 select results_eq(
@@ -78,12 +79,12 @@ select results_eq(
 
 select results_eq(
   $$select s.slug, o.figure, o.description from public.outcomes o join public.stops s on s.id = o.stop_id
-    where s.slug in ('hbk','optty','access-bank') order by s.slug$$,
+    where s.slug in ('mukuru','optty','access-bank') order by s.slug$$,
   $$values
     ('access-bank', '1M+', 'downloads of the QuickBucks app'),
-    ('hbk', '2025 R4', 'Aiana public launch'),
+    ('mukuru', '17M+', 'customers served'),
     ('optty', '90+', 'BNPL and local payment methods across 120+ countries')$$,
-  'the three Selected stops chips have the approved short descriptions, one outcome each'
+  'the three Selected stops chips (Mukuru, Optty, Access Bank) have the approved short descriptions, one outcome each'
 );
 
 select is((select count(*) from public.case_studies where status = 'draft'), 4::bigint, 'four draft case studies');

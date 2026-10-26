@@ -82,11 +82,21 @@ test.describe("selected stops", () => {
     expect(Math.abs(c.y + c.height / 2 - (f.y + f.height / 2))).toBeLessThan(f.height / 2);
   });
 
-  test("each figure link is reachable by keyboard", async ({ page }) => {
+  test("Tab moves through the figure links in order, then to the route link", async ({ page }) => {
     await page.goto("/");
-    const figure = section(page).getByRole("link", { name: /source: Techzim, 20 years of Mukuru/ });
-    await figure.focus();
-    await expect(figure).toBeFocused();
+    const focusedHref = () => page.evaluate(() => document.activeElement?.getAttribute("href") ?? null);
+    // Tab from the top of the page until the first figure link takes focus.
+    let found = false;
+    for (let index = 0; index < 80 && !found; index += 1) {
+      await page.keyboard.press("Tab");
+      found = ((await focusedHref()) ?? "").includes("techzim.co.zw");
+    }
+    expect(found).toBe(true);
+    // A ticket link would come before its figure link when a case study is live; here none is.
+    for (const expected of ["triple-a.io", "play.google.com", "/work"]) {
+      await page.keyboard.press("Tab");
+      expect((await focusedHref()) ?? "").toContain(expected);
+    }
   });
 
   test("keeps every figure on one line and the page from scrolling sideways", async ({ page }) => {

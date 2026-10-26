@@ -113,7 +113,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 - **First visit:** no loader. Hero renders server-side; avatar gives a single small wave (once, skipped under reduced motion). Availability chip shows live UK time.
 - **Route on scroll:** the dotted line draws as the visitor moves through stations; reaching a stop subtly highlights its pin. Never hijacks scroll.
 - **Ticket hover/focus:** lifts 4px, notch shadow deepens, each figure links to its source; Enter/click opens the case study.
-- **Case study:** sticky TOC tracks the current section; metric chips expose source on hover/focus; "Next stop" footer continues the route.
+- **Case study:** sticky TOC tracks the current section; each figure links to its source; "Next stop" footer continues the route.
 - **Ask Sunkanmi:** avatar launcher bottom-right; never auto-opens. Opening shows 4 suggested prompts. Answers stream (first token < 1s), cite sources as chips that deep-link to the exact section (with highlight on arrival). Out-of-scope → graceful refusal + suggestion. "How this works" toggle reveals retrieved passages, latency, tokens and cost for that answer.
 - **⌘K:** opens a palette for navigation, theme, "Ask…", copy email; typing a hidden word reveals the secret station (and a passport stamp).
 - **Passport:** first visit to Work, a case study, Lab, Writing, Travel and About each stamps the passport (spring pop + toast, 2.5s, dismissible, announced politely to screen readers). Completing it unlocks a personal note. Stored locally; resettable.

@@ -22,6 +22,15 @@ describe("MetricChip", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
+  it("puts the visible credit before the hidden source text in the accessible name", () => {
+    render(<MetricChip value="17M+" label="customers served" source={source} attribution="Mukuru" />);
+    expect(
+      screen.getByRole("link", {
+        name: /^17M\+ customers ?served \(Mukuru\) \(source: Google Play listing, opens in a new tab\)$/,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("shows an own measurement as plain text with no link", () => {
     const { container } = render(
       <MetricChip
@@ -60,7 +69,7 @@ describe("MetricChip", () => {
     const together = credit.parentElement!;
     expect(together).toHaveClass("whitespace-nowrap");
     expect(together).toContainElement(screen.getByRole("link").querySelector("svg"));
-    expect(together).toHaveTextContent(/^served.*\(Mukuru\)$/);
+    expect(together).toHaveTextContent(/^served \(Mukuru\)/);
   });
 
   it("does not compile without a source", () => {

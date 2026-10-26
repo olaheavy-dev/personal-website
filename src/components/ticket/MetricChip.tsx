@@ -49,7 +49,7 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
     ) : null;
   // Only the words are underlined, not the arrow, the space or the credit after them.
   const underline = "underline decoration-1 underline-offset-4 group-hover:no-underline";
-  const figure = <span className="font-semibold whitespace-nowrap">{value}</span>;
+  const figure = <span className="font-semibold whitespace-nowrap text-text-primary">{value}</span>;
 
   if (source.kind === "own") {
     return (
@@ -70,7 +70,7 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
       href={source.url}
       target="_blank"
       rel="noopener"
-      className="group flex min-h-11 w-fit max-w-full items-center text-sm"
+      className="group flex min-h-11 w-fit max-w-full items-center text-sm text-lilac-text"
     >
       <span className="text-balance">
         <span className={underline}>
@@ -90,8 +90,8 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
           >
             <path d="M7 17 17 7M8 7h9v9" />
           </svg>{" "}
+          {creditEl("")} {/* After the credit, so the visible text comes first in the name (WCAG 2.5.3). */}
           <span className="sr-only">(source: {source.label}, opens in a new tab)</span>
-          {creditEl("")}
         </span>
       </span>
     </a>

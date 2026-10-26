@@ -24,6 +24,21 @@ export const pageRegistry: readonly PageEntry[] = [
   { flag: "page.about", href: "/about", label: "About", status: "coming-soon" },
 ];
 
+/**
+ * The link to a flagged page from a section of another page ("See the whole route", "See the
+ * whole lab"): the page's href while its flag is visible to this viewer, otherwise nothing, so a
+ * flagged-off page is never linked (rule 7). One rule for every such link.
+ */
+export function visiblePageHref<H extends PageEntry["href"]>(
+  href: H,
+  flags: FeatureFlags,
+  viewer: Viewer,
+  pages: readonly PageEntry[] = pageRegistry,
+): H | null {
+  const page = pages.find((entry) => entry.href === href);
+  return page !== undefined && isFlagVisible(flags, page.flag, viewer) ? href : null;
+}
+
 /** The pages this viewer can see, in navigation order. */
 export function visiblePages(flags: FeatureFlags, viewer: Viewer): PageEntry[] {
   return pageRegistry.filter((page) => isFlagVisible(flags, page.flag, viewer));

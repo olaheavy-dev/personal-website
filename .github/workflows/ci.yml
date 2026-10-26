@@ -96,6 +96,10 @@ jobs:
       - name: Run the feature flag journeys
         run: make e2e-flags
 
+      # Measures the home LCP under Lighthouse's mobile throttling, so it runs alone (make e2e-speed).
+      - name: Run the home speed measurement
+        run: make e2e-speed
+
       # Builds its own build with every flagged page Off, so it runs last (make e2e-cold).
       - name: Run the cold start journey
         run: make e2e-cold

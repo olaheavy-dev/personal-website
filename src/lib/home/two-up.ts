@@ -1,6 +1,6 @@
 import type { Result } from "@/lib/db/result";
 import type { FeatureFlags, LabProject, Outcome } from "@/lib/db/types";
-import { pageRegistry, type PageEntry } from "@/lib/flags/registry";
+import { pageRegistry, visiblePageHref, type PageEntry } from "@/lib/flags/registry";
 import { isFlagVisible, type Viewer } from "@/lib/flags/visibility";
 
 // What the home page's Lab and Latest writing two-up shows, worked out from the database rows
@@ -10,12 +10,13 @@ import { isFlagVisible, type Viewer } from "@/lib/flags/visibility";
 export const labStripSlugs = ["foresight", "fastpilot", "homescout"] as const;
 
 /**
- * The only figures the Lab strip may show (issue #9): each is a sourced outcome in the seed.
- * A project's first outcome shows only when its figure is the one listed here.
+ * The only figures the Lab strip may show (issue #9): each is a sourced outcome in the seed. A
+ * project shows the outcome whose figure and source link are both the ones listed here, wherever
+ * it sits among the project's outcomes, and nothing otherwise.
  */
-export const labStripFigures: Readonly<Record<string, string>> = {
-  foresight: "17",
-  fastpilot: "0.992",
+export const labStripFigures: Readonly<Record<string, { figure: string; sourceUrl: string }>> = {
+  foresight: { figure: "17", sourceUrl: "https://github.com/olaheavy-dev/Foresight" },
+  fastpilot: { figure: "0.992", sourceUrl: "https://github.com/olaheavy-dev/fastpilot" },
 };
 
 export type LabEvidenceLink = {
@@ -60,15 +61,12 @@ function evidenceLinks(project: LabProject): LabEvidenceLink[] {
 
 type Registry = readonly PageEntry[];
 
-function pageEntry(pages: Registry, flag: PageEntry["flag"]) {
-  return pages.find((page) => page.flag === flag);
-}
-
 /**
  * A failed read, an empty answer or none of the three projects gives no Lab half (null); a
  * partial answer gives only the projects that were read, in the fixed order. The Lab half
  * needs its page flag visible, the Writing half needs its flag visible and at least one post.
- * "All Lab projects" and "All posts" links show only for a visible page that has shipped.
+ * The "See the whole lab" and "All writing" links follow the same rule as "See the whole route":
+ * they show while the page is visible.
  */
 export function buildHomeTwoUp(
   labProjects: Result<LabProject[]>,
@@ -77,7 +75,6 @@ export function buildHomeTwoUp(
   { posts = [], pages = pageRegistry }: { posts?: readonly LatestPost[]; pages?: Registry } = {},
 ): HomeTwoUpModel {
   const visible = (flag: PageEntry["flag"]) => isFlagVisible(flags, flag, viewer);
-  const live = (flag: PageEntry["flag"]) => visible(flag) && pageEntry(pages, flag)?.status === "live";
 
   let lab: HomeTwoUpModel["lab"] = null;
   if (visible("page.lab") && labProjects.ok) {
@@ -85,22 +82,30 @@ export function buildHomeTwoUp(
     for (const slug of labStripSlugs) {
       const project = labProjects.data.find((candidate) => candidate.slug === slug);
       if (!project) continue;
-      const first = project.outcomes[0];
+      const approved = labStripFigures[slug];
+      const outcome = approved
+        ? project.outcomes.find(
+            (candidate) =>
+              candidate.figure === approved.figure &&
+              candidate.source.kind === "link" &&
+              candidate.source.url === approved.sourceUrl,
+          )
+        : undefined;
       cards.push({
         slug,
         name: project.name,
         summary: project.summary?.trim() ? project.summary : null,
         inProgress: project.inProgress,
         links: evidenceLinks(project),
-        outcome: first && labStripFigures[slug] === first.figure ? first : null,
+        outcome: outcome ?? null,
       });
     }
-    if (cards.length > 0) lab = { cards, moreLink: live("page.lab") ? "/lab" : null };
+    if (cards.length > 0) lab = { cards, moreLink: visiblePageHref("/lab", flags, viewer, pages) };
   }
 
   const writing =
     visible("page.writing") && posts.length > 0
-      ? { posts: [...posts], moreLink: live("page.writing") ? ("/writing" as const) : null }
+      ? { posts: [...posts], moreLink: visiblePageHref("/writing", flags, viewer, pages) }
       : null;
 
   return { lab, writing };

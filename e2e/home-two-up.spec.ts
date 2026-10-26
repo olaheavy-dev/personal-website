@@ -36,12 +36,20 @@ test.describe("lab strip", () => {
       ),
     ).toBeVisible();
     await expect(page.getByText("SabiTutor")).toHaveCount(0);
+    // Lab is visible, so "See the whole lab" links to it, as "See the whole route" does to Work.
+    await expect(strip(page).getByRole("link", { name: /See the whole lab/ })).toHaveAttribute(
+      "href",
+      "/lab",
+    );
   });
 
-  test("tags only HomeScout In progress", async ({ page }) => {
+  test("tags only HomeScout In progress, in its stub, and starts every card with its name", async ({
+    page,
+  }) => {
     await page.goto("/");
     await expect(strip(page).getByText("In progress")).toHaveCount(1);
-    await expect(card(page, "HomeScout").getByText("In progress")).toBeVisible();
+    await expect(card(page, "HomeScout").locator(".ticket-stub").getByText("In progress")).toBeVisible();
+    await expect(strip(page).getByText(/^Project 0/)).toHaveCount(0);
   });
 
   test("links each project to the evidence it has, in a new tab, with 'Try it' only for a live URL", async ({
@@ -123,6 +131,21 @@ test.describe("lab strip", () => {
         .getByRole("article")
         .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().height)));
       expect(new Set(heights).size).toBe(1);
+      // The evidence links share a row, and so do the perforations: every card has a stub.
+      for (const selector of ["ul[aria-label$=' links']", ".ticket-stub"]) {
+        const rows = await strip(page)
+          .locator(selector)
+          .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+        expect(rows, selector).toHaveLength(3);
+        expect(new Set(rows).size, selector).toBe(1);
+      }
+      // The links sit directly under the longest summary, with no gap beyond the usual one.
+      const gap = await card(page, "Foresight").evaluate((el) => {
+        const text = el.querySelector("[data-summary]")!.getBoundingClientRect();
+        const links = el.querySelector("ul[aria-label$=' links']")!.getBoundingClientRect();
+        return links.top - text.bottom;
+      });
+      expect(gap).toBeLessThanOrEqual(16);
     }
   });
 

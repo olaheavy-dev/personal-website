@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install migration-order check lint dashes format format-check typecheck test coverage build budget e2e e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
+.PHONY: help install migration-order check lint dashes format format-check typecheck test coverage build budget e2e e2e-speed e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -47,8 +47,11 @@ client-secrets: ## Fail if a server secret could reach the browser (after build)
 e2e-install: ## Install the Playwright browser once
 	pnpm exec playwright install --with-deps chromium
 
-e2e: ## Browser journeys + axe accessibility against a production build (not @visual, @flags or @cold)
-	pnpm test:e2e --grep-invert "@visual|@flags|@cold"
+e2e: ## Browser journeys + axe accessibility against a production build (not @visual, @flags, @cold or @speed)
+	pnpm test:e2e --grep-invert "@visual|@flags|@cold|@speed"
+
+e2e-speed: ## Home LCP on simulated mobile (Lighthouse's throttling), alone on one worker so nothing shares the CPU (after build)
+	pnpm test:e2e --grep @speed --workers=1 --project=mobile
 
 e2e-flags: ## Flag journeys against the fake Supabase server, one at a time, because they change shared state (after build)
 	pnpm test:e2e --grep @flags --workers=1 --project=desktop-light --project=small-phone

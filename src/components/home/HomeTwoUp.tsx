@@ -23,6 +23,11 @@ function MoreLink({ href, children }: { href: string; children: React.ReactNode 
   );
 }
 
+// Side by side, every summary gets room for three lines, so the evidence links sit in one row and
+// the spare space falls above the stubs (the wide third card at md has the room already).
+const labGrid =
+  "md:grid-cols-2 lg:grid-cols-3 md:[&>li:not(:last-child)_[data-summary]]:min-h-[3lh] lg:[&>li_[data-summary]]:min-h-[3lh]";
+
 export function HomeTwoUpView({ model }: { model: HomeTwoUpModel }) {
   const { lab, writing } = model;
   if (!lab && !writing) return null;
@@ -36,13 +41,13 @@ export function HomeTwoUpView({ model }: { model: HomeTwoUpModel }) {
       {lab ? (
         <section id="lab-strip" aria-labelledby="lab-strip-title">
           <SectionLabel id="lab-strip-title">In the lab</SectionLabel>
-          <ul role="list" className={`mt-6 grid gap-6 ${both ? "" : "md:grid-cols-2 lg:grid-cols-3"}`.trim()}>
-            {lab.cards.map((card, index) => (
+          <ul role="list" className={`mt-6 grid gap-6 ${both ? "" : labGrid}`.trim()}>
+            {lab.cards.map((card) => (
               <li
                 key={card.slug}
                 className={`flex ${both ? "" : "md:odd:last:col-span-2 lg:odd:last:col-span-1"}`.trim()}
               >
-                <LabMiniCard card={card} index={index} />
+                <LabMiniCard card={card} />
               </li>
             ))}
           </ul>

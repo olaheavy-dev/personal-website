@@ -1,13 +1,12 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, LabProject, Outcome } from "@/lib/db/types";
-import type { PageEntry } from "@/lib/flags/registry";
 import { buildHomeTwoUp, labStripSlugs, type LatestPost } from "./two-up";
 
-const outcome = (figure: string): Outcome => ({
+const outcome = (figure: string, url = "https://github.com/olaheavy-dev/Foresight"): Outcome => ({
   id: `o-${figure}`,
   figure,
   description: "things counted",
-  source: { kind: "link", label: "Repository README", url: "https://github.com/example/repo" },
+  source: { kind: "link", label: "Repository README", url },
   checkedOn: "2026-10-25",
   scope: "personal",
   attribution: null,
@@ -33,13 +32,14 @@ function project(slug: string, position: number, more: Partial<LabProject> = {})
   };
 }
 
+const fastpilotUrl = "https://github.com/olaheavy-dev/fastpilot";
 const foresight = project("foresight", 1, {
   liveUrl: "https://foresight.example",
   outcomes: [outcome("17")],
 });
 const fastpilot = project("fastpilot", 2, {
   videoUrl: "https://loom.example/x",
-  outcomes: [outcome("0.992"), outcome("~210")],
+  outcomes: [outcome("~210", fastpilotUrl), outcome("0.992", fastpilotUrl)],
 });
 const homescout = project("homescout", 3, { inProgress: true });
 const sabitutor = project("sabitutor", 4, { inProgress: true, repoUrl: null });
@@ -47,12 +47,6 @@ const all = [sabitutor, homescout, fastpilot, foresight];
 
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
 const post: LatestPost = { slug: "a", title: "A post", href: "/writing/a" };
-const live = (flag: PageEntry["flag"], href: PageEntry["href"]): PageEntry => ({
-  flag,
-  href,
-  label: href,
-  status: "live",
-});
 
 describe("buildHomeTwoUp", () => {
   it("shows Foresight, FastPilot and HomeScout in that order, never SabiTutor", () => {
@@ -91,6 +85,17 @@ describe("buildHomeTwoUp", () => {
   it("shows only the Foresight 17 and FastPilot 0.992 figures, never a second FastPilot figure", () => {
     const model = buildHomeTwoUp(success(all), on("page.lab"), "public");
     expect(model.lab!.cards.map((card) => card.outcome?.figure ?? null)).toEqual(["17", "0.992", null]);
+  });
+
+  it("finds the approved outcome wherever it sits, and drops one with the right figure and another source", () => {
+    const wrongSource = project("foresight", 1, {
+      outcomes: [outcome("17", "https://example.com/elsewhere")],
+    });
+    expect(
+      buildHomeTwoUp(success([wrongSource]), on("page.lab"), "public").lab!.cards[0]!.outcome,
+    ).toBeNull();
+    const second = buildHomeTwoUp(success([fastpilot]), on("page.lab"), "public");
+    expect(second.lab!.cards[0]!.outcome?.figure).toBe("0.992");
   });
 
   it("drops a figure that is not the approved one", () => {
@@ -139,14 +144,12 @@ describe("buildHomeTwoUp", () => {
     expect(buildHomeTwoUp(success(all), on("page.lab"), "public", { posts: [post] }).writing).toBeNull();
   });
 
-  it("links to a page only while it is visible and has shipped", () => {
+  it("links to a page while its flag is visible, the same rule as 'See the whole route'", () => {
     const flags = on("page.lab", "page.writing");
-    const none = buildHomeTwoUp(success(all), flags, "public", { posts: [post] });
-    expect(none.lab!.moreLink).toBeNull();
-    expect(none.writing!.moreLink).toBeNull();
-    const pages = [live("page.lab", "/lab"), live("page.writing", "/writing")];
-    const shipped = buildHomeTwoUp(success(all), flags, "public", { posts: [post], pages });
-    expect(shipped.lab!.moreLink).toBe("/lab");
-    expect(shipped.writing!.moreLink).toBe("/writing");
+    const model = buildHomeTwoUp(success(all), flags, "public", { posts: [post] });
+    expect(model.lab!.moreLink).toBe("/lab");
+    expect(model.writing!.moreLink).toBe("/writing");
+    const owner = buildHomeTwoUp(success(all), { "page.lab": "preview" }, "owner");
+    expect(owner.lab!.moreLink).toBe("/lab");
   });
 });

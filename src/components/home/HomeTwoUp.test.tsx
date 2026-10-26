@@ -13,7 +13,11 @@ const outcome = (figure: string, description: string): Outcome => ({
   id: figure,
   figure,
   description,
-  source: { kind: "link", label: "Foresight repository README", url: "https://github.com/example/Foresight" },
+  source: {
+    kind: "link",
+    label: "Foresight repository README",
+    url: "https://github.com/olaheavy-dev/Foresight",
+  },
   checkedOn: "2026-10-25",
   scope: "personal",
   attribution: null,
@@ -84,6 +88,21 @@ describe("HomeTwoUpView", () => {
     expect(
       within(screen.getByRole("article", { name: "Homescout" })).getByText("In progress"),
     ).toBeInTheDocument();
+  });
+
+  it("puts In progress in HomeScout's stub, like a figure, and starts every card with its name", () => {
+    view({ "page.lab": "on" });
+    const scout = screen.getByRole("article", { name: "Homescout" });
+    expect(scout.querySelector(".ticket-stub")).toHaveTextContent("In progress");
+    expect(screen.queryByText(/^Project 0/)).toBeNull();
+    for (const article of screen.getAllByRole("article")) {
+      expect(article.querySelector(".ticket-body > h3")).not.toBeNull();
+    }
+  });
+
+  it("links 'See the whole lab' to /lab while the page is visible", () => {
+    view({ "page.lab": "on" });
+    expect(screen.getByRole("link", { name: /See the whole lab/ })).toHaveAttribute("href", "/lab");
   });
 
   it("lets the Lab half span when Writing has no posts", () => {

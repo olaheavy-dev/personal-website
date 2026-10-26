@@ -1,4 +1,4 @@
-import { pageRegistry, visiblePages } from "./registry";
+import { pageRegistry, visiblePageHref, visiblePages } from "./registry";
 import { getViewer, isFlagVisible, isVisible } from "./visibility";
 
 describe("isVisible", () => {
@@ -78,5 +78,21 @@ describe("visiblePages", () => {
 
   it("is empty when no flag is set", () => {
     expect(visiblePages({}, "public")).toEqual([]);
+  });
+});
+
+describe("visiblePageHref", () => {
+  it("returns the href while the page's flag is visible to the viewer, else null", () => {
+    expect(visiblePageHref("/lab", { "page.lab": "on" }, "public")).toBe("/lab");
+    expect(visiblePageHref("/lab", { "page.lab": "off" }, "public")).toBeNull();
+    expect(visiblePageHref("/lab", {}, "public")).toBeNull();
+    expect(visiblePageHref("/lab", { "page.lab": "preview" }, "public")).toBeNull();
+    expect(visiblePageHref("/lab", { "page.lab": "preview" }, "owner")).toBe("/lab");
+  });
+
+  it("does not depend on whether the page has shipped, and never links an unlisted page", () => {
+    expect(pageRegistry.every((page) => page.status === "coming-soon" || page.status === "live")).toBe(true);
+    expect(visiblePageHref("/work", { "page.work": "on" }, "public")).toBe("/work");
+    expect(visiblePageHref("/lab", { "page.lab": "on" }, "public", [])).toBeNull();
   });
 });

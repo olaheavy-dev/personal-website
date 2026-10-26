@@ -14,6 +14,19 @@ Every public page and every optional feature sits behind a flag (decision 0006).
 
 A hidden page answers status 404 with the "Wrong turn" title and never shows its own title. It disappears from the navigation, the mobile menu, the 404's way back and `sitemap.xml` at the same time.
 
+## The rule: nothing request bound before the gate
+
+A hidden page answers a real HTTP 404 only because the gate (`gatePage()`) is decided while the page is **prerendered**. Next.js fixes the status when the response starts streaming; after that, `notFound()` can only swap the content and add `noindex`, and the status stays 200 (a "soft 404"). So nothing that reads the request may run before the gate: no `cookies()`, `headers()`, `connection()`, `searchParams` or uncached read, in the page, in `gatePage()` or in `getViewer()`. The flag read itself is a cached read, so it does not suspend and the gate still resolves at prerender, even inside a `<Suspense>` boundary.
+
+Measured for #88 (Next.js 16.4.3): Off at build, Off after a revalidation, Preview and a cold start all answer 404; `connection()` before the gate answers 200. Docs: `node_modules/next/dist/docs/01-app/02-guides/streaming.md` ("Status codes"), `03-api-reference/04-functions/not-found.md` ("Calling `notFound()` after streaming has started") and `03-api-reference/03-file-conventions/loading.md` ("Status codes").
+
+What keeps it true: `src/lib/flags/gate.test.ts` fails if the gate files name a request bound API; the `@flags` journeys check the status of all five pages for Off, Preview and back On after a revalidation (`make e2e-flags`); `make e2e-cold` checks a build with every page Off (`e2e/cold-start.spec.ts`). The cold test removes `.next` first, because `pnpm serve` copies `.next/server/app`, where a running server writes rebuilt pages, so a second run over the same build is not cold.
+
+Two follow ons depend on this rule:
+
+- **Case studies (#6 and the case study tasks).** A page such as `/work/[slug]` must list every slug in `generateStaticParams`, gate in `generateMetadata` and at the top of the page, and be tested Off, back On after a revalidation, and with an unknown slug. In the #88 spike a dynamic route rebuilt at request time failed with `CLIENT_HOOK_DYNAMIC` (the navigation's `usePathname()` outside Suspense), so do not rely on request time rendering.
+- **Owner Preview (#23).** Reading a session cookie in the gate would make every flagged page dynamic and turn every Off page into a 200. Keep the public pages static and serve the owner's Preview from a separate dynamic route (for example `/preview/work`), which the proxy rewrites to only when a session cookie is present, without reading data. The fallback, a proxy that reads the flags with a tagged `fetch` (measured at about 1 ms warm), contradicts "the proxy reads no data" in decision 0018 and would need a new decision record.
+
 ## Every flag
 
 State as set on the hosted project, 25 Oct 2026. Staging and production share one Supabase project, so they share one set of flags.

@@ -19,8 +19,15 @@ import { contentAnswer } from "./fake-content.mjs";
 
 export { defaultFlags, fakePort, fakePublishableKey, fakeUrl } from "./fake-constants.mjs";
 
+// FAKE_FLAGS_OFF="page.work,page.lab" starts the fake (and every reset) without those flags, so a
+// build can be made with pages Off (make e2e-cold). Unset, the flags are today's defaults.
+function startingFlags() {
+  const off = (process.env.FAKE_FLAGS_OFF ?? "").split(",").map((key) => key.trim());
+  return Object.fromEntries(Object.entries(defaultFlags).filter(([key]) => !off.includes(key)));
+}
+
 export function startFakeSupabase({ port = fakePort } = {}) {
-  let flags = { ...defaultFlags };
+  let flags = startingFlags();
   let status = null;
   let content = "ok";
   let reads = 0;
@@ -56,7 +63,7 @@ export function startFakeSupabase({ port = fakePort } = {}) {
           try {
             const body = JSON.parse(text || "{}");
             if (body.reset) {
-              flags = { ...defaultFlags };
+              flags = startingFlags();
               status = null;
               content = "ok";
             }

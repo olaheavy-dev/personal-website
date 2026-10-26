@@ -339,6 +339,72 @@ test("@flags /api/revalidate allows 30 wrong attempts a minute from one address,
   expect((await revalidate(request, "203.0.113.201")).status()).toBe(200);
 });
 
+const pagePaths = ["/work", "/lab", "/writing", "/travel", "/about"] as const;
+const pageKeys: Record<(typeof pagePaths)[number], string> = {
+  "/work": "page.work",
+  "/lab": "page.lab",
+  "/writing": "page.writing",
+  "/travel": "page.travel",
+  "/about": "page.about",
+};
+
+// Issue #88. A page that is Off or Preview must answer a real 404 status, not a 200 that only
+// looks like a 404. Next.js fixes the status when the response starts streaming, so the gate
+// has to be decided while the page is prerendered (see docs/flags.md, "Nothing request bound
+// before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
+// the Wrong turn page a visitor sees.
+async function expectRealWrongTurn(
+  request: Parameters<typeof revalidate>[0],
+  page: Page,
+  path: (typeof pagePaths)[number],
+) {
+  const response = await request.get(path);
+  expect(response.status(), `${path} status`).toBe(404);
+  const html = await response.text();
+  expect(html, `${path} noindex`).toMatch(/<meta name="robots" content="[^"]*noindex/);
+  const shown = await page.goto(path);
+  expect(shown?.status(), `${path} status in the browser`).toBe(404);
+  await expect(page, path).toHaveTitle(wrongTurn);
+  await expect(page.getByRole("heading", { level: 1, name: "Looks like a wrong turn" })).toBeVisible();
+}
+
+for (const path of pagePaths) {
+  test(`@flags ${path}: Off answers a real 404, Preview the same, and On comes back as 200`, async ({
+    page,
+    request,
+  }) => {
+    const key = pageKeys[path];
+    const address = `203.0.113.${40 + pagePaths.indexOf(path)}`;
+
+    await applyFlags(request, flagsWithout(key), address);
+    await expectRealWrongTurn(request, page, path);
+
+    // Preview: the public role never receives the row, so it is the same as Off for everyone
+    // (decision 0018) until the owner can sign in (#23).
+    await control(request, { flags: { ...flagsWithout(key), [key]: "preview" }, status: null });
+    expect((await revalidate(request, address)).status()).toBe(200);
+    await expectRealWrongTurn(request, page, path);
+
+    await applyFlags(request, defaultFlags, address);
+    expect((await request.get(path)).status(), `${path} back On`).toBe(200);
+    const back = await page.goto(path);
+    expect(back?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Looks like a wrong turn");
+  });
+}
+
+test("@flags the site reads its flags from the fake, never from .env.local", async ({ request }) => {
+  // A build or server that fell back to the hosted project (.env.local) would ignore the fake
+  // and every journey above would fail in a confusing way. `make build` sets the fake's address
+  // explicitly, which wins over .env.local; this proves the running site really uses it.
+  const before = (await control(request, { reset: true })).reads;
+  expect((await revalidate(request, "203.0.113.60")).status()).toBe(200);
+  expect((await request.get("/")).status()).toBe(200);
+  expect((await request.get("/sitemap.xml")).status()).toBe(200);
+  const after = (await (await request.get(`${fakeUrl}/__control`)).json()).reads as number;
+  expect(after, "the site did not read the flags from the fake Supabase server").toBeGreaterThan(before);
+});
+
 test("@flags the fake leaves the site as it found it", async ({ request }) => {
   await resetFlags(request, "203.0.113.202");
   const state = await (await request.get(`${fakeUrl}/__control`)).json();

@@ -127,6 +127,15 @@ test.describe("lab page", () => {
     await page.goto(lab);
     const pins = page.getByTestId("lab-vertical").locator("[data-route-pin]");
     const reached = () => pins.evaluateAll((all) => all.map((p) => p.hasAttribute("data-reached")));
+    // Wait until the page is ready to be scrolled: the vertical route has been armed by its client code
+    // (so the pin observers exist) and the pins have their place in the laid out page. goto
+    // resolves on the load event, which on a busy machine can come before either: the document
+    // was then 720 px tall with the pin at top 0, scrollTo clamped to 0, and the pin never
+    // crossed the line (issue #89, seen 1 in about 400 runs under CPU load).
+    await expect(page.getByTestId("lab-vertical").locator("[data-route][data-armed]")).toHaveCount(1);
+    await expect
+      .poll(() => pins.nth(2).evaluate((pin) => pin.getBoundingClientRect().top))
+      .toBeGreaterThan(0);
     // Put stop 3 at 30% of the viewport height: above the 60% line, still on screen.
     await pins.nth(2).evaluate((pin) => {
       const top = pin.getBoundingClientRect().top + window.scrollY;

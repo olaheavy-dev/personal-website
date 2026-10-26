@@ -79,7 +79,8 @@ The roster above follows the Claude models available today. **Whenever Anthropic
 - **Noticed, not changed:** list anything outside the task in the PR description and open an issue labelled `noticed` for each. Don't fix unrelated things in the same change.
 - **Stop and ask** when a task needs an undecided product or content choice, a package not on the pre-approved list (decision 0012), or work well beyond the issue. **Stop after 3 failed attempts** at the same problem and report what was tried.
 - **Stop what you start:** dev servers, watchers, temporary worktrees.
-- Before using a framework API, check the official documentation for the pinned version (`docs/references/third-party.md`; for Next.js read `node_modules/next/dist/docs/`), not memory. When adding a dependency or changing a major version, update that file in the same PR. List every page relied on under "Docs consulted" in the PR description; when the docs are silent, say what you read instead (source code, a spike) and what it showed.
+- Before using a framework API, check the official documentation for the pinned version (`docs/references/third-party.md`; for Next.js read `node_modules/next/dist/docs/`), not memory. When adding a dependency or changing a major version, update that file in the same PR. List every page relied on under "Docs consulted" in the PR description; when the docs are silent, say what you read instead (source code, a spike) and what it showed. An entry counts only if you opened that page, file or source in this session for the pinned version: "from memory" is never an entry, so open the page before relying on the behaviour.
+- **Next.js DevTools MCP (trial, from #9):** `.mcp.json` registers `next-devtools-mcp`, pinned. While `pnpm dev` runs, use it to read the running app's errors, logs and routes and to compile a route before reaching for `make build`. It never replaces `make check`, `make e2e` or the visual review. Approve it when Claude Code first asks; keep it only if it saves time on #9.
 - Commit messages and PR titles: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`. Squash merges use the PR title.
 - PR description: use the template (what and why, how tested, assumptions, claims and content, docs consulted, pre-flight check, noticed-not-changed).
 - **Pre-flight check:** search the repository for every term, decision ID, token and figure the change touches, and fix any contradiction or stale statement in the same PR. Check new facts against their sources.
@@ -118,7 +119,7 @@ Check in priority order:
 2. **Breaches of the rules above**, especially the claims policy, employer confidentiality, personal data and tokens-only.
 3. **Spec match:** the issue's acceptance criteria and the design brief, including 375 px, keyboard, focus, reduced motion, and light and dark themes looking equally finished (see "Visual review" under "When building").
 4. **Quality bar:** accessibility (contrast, names, landmarks, focus order), performance (budgets, image sizes, client JS added), SEO (metadata, one `h1`).
-5. **Docs:** every framework, package or platform behaviour the change depends on is backed by an entry under "Docs consulted" for the pinned version. Flag any behaviour stated from memory, and check at least one cited page against the claim.
+5. **Docs:** every framework, package or platform behaviour the change depends on is backed by an entry under "Docs consulted" for the pinned version. A behaviour backed only by memory, or by a page the author did not open, is P1. Check at least one cited page against the claim.
 6. **Tests:** important behaviour and edge states covered.
 7. **Clarity:** could the owner understand and maintain this? Flag unnecessary complexity.
 

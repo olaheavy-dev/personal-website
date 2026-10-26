@@ -10,7 +10,11 @@ describe("fake Supabase server started directly", () => {
     const dir = mkdtempSync(join(tmpdir(), "fake supabase "));
     const link = join(dir, "link.mjs");
     symlinkSync(join(process.cwd(), "e2e", "fixtures", "fake-supabase.mjs"), link);
-    const child = spawn("node", [link], { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn("node", [link], {
+      stdio: ["ignore", "pipe", "pipe"],
+      // Any free port, so the test passes while a real fake already runs on 54329.
+      env: { ...process.env, FAKE_PORT: "0" },
+    });
     try {
       const output = await new Promise<string>((resolve) => {
         let text = "";

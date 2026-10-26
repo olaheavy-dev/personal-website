@@ -446,7 +446,8 @@ test.describe("Copy email (issue #103)", () => {
       const durations = await copy.evaluate((el) =>
         [...el.children].map((child) => getComputedStyle(child).transitionDuration),
       );
-      expect(durations).toEqual(["0s", "0s"]);
+      // The global reduced-motion rule may use a near-zero value rather than exactly 0s.
+      for (const duration of durations) expect(parseFloat(duration)).toBeLessThan(0.001);
     });
   });
 });

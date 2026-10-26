@@ -5,9 +5,10 @@ import { CopyEmailButton } from "./CopyEmailButton";
 import { EmailButton } from "./EmailButton";
 
 // The route ends at Scale; the footer is the invitation to start the visitor's
-// own: a wide ticket with the contact actions and a tear-off stub holding the
-// availability and profiles, then one slim line. The header already carries the name and the
-// sections, so the footer doesn't repeat them.
+// own: a wide ticket ("Next stop, Yours?") with the contact actions and a
+// tear-off stub holding the availability and profiles, then one slim line. The
+// header already carries the name and the sections, so the footer doesn't
+// repeat them.
 export function Footer() {
   const profiles = configuredProfiles();
 
@@ -18,7 +19,7 @@ export function Footer() {
           as="div"
           layout="pass"
           eyebrow="Next stop"
-          title="Yours."
+          title="Yours?"
           titleId="next-stop-title"
           stub={
             <>

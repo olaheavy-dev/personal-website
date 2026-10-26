@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 // Journey micro-motions (issue #69): the hero name sweep, the footer stub lift
-// and the printed boarding pass. Numbers in test names are the plan's acceptance
+// and the Copy email button. Numbers in test names are the plan's acceptance
 // criteria.
 
 const tags = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -325,61 +325,150 @@ test.describe("footer stub lift", () => {
   });
 });
 
-test.describe("boarding pass", () => {
+test.describe("Copy email (issue #103)", () => {
   test.beforeEach(async ({ context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
   });
 
-  test("criterion 9b: the printed pass fits the viewport at 375 px", async ({ page }) => {
+  // A resolved copy, so the button says "Copied" whatever the browser allows.
+  async function fakeClipboard(page: Page, works: boolean) {
+    await page.addInitScript((ok) => {
+      Object.defineProperty(navigator, "clipboard", {
+        value: { writeText: () => (ok ? Promise.resolve() : Promise.reject(new Error("denied"))) },
+        configurable: true,
+      });
+    }, works);
+  }
+
+  test("the footer asks Yours? and prints no boarding pass", async ({ page }) => {
+    await fakeClipboard(page, true);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 2, name: "Yours?" })).toBeVisible();
+    await page.getByRole("button", { name: "Copy email" }).click();
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+  });
+
+  test("copying moves nothing: the ticket and the button keep their boxes", async ({ page }) => {
+    await fakeClipboard(page, true);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const boxes = () =>
+      page.evaluate(() => {
+        const rect = (selector: string) => {
+          const r = document.querySelector(selector)!.getBoundingClientRect();
+          return { width: Math.round(r.width), height: Math.round(r.height) };
+        };
+        return { ticket: rect("footer .ticket"), button: rect("footer .ticket button") };
+      });
+    const before = await boxes();
+    await copy.click();
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+    expect(await boxes()).toEqual(before);
+  });
+
+  test("the label returns to Copy email after the pause", async ({ page }) => {
+    await fakeClipboard(page, true);
+    await page.goto("/");
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await copy.click();
+    await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copy email" })).toBeVisible({ timeout: 5000 });
+  });
+
+  test("works from the keyboard and keeps focus on the button", async ({ page }) => {
+    await fakeClipboard(page, true);
+    await page.goto("/");
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await copy.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("footer [role='status']")).toHaveText("Email copied");
+    await expect(page.getByRole("button", { name: "Copied" })).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(page.getByRole("button", { name: "Copied" })).toBeFocused();
+  });
+
+  test("a refused copy shows the address as text and focus moves to it", async ({ page }) => {
+    await fakeClipboard(page, false);
+    await page.goto("/");
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await copy.click();
+    const address = page.locator("footer .select-all");
+    await expect(address).toBeVisible();
+    await expect(address).toBeFocused();
+    await expect(page.locator("footer [role='status']")).toHaveText("Select the address to copy it");
+  });
+
+  test("a refused copy changes neither the ticket's nor the row's height", async ({ page }) => {
+    await fakeClipboard(page, false);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const heights = () =>
+      page.evaluate(() => ({
+        ticket: Math.round(document.querySelector("footer .ticket")!.getBoundingClientRect().height),
+        action: Math.round(
+          document.querySelector("footer .ticket button, footer .select-all")!.getBoundingClientRect().height,
+        ),
+      }));
+    const before = await heights();
+    await copy.click();
+    await expect(page.locator("footer .select-all")).toBeVisible();
+    expect(await heights()).toEqual(before);
+  });
+
+  test("the button is a 44 px target and the footer fits at 375 px", async ({ page }) => {
+    await fakeClipboard(page, false);
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");
-    await page.getByRole("button", { name: "Copy email" }).click();
-    await expect(page.locator("footer .boarding-pass")).toBeVisible();
+    const copy = page.getByRole("button", { name: "Copy email" });
+    const box = await copy.boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    await copy.click();
+    await expect(page.locator("footer .select-all")).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
-  test("criterion 18: Copy email works from the keyboard and keeps focus", async ({ page }) => {
-    await page.goto("/");
-    const copy = page.getByRole("button", { name: "Copy email" });
-    await copy.scrollIntoViewIfNeeded();
-    await copy.focus();
-    await page.keyboard.press("Enter");
-    const pass = page.locator("footer [role='status']");
-    await expect(pass).toContainText("Next stop: your email");
-    await expect(pass).toContainText(/Email copied|Select to copy/);
-    await expect(copy).toBeFocused();
-  });
-
-  test("criterion 19: the printed pass passes axe", async ({ page }) => {
-    await page.goto("/");
-    const copy = page.getByRole("button", { name: "Copy email" });
-    await copy.scrollIntoViewIfNeeded();
-    await copy.click();
-    await expect(page.locator("footer .boarding-pass")).toBeVisible();
-    await settle(page);
-    const results = await new AxeBuilder({ page }).include("footer").withTags(tags).analyze();
-    expect(results.violations).toEqual([]);
-  });
-
-  test.describe("reduced motion", () => {
-    test.use({ reducedMotion: "reduce" });
-
-    test("criterion 20: the pass appears instantly", async ({ page }) => {
+  for (const works of [true, false]) {
+    test(`the footer passes axe ${works ? "after a copy" : "after a refused copy"}`, async ({ page }) => {
+      await fakeClipboard(page, works);
       await page.goto("/");
       const copy = page.getByRole("button", { name: "Copy email" });
       await copy.scrollIntoViewIfNeeded();
       await copy.click();
-      const pass = page.locator("footer .boarding-pass");
-      await expect(pass).toBeVisible();
-      const state = await pass.evaluate((el) => ({
-        animation: getComputedStyle(el).animationName,
-        running: el.getAnimations().length,
-        clip: getComputedStyle(el).clipPath,
-      }));
-      expect(state).toEqual({ animation: "none", running: 0, clip: "none" });
+      await expect(page.locator("footer [role='status']")).not.toBeEmpty();
+      await settle(page);
+      const results = await new AxeBuilder({ page }).include("footer").withTags(tags).analyze();
+      expect(results.violations).toEqual([]);
+    });
+  }
+
+  test.describe("reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("the label swap has no transition", async ({ page }) => {
+      await fakeClipboard(page, true);
+      await page.goto("/");
+      const copy = page.getByRole("button", { name: "Copy email" });
+      await copy.scrollIntoViewIfNeeded();
+      const durations = await copy.evaluate((el) =>
+        [...el.children].map((child) => getComputedStyle(child).transitionDuration),
+      );
+      // The global reduced-motion rule may use a near-zero value rather than exactly 0s.
+      for (const duration of durations) expect(parseFloat(duration)).toBeLessThan(0.001);
     });
   });
 });

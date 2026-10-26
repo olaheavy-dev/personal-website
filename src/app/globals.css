@@ -178,20 +178,6 @@
     }
   }
 
-  /* Boarding pass printed by the Copy email button: a small two part pass (label and
-     status, then the address on a stub) with tighter notches and corners than the big
-     tickets, a flat outline instead of the nested glow, and a printer-style reveal. */
-  .boarding-pass {
-    --ticket-notch: var(--ticket-notch-mini);
-    --border-radius-lg: var(--border-radius-md);
-    --ticket-drop: var(--ticket-drop-flat);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .boarding-pass {
-      animation: pass-print var(--duration-slow) var(--easing-out) backwards;
-    }
-  }
-
   /* A ticket with an href: the title link is stretched over the whole ticket, so
      there is one tab stop. Inner links and buttons sit above it. The mask clips
      painting and hit testing to the border box, so each mask layer says `no-clip`;
@@ -604,18 +590,6 @@
   to {
     background-position: 0 0;
     color: transparent;
-  }
-}
-
-@keyframes pass-print {
-  from {
-    clip-path: inset(
-      calc(-1 * var(--ticket-print-bleed)) calc(-1 * var(--ticket-print-bleed)) 100%
-        calc(-1 * var(--ticket-print-bleed))
-    );
-  }
-  to {
-    clip-path: inset(calc(-1 * var(--ticket-print-bleed)));
   }
 }
 

@@ -29,6 +29,7 @@ describe("CopyEmailButton", () => {
     renderButton();
     expect(status()).toBeEmptyDOMElement();
     await user.click(copyButton());
+    await act(async () => {});
     expect(writeText).toHaveBeenCalledWith(site.email);
     expect(screen.getByRole("button", { name: "Copied" })).toBeInTheDocument();
     expect(status()).toBeEmptyDOMElement();
@@ -51,11 +52,13 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     renderButton();
     await user.click(copyButton());
+    await act(async () => {});
     act(() => {
       vi.advanceTimersByTime(150);
     });
     expect(status()).toHaveTextContent("Email copied");
     await user.click(screen.getByRole("button", { name: "Copied" }));
+    await act(async () => {});
     expect(status()).toBeEmptyDOMElement();
     act(() => {
       vi.advanceTimersByTime(150);
@@ -83,10 +86,12 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     renderButton();
     await user.click(copyButton());
+    await act(async () => {});
     act(() => {
       vi.advanceTimersByTime(1500);
     });
     await user.click(screen.getByRole("button", { name: "Copied" }));
+    await act(async () => {});
     act(() => {
       vi.advanceTimersByTime(1500);
     });
@@ -129,6 +134,8 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
     renderButton();
     await user.click(copyButton());
+    // The refused promise can settle after the click returns (slow CI): let it settle first.
+    await act(async () => {});
     expect(screen.queryByRole("button", { name: /Cop/ })).toBeNull();
     const address = screen.getByText(site.email);
     expect(address).toHaveClass("select-all", "font-mono", "break-all");
@@ -145,6 +152,7 @@ describe("CopyEmailButton", () => {
     renderButton();
     vi.spyOn(navigator, "clipboard", "get").mockReturnValue(undefined as unknown as Clipboard);
     await user.click(copyButton());
+    await act(async () => {});
     expect(screen.getByText(site.email)).toHaveFocus();
     act(() => {
       vi.advanceTimersByTime(150);
@@ -157,6 +165,7 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     renderButton();
     await user.click(copyButton());
+    await act(async () => {});
     act(() => {
       vi.advanceTimersByTime(150);
     });

@@ -26,6 +26,6 @@ describe("check-migration-order", () => {
   });
 
   it("does not flag a branch that is behind main", () => {
-    expect(findOrderProblems(main, [main[0]])).toEqual([]);
+    expect(findOrderProblems(main, ["20261025100000_a.sql"])).toEqual([]);
   });
 });

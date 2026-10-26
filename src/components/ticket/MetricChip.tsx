@@ -33,59 +33,66 @@ export function attributionText(attribution?: string | null): string | null {
   return attribution ? `(${attribution})` : null;
 }
 
-const chipClass = "inline-flex items-center gap-x-1.5 rounded-lg border border-border-strong text-sm";
-
 export function MetricChip({ value, label, source, attribution }: MetricChipProps) {
   // An own measurement says so; a company claim names who made it.
   const credit = source.kind === "own" ? "(own measurement)" : attributionText(attribution);
-  // The last word of the label and the arrow never separate.
+  // One sentence of text, left aligned: the figure, what it counts, then the credit. The last
+  // word, the arrow and the credit never separate, so the credit never wraps alone.
   const lastSpace = label.lastIndexOf(" ");
   const lead = lastSpace === -1 ? "" : label.slice(0, lastSpace + 1);
   const lastWord = label.slice(lastSpace + 1);
-  const creditEl = credit ? (
-    <span className="shrink-0 whitespace-nowrap text-text-secondary">{credit}</span>
-  ) : null;
+  // inline-block stops the link's underline reaching the credit.
+  const creditEl = (gap: string) =>
+    credit ? (
+      <span className={`${gap} inline-block whitespace-nowrap text-text-secondary`}>{credit}</span>
+    ) : null;
+  // Only the words are underlined, not the arrow, the space or the credit after them.
+  const underline = "underline decoration-1 underline-offset-4 group-hover:no-underline";
+  const figure = <span className="font-semibold whitespace-nowrap">{value}</span>;
 
   if (source.kind === "own") {
     return (
-      <div className={`${chipClass} min-h-11 px-3 py-1`}>
+      <p className="flex min-h-11 w-fit max-w-full items-center text-sm">
         <span>
-          <span className="font-semibold whitespace-nowrap">{value}</span> {label}
+          {figure} {lead}
+          <span className="whitespace-nowrap">
+            {lastWord}
+            {creditEl("ml-1")}
+          </span>
         </span>
-        {creditEl}
-      </div>
+      </p>
     );
   }
 
   return (
-    <div className={`${chipClass} pr-3`}>
-      <a
-        href={source.url}
-        target="_blank"
-        rel="noopener"
-        className="flex min-h-11 items-center py-1 pl-3 underline decoration-1 underline-offset-4 hover:no-underline"
-      >
-        <span>
-          <span className="font-semibold whitespace-nowrap">{value}</span> {lead}
-          <span className="whitespace-nowrap">
-            {lastWord}
-            <svg
-              className="ml-1 inline size-3.5 align-[-0.1em]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M7 17 17 7M8 7h9v9" />
-            </svg>{" "}
-            <span className="sr-only">(source: {source.label}, opens in a new tab)</span>
-          </span>
+    <a
+      href={source.url}
+      target="_blank"
+      rel="noopener"
+      className="group flex min-h-11 w-fit max-w-full items-center text-sm"
+    >
+      <span>
+        <span className={underline}>
+          {figure} {lead}
         </span>
-      </a>
-      {creditEl}
-    </div>
+        <span className="whitespace-nowrap">
+          <span className={underline}>{lastWord}</span>
+          <svg
+            className="ml-1 inline size-3.5 align-[-0.1em]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M7 17 17 7M8 7h9v9" />
+          </svg>{" "}
+          <span className="sr-only">(source: {source.label}, opens in a new tab)</span>
+          {creditEl("")}
+        </span>
+      </span>
+    </a>
   );
 }

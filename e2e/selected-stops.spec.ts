@@ -67,6 +67,21 @@ test.describe("selected stops", () => {
     await expect(hero.getByText("Stop 01 · Galooli", { exact: true })).toHaveCount(1);
   });
 
+  test("the three stubs line up in the 3-up grid, and each credit follows its figure on the same line", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.use.viewport!.width < 1200, "the 3-up grid is for wide screens");
+    await page.goto("/");
+    const tops = await section(page)
+      .locator(".ticket-stub")
+      .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+    const credit = section(page).getByText("(Mukuru)");
+    const figure = section(page).getByRole("link", { name: /17M\+/ });
+    const [c, f] = [(await credit.boundingBox())!, (await figure.boundingBox())!];
+    expect(Math.abs(c.y + c.height / 2 - (f.y + f.height / 2))).toBeLessThan(f.height / 2);
+  });
+
   test("each figure link is reachable by keyboard", async ({ page }) => {
     await page.goto("/");
     const figure = section(page).getByRole("link", { name: /source: Techzim, 20 years of Mukuru/ });

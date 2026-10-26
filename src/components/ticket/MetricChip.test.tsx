@@ -10,8 +10,10 @@ const source = {
 describe("MetricChip", () => {
   it("makes the figure a link to its source, in a new tab, named for screen readers", () => {
     render(<MetricChip value="1M+" label="Google Play downloads" source={source} />);
+    // jsdom drops the space at the end of an inline element; Chrome keeps it (checked with an
+    // aria snapshot), so the pattern allows both.
     const link = screen.getByRole("link", {
-      name: "1M+ Google Play downloads (source: Google Play listing, opens in a new tab)",
+      name: /^1M\+ Google Play ?downloads \(source: Google Play listing, opens in a new tab\)$/,
     });
     expect(link).toHaveAttribute("href", source.url);
     expect(link).toHaveAttribute("target", "_blank");
@@ -48,15 +50,17 @@ describe("MetricChip", () => {
     expect(screen.queryByText(/^\((?!source)/)).toBeNull();
   });
 
-  it("never splits the figure, keeps the label's last word with its arrow, and the credit beside the link", () => {
+  it("never splits the figure, and keeps the last word, the arrow and the credit together", () => {
     render(<MetricChip value="17M+" label="customers served" source={source} attribution="Mukuru" />);
     expect(screen.getByText("17M+")).toHaveClass("whitespace-nowrap");
     const credit = screen.getByText("(Mukuru)");
     expect(credit).toHaveClass("whitespace-nowrap", "text-text-secondary");
-    expect(credit.closest("a")).toBeNull();
-    const lastWord = screen.getByRole("link").querySelector("svg")!.parentElement!;
-    expect(lastWord).toHaveClass("whitespace-nowrap");
-    expect(lastWord).toHaveTextContent(/^served/);
+    // inline-block keeps the link's underline off the credit.
+    expect(credit).toHaveClass("inline-block");
+    const together = credit.parentElement!;
+    expect(together).toHaveClass("whitespace-nowrap");
+    expect(together).toContainElement(screen.getByRole("link").querySelector("svg"));
+    expect(together).toHaveTextContent(/^served.*\(Mukuru\)$/);
   });
 
   it("does not compile without a source", () => {

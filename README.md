@@ -25,6 +25,7 @@ make check              # lint, format, types, unit tests + coverage, build, pag
 make e2e-install        # once: Playwright browser
 make build && make e2e  # browser journeys + axe accessibility (light, dark, mobile)
 make e2e-flags          # feature flag journeys against the fake Supabase server (one at a time)
+make e2e-cold           # every flagged page Off at build time (builds its own build, removes .next after)
 ```
 
 Merges to `main` publish a checked Docker image that rolls out to `staging.olaheavy.dev` automatically; see [`docs/deploy.md`](docs/deploy.md).

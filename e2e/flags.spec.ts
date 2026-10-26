@@ -339,6 +339,101 @@ test("@flags /api/revalidate allows 30 wrong attempts a minute from one address,
   expect((await revalidate(request, "203.0.113.201")).status()).toBe(200);
 });
 
+const pagePaths = ["/work", "/lab", "/writing", "/travel", "/about"] as const;
+const pageKeys: Record<(typeof pagePaths)[number], string> = {
+  "/work": "page.work",
+  "/lab": "page.lab",
+  "/writing": "page.writing",
+  "/travel": "page.travel",
+  "/about": "page.about",
+};
+
+// Issue #88. A page that is Off or Preview must answer a real 404 status, not a 200 that only
+// looks like a 404. Next.js fixes the status when the response starts streaming, so the gate
+// has to be decided while the page is prerendered (see docs/flags.md, "The rule: nothing request
+// bound before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
+// the Wrong turn page a visitor sees.
+// After /api/revalidate the NEXT request is the first one rebuilt from the new flags, except
+// when it arrives while a render that began before the revalidation is still running for the
+// same page (the previous test's browser prefetches the other pages). It then shares that
+// render and gets the old answer once, and the request after it is rebuilt (measured in CI run
+// 40361033845 and locally, 3 failures in 30 runs: first 200 with x-nextjs-cache MISS, 250 ms
+// later 404). So a journey waits for the new status by condition, never by a fixed sleep, and
+// then requires it to hold for the requests that follow. See docs/flags.md.
+async function expectStatusToSettle(
+  request: Parameters<typeof revalidate>[0],
+  path: string,
+  expected: number,
+) {
+  await expect
+    .poll(async () => (await request.get(path)).status(), {
+      message: `${path} should settle on ${expected} after the revalidation`,
+      timeout: 5000,
+    })
+    .toBe(expected);
+  for (let i = 0; i < 3; i++) {
+    expect((await request.get(path)).status(), `${path} stays ${expected}`).toBe(expected);
+  }
+}
+
+async function expectRealWrongTurn(
+  request: Parameters<typeof revalidate>[0],
+  page: Page,
+  path: (typeof pagePaths)[number],
+) {
+  await expectStatusToSettle(request, path, 404);
+  const response = await request.get(path);
+  expect(response.status(), `${path} status`).toBe(404);
+  const html = await response.text();
+  expect(html, `${path} noindex`).toMatch(/<meta name="robots" content="[^"]*noindex/);
+  const shown = await page.goto(path);
+  expect(shown?.status(), `${path} status in the browser`).toBe(404);
+  await expect(page, path).toHaveTitle(wrongTurn);
+  await expect(page.getByRole("heading", { level: 1, name: "Looks like a wrong turn" })).toBeVisible();
+}
+
+for (const path of pagePaths) {
+  test(`@flags ${path}: Off answers a real 404, Preview the same, and On comes back as 200`, async ({
+    page,
+    request,
+  }) => {
+    const key = pageKeys[path];
+    const address = `203.0.113.${40 + pagePaths.indexOf(path)}`;
+
+    await applyFlags(request, flagsWithout(key), address);
+    await expectRealWrongTurn(request, page, path);
+
+    // Preview: the public role never receives the row, so it is the same as Off for everyone
+    // (decision 0018) until the owner can sign in (#23).
+    await control(request, { flags: { ...flagsWithout(key), [key]: "preview" }, status: null });
+    expect((await revalidate(request, address)).status()).toBe(200);
+    await expectRealWrongTurn(request, page, path);
+
+    await applyFlags(request, defaultFlags, address);
+    await expectStatusToSettle(request, path, 200);
+    const back = await page.goto(path);
+    expect(back?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Looks like a wrong turn");
+  });
+}
+
+test("@flags the site reads its flags from the fake, never from .env.local", async ({ request }) => {
+  // A build or server that fell back to the hosted project (.env.local) would ignore the fake
+  // and every journey above would fail in a confusing way. `make build` sets the fake's address
+  // explicitly, which wins over .env.local (node_modules/next/dist/docs/01-app/02-guides/
+  // environment-variables.md, "Environment Variable Load Order": process.env is looked up first,
+  // then the .env files), and Playwright passes its own environment on
+  // to the server it starts (playwright 1.64.1, lib/runner/index.js, webServer env is
+  // { ...DEFAULT_ENVIRONMENT_VARIABLES, ...process.env }). This proves the running site really
+  // uses the fake.
+  const before = (await control(request, { reset: true })).reads;
+  expect((await revalidate(request, "203.0.113.60")).status()).toBe(200);
+  expect((await request.get("/")).status()).toBe(200);
+  expect((await request.get("/sitemap.xml")).status()).toBe(200);
+  const after = (await (await request.get(`${fakeUrl}/__control`)).json()).reads as number;
+  expect(after, "the site did not read the flags from the fake Supabase server").toBeGreaterThan(before);
+});
+
 test("@flags the fake leaves the site as it found it", async ({ request }) => {
   await resetFlags(request, "203.0.113.202");
   const state = await (await request.get(`${fakeUrl}/__control`)).json();

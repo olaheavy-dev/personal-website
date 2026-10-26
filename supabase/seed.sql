@@ -99,16 +99,17 @@ on conflict (slug) do update set
 -- Home copy, approved by the owner on 25 Oct 2026 (issue #9). No pronouns. The same statements
 -- are in supabase/snippets/2026-10-25-home-copy.sql for a hosted project that was seeded
 -- before this copy existed, because `db push --include-seed` skips a seed that has changed.
-update public.stops set summary = 'Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.' where slug = 'hbk';
+update public.stops set summary = 'Designing and building HBK''s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.' where slug = 'hbk';
+update public.stops set summary = 'Integrations that land Mukuru''s cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.' where slug = 'mukuru';
 update public.stops set summary = 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.' where slug = 'optty';
 update public.stops set summary = 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.' where slug = 'access-bank';
 update public.lab_projects set summary = 'A personal finance workspace where AI agents check their own advice before it reaches you, and every number has a receipt.' where slug = 'foresight';
 update public.lab_projects set summary = 'A production RAG system for learning FastAPI: understand, watch, practise.' where slug = 'fastpilot';
 update public.lab_projects set summary = 'A home decision workspace for people buying or renting in England, at the research and concept stage.' where slug = 'homescout';
 
--- Outcomes: only what the claims policy allows. None for Stanbic IBTC, Mukuru or uLesson.
+-- Outcomes: only what the claims policy allows. None for Stanbic IBTC or uLesson.
 delete from public.outcomes
-where stop_id in (select id from public.stops where slug in ('access-bank', 'optty', 'galooli', 'hbk'))
+where stop_id in (select id from public.stops where slug in ('access-bank', 'optty', 'galooli', 'hbk', 'mukuru'))
    or lab_project_id in (select id from public.lab_projects where slug in ('foresight', 'fastpilot'));
 
 insert into public.outcomes
@@ -126,6 +127,10 @@ values
     '~11%', 'fuel saving across several hundred sites in Nigeria, reported by Galooli',
     'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',
     'company', 'Galooli', 2021),
+  ((select id from public.stops where slug = 'mukuru'), null, 1,
+    '17M+', 'customers served',
+    'link', 'Techzim, 20 years of Mukuru', 'https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey', date '2026-10-26',
+    'company', 'Mukuru', 2025),
   ((select id from public.stops where slug = 'hbk'), null, 1,
     '2025 R4', 'Aiana public launch',
     'link', 'HBK Advantage Insights release notes', 'https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights', date '2026-10-25',

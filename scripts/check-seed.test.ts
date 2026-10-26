@@ -19,6 +19,7 @@ const allowedLinks = new Set([
   "https://www.loom.com/share/a1d6bf3ee7c54e5c93de4ac8c280992f",
   "https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks",
   "https://triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies",
+  "https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey",
   "https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/",
   "https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",
 ]);
@@ -60,13 +61,13 @@ describe("supabase/seed.sql", () => {
 
   it("dates every source link", () => {
     const sourcedRows = [...code.matchAll(/'link',[^\n]*'(https:\/\/[^']+)', date '(\d{4}-\d{2}-\d{2})'/g)];
-    expect(sourcedRows).toHaveLength(8);
+    expect(sourcedRows).toHaveLength(9);
   });
 
-  it("seeds no outcome for Stanbic IBTC, Mukuru or uLesson", () => {
+  it("seeds no outcome for Stanbic IBTC or uLesson", () => {
     const block = code.slice(code.indexOf("insert into public.outcomes"));
     const outcomes = block.slice(0, block.indexOf(";\n"));
-    for (const slug of ["stanbic", "mukuru", "ulesson"]) expect(outcomes).not.toContain(slug);
+    for (const slug of ["stanbic", "ulesson"]) expect(outcomes).not.toContain(slug);
   });
 
   it("uses no dash between words", () => {
@@ -78,7 +79,6 @@ describe("supabase/seed.sql", () => {
 
   it("holds the six approved home summaries word for word, and the hosted snippet matches", () => {
     const summaries = {
-      hbk: "Designing and building the Advantage Insights sensor-data analytics platform and the AI inside it, from Aiana to AI agents, taking features from idea to production.",
       optty:
         "Design and delivery of the integrations behind Optty's payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.",
       "access-bank":
@@ -90,13 +90,14 @@ describe("supabase/seed.sql", () => {
         "A home decision workspace for people buying or renting in England, at the research and concept stage.",
     };
     const snippet = readFileSync("supabase/snippets/2026-10-25-home-copy.sql", "utf8");
-    const stops = new Set(["hbk", "optty", "access-bank"]);
+    const stops = new Set(["optty", "access-bank"]);
     for (const [slug, text] of Object.entries(summaries)) {
       const table = stops.has(slug) ? "stops" : "lab_projects";
       const statement = `update public.${table} set summary = '${text.replaceAll("'", "''")}' where slug = '${slug}';`;
       expect(code, `${slug} in the seed`).toContain(statement);
       expect(snippet, `${slug} in the snippet`).toContain(statement);
     }
+    // The snippet also holds the old HBK summary, which the 26 Oct snippet replaced.
     expect([...snippet.matchAll(/^update public\.(?:stops|lab_projects) /gm)]).toHaveLength(6);
 
     // Each outcome statement sets the description the seed inserts for the same stop and figure.
@@ -108,6 +109,26 @@ describe("supabase/seed.sql", () => {
       const row = `where slug = '${slug}'), null, 1,\n    '${figure}', '${description}',`;
       expect(code, `${slug} outcome`).toContain(row);
     }
+  });
+
+  it("holds the 26 Oct summaries and the Mukuru figure word for word, and the hosted snippet matches", () => {
+    const summaries = {
+      hbk: "Designing and building HBK's sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.",
+      mukuru:
+        "Integrations that land Mukuru's cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.",
+    };
+    const snippet = readFileSync("supabase/snippets/2026-10-26-selected-stops.sql", "utf8");
+    for (const [slug, text] of Object.entries(summaries)) {
+      const statement = `update public.stops set summary = '${text.replaceAll("'", "''")}' where slug = '${slug}';`;
+      expect(code, `${slug} in the seed`).toContain(statement);
+      expect(snippet, `${slug} in the snippet`).toContain(statement);
+    }
+    const row = `where slug = 'mukuru'), null, 1,
+    '17M+', 'customers served',
+    'link', 'Techzim, 20 years of Mukuru', 'https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey', date '2026-10-26',
+    'company', 'Mukuru', 2025)`;
+    expect(code).toContain(row);
+    expect(snippet).toContain(row);
   });
 
   it("starts with only the home flag on", () => {

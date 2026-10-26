@@ -220,11 +220,6 @@
     z-index: 1;
     pointer-events: auto;
   }
-  /* A popover inside the stub inherits pointer-events: none; without this a tap on
-     its text would fall through to the stretched link and close it. */
-  .ticket[data-linked] :is([popover], [popover] *) {
-    pointer-events: auto;
-  }
   .ticket[data-linked]:is(:hover, :has(.ticket-link:focus-visible)) {
     translate: 0 var(--ticket-lift);
   }
@@ -268,68 +263,6 @@
   @media (prefers-reduced-motion: reduce) {
     .ticket-expander {
       transition: none;
-    }
-  }
-
-  /* SourceDisclosure: a native popover. A bottom sheet on phones and wherever CSS
-     anchor positioning is missing; beside its button from md where it works. Without
-     popover support at all, the source simply shows inline. */
-  .source-popover {
-    margin: 0;
-    inset: auto 0 0 0;
-    width: 100%;
-    max-width: none;
-    padding: var(--space-5);
-    border: var(--ticket-tear-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    background: var(--color-bg-elevated);
-    color: var(--color-text-primary);
-  }
-  /* Display is set here, not with utilities, so the fallbacks below can hide them
-     (utilities sit in a later layer and would win). */
-  .source-trigger {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .source-close {
-    display: flex;
-    align-items: center;
-  }
-  @supports (anchor-name: --a) {
-    @media (min-width: 48rem) {
-      .source-trigger {
-        anchor-name: var(--source-anchor);
-      }
-      .source-popover {
-        position-anchor: var(--source-anchor);
-        inset: auto;
-        top: anchor(bottom);
-        left: anchor(left);
-        width: max-content;
-        max-width: min(var(--ticket-max-width), calc(100vw - 2 * var(--gutter)));
-        margin-top: var(--space-2);
-        border-radius: var(--border-radius-md);
-        position-try-fallbacks: flip-block, flip-inline;
-      }
-      /* Anchored beside its button there is no sheet, so no Close button. */
-      .source-close {
-        display: none;
-      }
-    }
-  }
-  @supports not selector(:popover-open) {
-    .source-trigger,
-    .source-close,
-    .source-figure {
-      display: none;
-    }
-    .source-popover {
-      position: static;
-      width: auto;
-      padding: 0;
-      border: 0;
-      background: none;
     }
   }
 

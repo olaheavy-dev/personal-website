@@ -41,7 +41,7 @@ insert into public.posts_cache (hashnode_id, slug, title, published_at, status)
 set local role anon;
 select is((select count(*) from public.stops), 7::bigint, 'anon: only the 7 published stops');
 select is((select count(*) from public.stops where slug = 't-draft'), 0::bigint, 'anon: draft stop hidden');
-select is((select count(*) from public.outcomes), 11::bigint, 'anon: 8 seeded + 3 of the published case study; drafts hide their outcomes');
+select is((select count(*) from public.outcomes), 12::bigint, 'anon: 9 seeded + 3 of the published case study; drafts hide their outcomes');
 select is((select count(*) from public.lab_projects), 4::bigint, 'anon: only published lab projects');
 select is((select count(*) from public.feature_flags), 2::bigint, 'anon: flags that are on (home and the test flag), not preview or off');
 select is((select count(*) from public.feature_flags where state <> 'on'), 0::bigint, 'anon: no flag in another state');
@@ -56,7 +56,7 @@ select is((select count(*) from public.settings), 14::bigint, 'anon: settings ar
 
 set local role authenticated;
 select is((select count(*) from public.stops), 7::bigint, 'authenticated: only the 7 published stops');
-select is((select count(*) from public.outcomes), 11::bigint, 'authenticated: outcomes of published parents only');
+select is((select count(*) from public.outcomes), 12::bigint, 'authenticated: outcomes of published parents only');
 select is((select count(*) from public.lab_projects), 4::bigint, 'authenticated: only published lab projects');
 select is((select count(*) from public.feature_flags where state <> 'on'), 0::bigint, 'authenticated: only flags that are on');
 select is((select count(*) from public.case_studies), 1::bigint, 'authenticated: only the published case study');

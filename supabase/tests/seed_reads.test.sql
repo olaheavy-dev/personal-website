@@ -7,7 +7,7 @@ select * from no_plan();
 set local role anon;
 
 select is((select count(*) from public.stops), 7::bigint, 'anon reads the 7 stops');
-select is((select count(*) from public.outcomes where stop_id is not null), 4::bigint, 'anon reads the 4 stop outcomes');
+select is((select count(*) from public.outcomes where stop_id is not null), 5::bigint, 'anon reads the 5 stop outcomes');
 select is((select count(*) from public.outcomes where lab_project_id is not null), 4::bigint, 'anon reads the 4 lab outcomes');
 select is((select count(*) from public.lab_projects), 4::bigint, 'anon reads the 4 lab projects');
 select is((select count(*) from public.countries), 3::bigint, 'anon reads the 3 countries');

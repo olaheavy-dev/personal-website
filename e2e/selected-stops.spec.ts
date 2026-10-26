@@ -9,53 +9,94 @@ const section = (page: Page) => page.locator("#selected-stops");
 const remote = Boolean(process.env.E2E_BASE_URL);
 
 test.describe("selected stops", () => {
-  test("shows HBK, Optty and Access Bank as tickets, newest first, with the approved copy", async ({
+  test("shows Mukuru, Optty and Access Bank as tickets, newest first, with the approved copy", async ({
     page,
   }) => {
     await page.goto("/");
     const stops = section(page);
     await expect(stops.getByRole("heading", { level: 2, name: "Selected stops" })).toBeVisible();
-    await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["HBK", "Optty", "Access Bank"]);
-    await expect(stops.getByText("Stop 07 · Now")).toBeVisible();
+    await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["Mukuru", "Optty", "Access Bank"]);
+    await expect(stops.getByText("Stop 06 · via Deimos")).toBeVisible();
     await expect(stops.getByText("Stop 04 · via Deimos")).toBeVisible();
     await expect(stops.getByText("Stop 02", { exact: true })).toBeVisible();
-    await expect(stops.getByText(/^Designing and building the Advantage Insights/)).toBeVisible();
+    await expect(stops.getByText(/^Integrations that land Mukuru's cross-border transfers/)).toBeVisible();
     await expect(stops.getByText(/^Design and delivery of the integrations behind Optty's/)).toBeVisible();
     await expect(stops.getByText(/^Built and shipped QuickBucks and Instant Account/)).toBeVisible();
   });
 
-  test("gives each ticket one sourced chip with its attribution", async ({ page }) => {
+  test("gives each ticket one chip whose figure links to its source, with no year in the credit", async ({
+    page,
+  }) => {
     await page.goto("/");
     const stops = section(page);
-    await expect(stops.getByRole("button", { name: /^Source for / })).toHaveCount(3);
-    await expect(stops.getByText("(HBK)")).toBeVisible();
-    await expect(stops.getByText("(Optty, 2023)")).toBeVisible();
+    const figures = stops.getByRole("link", { name: /\(source: / });
+    await expect(figures).toHaveCount(3);
+    await expect(figures.nth(0)).toHaveAttribute("href", expect.stringContaining("techzim.co.zw"));
+    await expect(figures.nth(1)).toHaveAttribute("href", expect.stringContaining("triple-a.io"));
+    await expect(figures.nth(2)).toHaveAttribute("href", expect.stringContaining("play.google.com"));
+    for (const figure of await figures.all()) {
+      await expect(figure).toHaveAttribute("target", "_blank");
+      expect((await figure.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    await expect(stops.getByText("(Mukuru)")).toBeVisible();
+    await expect(stops.getByText("(Optty)")).toBeVisible();
     await expect(stops.getByText("(Google Play)")).toBeVisible();
+    await expect(stops.locator("span.text-text-secondary").filter({ hasText: /\d{4}/ })).toHaveCount(0);
   });
 
   test("links only to /work: no case study is live and the Work page is not either", async ({ page }) => {
     test.skip(remote, "the flags of a live site decide this");
     await page.goto("/");
     const hrefs = await section(page)
-      .getByRole("link")
+      .locator("a:not([target=_blank])")
       .evaluateAll((links) => links.map((l) => l.getAttribute("href")));
     expect(hrefs).toEqual(["/work"]);
     await expect(section(page).getByRole("link", { name: /See the whole route/ })).toBeVisible();
   });
 
-  test("opens each source from the keyboard, then Escape closes it and focus returns", async ({ page }) => {
+  test("the hero HBK ticket shows the approved copy, and the peeking ticket reads Stop 01 Galooli", async ({
+    page,
+  }) => {
     await page.goto("/");
-    const button = section(page).getByRole("button", { name: /^Source for 90\+/ });
-    await button.focus();
-    await page.keyboard.press("Enter");
-    const popover = page.locator(".source-popover:popover-open");
-    await expect(popover).toBeVisible();
+    const hero = page.locator("main > section:first-child");
     await expect(
-      popover.getByRole("link", { name: /Optty and Triple-A announcement, 2023/ }),
-    ).toHaveAttribute("href", expect.stringContaining("triple-a.io"));
-    await page.keyboard.press("Escape");
-    await expect(popover).toBeHidden();
-    await expect(button).toBeFocused();
+      hero.getByText(
+        "Designing and building HBK\u2019s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.",
+      ),
+    ).toBeVisible();
+    await expect(hero.getByText("Stop 01 · Galooli", { exact: true })).toHaveCount(1);
+  });
+
+  test("the three stubs line up in the 3-up grid, and each credit follows its figure on the same line", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.use.viewport!.width < 1200, "the 3-up grid is for wide screens");
+    await page.goto("/");
+    const tops = await section(page)
+      .locator(".ticket-stub")
+      .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+    const credit = section(page).getByText("(Mukuru)");
+    const figure = section(page).getByRole("link", { name: /17M\+/ });
+    const [c, f] = [(await credit.boundingBox())!, (await figure.boundingBox())!];
+    expect(Math.abs(c.y + c.height / 2 - (f.y + f.height / 2))).toBeLessThan(f.height / 2);
+  });
+
+  test("Tab moves through the figure links in order, then to the route link", async ({ page }) => {
+    await page.goto("/");
+    const focusedHref = () => page.evaluate(() => document.activeElement?.getAttribute("href") ?? null);
+    // Tab from the top of the page until the first figure link takes focus.
+    let found = false;
+    for (let index = 0; index < 80 && !found; index += 1) {
+      await page.keyboard.press("Tab");
+      found = ((await focusedHref()) ?? "").includes("techzim.co.zw");
+    }
+    expect(found).toBe(true);
+    // A ticket link would come before its figure link when a case study is live; here none is.
+    for (const expected of ["triple-a.io", "play.google.com", "/work"]) {
+      await page.keyboard.press("Tab");
+      expect((await focusedHref()) ?? "").toContain(expected);
+    }
   });
 
   test("keeps every figure on one line and the page from scrolling sideways", async ({ page }) => {
@@ -124,25 +165,6 @@ test.describe("selected stops", () => {
     const results = await new AxeBuilder({ page }).withTags(tags).analyze();
     expect(results.violations).toEqual([]);
   });
-
-  test("has no accessibility violations with each source popover open", async ({ page }) => {
-    await page.goto("/");
-    await section(page).scrollIntoViewIfNeeded();
-    const triggers = section(page).getByRole("button", { name: /^Source for / });
-    await expect(triggers).toHaveCount(3);
-    for (let index = 0; index < 3; index += 1) {
-      // showPopover() opens it without a click that would scroll or move the pointer.
-      await triggers.nth(index).evaluate((button) => {
-        button.scrollIntoView({ block: "center" });
-        document.getElementById(button.getAttribute("popovertarget") ?? "")?.showPopover();
-      });
-      await expect(page.locator(".source-popover:popover-open")).toBeVisible();
-      const results = await new AxeBuilder({ page }).withTags(tags).analyze();
-      expect(results.violations, `popover ${index + 1}`).toEqual([]);
-      await page.keyboard.press("Escape");
-      await expect(page.locator(".source-popover:popover-open")).toHaveCount(0);
-    }
-  });
 });
 
 test.describe("selected stops without JavaScript", () => {
@@ -151,10 +173,10 @@ test.describe("selected stops without JavaScript", () => {
   test("is plain server rendered content", async ({ page }) => {
     await page.goto("/");
     await expect(section(page).getByRole("heading", { level: 3 })).toHaveText([
-      "HBK",
+      "Mukuru",
       "Optty",
       "Access Bank",
     ]);
-    await expect(section(page).getByText("(Optty, 2023)")).toBeVisible();
+    await expect(section(page).getByText("(Optty)")).toBeVisible();
   });
 });

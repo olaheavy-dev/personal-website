@@ -1,7 +1,7 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, Outcome, Stop } from "@/lib/db/types";
 import type { CaseStudyEntry, PageEntry } from "@/lib/flags/registry";
-import { buildSelectedStops, chipYear, stopEyebrow } from "./selected-stops";
+import { buildSelectedStops, stopEyebrow } from "./selected-stops";
 
 const chip: Outcome = {
   id: "o1",
@@ -35,13 +35,13 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
 const access = stop("access-bank", 2);
 const optty = stop("optty", 4, { name: "Optty", via: "Deimos" });
 const hbk = stop("hbk", 7, { name: "HBK", endYear: null });
-const mukuru = stop("mukuru", 6);
+const mukuru = stop("mukuru", 6, { name: "Mukuru", via: "Deimos", endYear: 2024 });
 const all = [access, optty, hbk, mukuru];
 
 const pagesLive: PageEntry[] = [{ flag: "page.work", href: "/work", label: "Work", status: "live" }];
 const pagesSoon: PageEntry[] = [{ flag: "page.work", href: "/work", label: "Work", status: "coming-soon" }];
 const caseLive: CaseStudyEntry[] = [
-  { slug: "hbk-aiana", flag: "case.hbk-aiana", stopSlug: "hbk", status: "live" },
+  { slug: "mukuru-case", flag: "case.mukuru-case", stopSlug: "mukuru", status: "live" },
   { slug: "optty", flag: "case.optty", stopSlug: "optty", status: "planned" },
 ];
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
@@ -55,26 +55,13 @@ describe("stopEyebrow", () => {
   });
 });
 
-describe("chipYear", () => {
-  it("keeps the year of an older company claim and drops this year's", () => {
-    expect(chipYear(chip)).toBe(2023);
-    expect(chipYear({ ...chip, asOfYear: 2026 })).toBeNull();
-  });
-
-  it("shows no year without a year, a check date, or a company claim", () => {
-    expect(chipYear({ ...chip, asOfYear: null })).toBeNull();
-    expect(chipYear({ ...chip, checkedOn: null })).toBeNull();
-    expect(chipYear({ ...chip, scope: "personal" })).toBeNull();
-  });
-});
-
 describe("buildSelectedStops", () => {
-  it("shows HBK, Optty and Access Bank, newest first, whatever order they were read in", () => {
+  it("shows Mukuru, Optty and Access Bank, and never HBK, newest first, whatever order they were read in", () => {
     const model = buildSelectedStops(success(all), {}, "public");
-    expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["hbk", "optty", "access-bank"]);
+    expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["mukuru", "optty", "access-bank"]);
     expect(model?.tickets.at(0)).toMatchObject({
-      eyebrow: "Stop 07 · Now",
-      summary: "About hbk.",
+      eyebrow: "Stop 06 · via Deimos",
+      summary: "About mukuru.",
       outcome: chip,
     });
   });
@@ -82,16 +69,16 @@ describe("buildSelectedStops", () => {
   it("shows nothing when the read failed, the answer is empty or holds none of the three", () => {
     expect(buildSelectedStops(failure("query_failed", "down"), on("page.work"), "public")).toBeNull();
     expect(buildSelectedStops(success([]), on("page.work"), "public")).toBeNull();
-    expect(buildSelectedStops(success([mukuru]), on("page.work"), "public")).toBeNull();
+    expect(buildSelectedStops(success([hbk]), on("page.work"), "public")).toBeNull();
   });
 
   it("shows only the rows that were read when the answer is partial", () => {
-    const model = buildSelectedStops(success([access, hbk]), {}, "public");
-    expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["hbk", "access-bank"]);
+    const model = buildSelectedStops(success([access, mukuru]), {}, "public");
+    expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["mukuru", "access-bank"]);
   });
 
   it("drops the chip when there is no outcome and the paragraph when there is no summary", () => {
-    const bare = [stop("hbk", 7, { outcomes: [], summary: null }), stop("optty", 4, { summary: "   " })];
+    const bare = [stop("mukuru", 6, { outcomes: [], summary: null }), stop("optty", 4, { summary: "   " })];
     const model = buildSelectedStops(success(bare), {}, "public");
     expect(model?.tickets.at(0)).toMatchObject({ outcome: null, summary: null });
     expect(model?.tickets.at(1)).toMatchObject({ outcome: chip, summary: null });
@@ -99,19 +86,23 @@ describe("buildSelectedStops", () => {
 
   it("uses the first outcome", () => {
     const second: Outcome = { ...chip, id: "o2", figure: "9" };
-    const model = buildSelectedStops(success([stop("hbk", 7, { outcomes: [chip, second] })]), {}, "public");
+    const model = buildSelectedStops(
+      success([stop("mukuru", 6, { outcomes: [chip, second] })]),
+      {},
+      "public",
+    );
     expect(model?.tickets.at(0)?.outcome?.id).toBe("o1");
   });
 
   describe("links", () => {
-    const flags = on("page.work", "case.hbk-aiana", "case.optty");
+    const flags = on("page.work", "case.mukuru-case", "case.optty");
     const build = (f: FeatureFlags, pages: PageEntry[], caseStudies: CaseStudyEntry[] = caseLive) =>
       buildSelectedStops(success(all), f, "public", { pages, caseStudies }) ?? { tickets: [] };
 
     it("goes to the case study when its flag is visible and it is live", () => {
       const links = Object.fromEntries(build(flags, pagesLive).tickets.map((t) => [t.slug, t.href]));
       expect(links).toEqual({
-        hbk: "/work/hbk-aiana",
+        mukuru: "/work/mukuru-case",
         optty: "/work#optty",
         "access-bank": "/work#access-bank",
       });
@@ -119,14 +110,14 @@ describe("buildSelectedStops", () => {
 
     it("falls back to the place on /work when the case study flag is off, and never links a planned case study", () => {
       const links = build(on("page.work"), pagesLive).tickets.map((t) => t.href);
-      expect(links).toEqual(["/work#hbk", "/work#optty", "/work#access-bank"]);
+      expect(links).toEqual(["/work#mukuru", "/work#optty", "/work#access-bank"]);
     });
 
     it("has no link at all when /work is not live yet, or its flag is off", () => {
       expect(build(flags, pagesSoon, []).tickets.map((t) => t.href)).toEqual([null, null, null]);
       expect(build({}, pagesLive, []).tickets.map((t) => t.href)).toEqual([null, null, null]);
-      expect(build(on("page.work", "case.hbk-aiana"), pagesSoon, caseLive).tickets.at(0)?.href).toBe(
-        "/work/hbk-aiana",
+      expect(build(on("page.work", "case.mukuru-case"), pagesSoon, caseLive).tickets.at(0)?.href).toBe(
+        "/work/mukuru-case",
       );
     });
 
@@ -139,7 +130,7 @@ describe("buildSelectedStops", () => {
     });
 
     it("links today's real registries to nothing, because no case study and no Work page is live", () => {
-      const model = buildSelectedStops(success(all), on("page.work", "case.hbk-aiana"), "public");
+      const model = buildSelectedStops(success(all), on("page.work", "case.mukuru-case"), "public");
       expect(model?.tickets.map((t) => t.href)).toEqual([null, null, null]);
     });
   });

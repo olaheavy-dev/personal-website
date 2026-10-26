@@ -30,14 +30,14 @@ Behind the public site sits his own admin: image pipeline, Hashnode sync, assist
 
 | Claim | How it appears |
 |---|---|
-| HBK / Aiana | Named publicly; launched in Advantage Insights 2025 R4 (public, HBK). Stack named (C#/.NET, Python, Azure AI Foundry, RAG, evals), with no internal diagrams, prompts, models or metrics. Later HBK AI features (code suggestions, voice, file analysis) described generically, not named. |
+| HBK / Aiana | Named publicly; launched in Advantage Insights 2025 R4 (public, HBK). Stack named (C#/.NET, Python, Azure AI Foundry, RAG, evals), with no internal diagrams, prompts, models or metrics. Later HBK AI features described generically: "AI agents for features like Python code suggestions and file data analysis" (owner decision, 26 Oct 2026), with no internals. |
 | RagLab | Not listed as a personal project; its evaluation approach is referenced generically inside the HBK case study. |
 | Access QuickBucks | Public figure only: **1M+ Google Play downloads**. No internal revenue or user counts. |
 | Stanbic EZ Cash | Reliability work described qualitatively; no failure-rate number. |
-| Optty | Public, dated: **90+ BNPL & local payment methods across 120+ countries (Optty, 2023)**, framed as the platform he built integrations for. |
+| Optty | Public: **90+ BNPL & local payment methods across 120+ countries (Optty)**, linked to the Optty and Triple-A announcement, which carries the date (credits show no year, owner decision 26 Oct 2026), framed as the platform he built integrations for. |
 | uLesson | No figures, like Stanbic IBTC. The work is described qualitatively. |
 | Galooli | Galooli's published Nigeria result (~11% fuel saving across several hundred sites, 2021) cited as company context, not a personal claim. |
-| Mukuru | Integration work only; do not imply he built the Oct 2024 Malawi wallet launch. |
+| Mukuru | Integration work only. Company context: **17M+ customers served (Mukuru)**, linked to Techzim's 20 years of Mukuru article. Do not imply he built the Oct 2024 Malawi wallet launch. |
 | Personal projects | Repo-verified figures only (e.g. Foresight 17 eval suites; FastPilot faithfulness 0.992, ~210 tests, 90% coverage gate). |
 
 Every number on the site carries a source (public link, repo link, or "own measurement").
@@ -112,8 +112,8 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 
 - **First visit:** no loader. Hero renders server-side; avatar gives a single small wave (once, skipped under reduced motion). Availability chip shows live UK time.
 - **Route on scroll:** the dotted line draws as the visitor moves through stations; reaching a stop subtly highlights its pin. Never hijacks scroll.
-- **Ticket hover/focus:** lifts 4px, notch shadow deepens, outcome chips reveal sources; Enter/click opens the case study.
-- **Case study:** sticky TOC tracks the current section; metric chips expose source on hover/focus; "Next stop" footer continues the route.
+- **Ticket hover/focus:** lifts 4px, notch shadow deepens, each figure links to its source; Enter/click opens the case study.
+- **Case study:** sticky TOC tracks the current section; each figure links to its source; "Next stop" footer continues the route.
 - **Ask Sunkanmi:** avatar launcher bottom-right; never auto-opens. Opening shows 4 suggested prompts. Answers stream (first token < 1s), cite sources as chips that deep-link to the exact section (with highlight on arrival). Out-of-scope → graceful refusal + suggestion. "How this works" toggle reveals retrieved passages, latency, tokens and cost for that answer.
 - **⌘K:** opens a palette for navigation, theme, "Ask…", copy email; typing a hidden word reveals the secret station (and a passport stamp).
 - **Passport:** first visit to Work, a case study, Lab, Writing, Travel and About each stamps the passport (spring pop + toast, 2.5s, dismissible, announced politely to screen readers). Completing it unlocks a personal note. Stored locally; resettable.

@@ -8,35 +8,30 @@ const source = {
 };
 
 describe("MetricChip", () => {
-  it("shows the figure and a source button whose name says source", () => {
+  it("makes the figure a link to its source, in a new tab, named for screen readers", () => {
     render(<MetricChip value="1M+" label="Google Play downloads" source={source} />);
-    expect(screen.getByText("1M+")).toBeInTheDocument();
-    expect(screen.getAllByText(/Google Play downloads/).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "Source for 1M+ Google Play downloads" })).toBeInTheDocument();
-  });
-
-  it("wires the button to a native popover that links to the source", () => {
-    const { container } = render(<MetricChip value="1M+" label="Google Play downloads" source={source} />);
-    const button = screen.getByRole("button", { name: /Source for/ });
-    const popover = container.querySelector("[popover]") as HTMLElement;
-    expect(popover).toHaveAttribute("popover", "auto");
-    expect(button).toHaveAttribute("popovertarget", popover.id);
-    const link = popover.querySelector("a") as HTMLAnchorElement;
-    expect(link).toHaveTextContent("Google Play listing");
+    // jsdom drops the space at the end of an inline element; Chrome keeps it (checked with an
+    // aria snapshot), so the pattern allows both.
+    const link = screen.getByRole("link", {
+      name: /^1M\+ Google Play ?downloads \(source: Google Play listing, opens in a new tab\)$/,
+    });
     expect(link).toHaveAttribute("href", source.url);
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+    expect(link).toHaveClass("min-h-11");
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("gives the sheet a close button on phones", () => {
-    const { container } = render(<MetricChip value="1M+" label="downloads" source={source} />);
-    const popover = container.querySelector("[popover]") as HTMLElement;
-    const close = popover.querySelector("button") as HTMLButtonElement;
-    expect(close).toHaveAttribute("popovertargetaction", "hide");
-    expect(close).toHaveAttribute("popovertarget", popover.id);
+  it("puts the visible credit before the hidden source text in the accessible name", () => {
+    render(<MetricChip value="17M+" label="customers served" source={source} attribution="Mukuru" />);
+    expect(
+      screen.getByRole("link", {
+        name: /^17M\+ customers ?served \(Mukuru\) \(source: Google Play listing, opens in a new tab\)$/,
+      }),
+    ).toBeInTheDocument();
   });
 
-  it("shows an own measurement as text, with no link", () => {
+  it("shows an own measurement as plain text with no link", () => {
     const { container } = render(
       <MetricChip
         value="98"
@@ -44,56 +39,37 @@ describe("MetricChip", () => {
         source={{ kind: "own", note: "Mobile, 12 May 2026" }}
       />,
     );
-    const popover = container.querySelector("[popover]") as HTMLElement;
-    expect(popover).toHaveTextContent("Own measurement.");
-    expect(popover).toHaveTextContent("Mobile, 12 May 2026");
-    expect(popover.querySelector("a")).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(container).toHaveTextContent("98 Lighthouse performance");
+    expect(screen.getByText("(own measurement)")).toBeInTheDocument();
   });
 
   it.each([
-    ["90+", "Optty", 2023, "(Optty, 2023)"],
-    ["1M+", "Google Play", null, "(Google Play)"],
-    ["1M+", "Google Play", 2026, "(Google Play, 2026)"],
-    ["R2025X", "HBK", 2025, "(HBK, 2025)"],
-    ["2025 R4", "HBK", 2025, "(HBK)"],
-  ])("credits the claim: %s %s %s shows %s", (value, attribution, year, shown) => {
-    render(<MetricChip value={value} label="things" source={source} attribution={attribution} year={year} />);
+    ["90+", "Optty", "(Optty)"],
+    ["1M+", "Google Play", "(Google Play)"],
+    ["17M+", "Mukuru", "(Mukuru)"],
+  ])("credits the claim without a year: %s %s shows %s", (value, attribution, shown) => {
+    render(<MetricChip value={value} label="things" source={source} attribution={attribution} />);
     expect(screen.getByText(shown)).toBeInTheDocument();
-  });
-
-  it("shows the day a link source was checked in the popover, and nothing for an own measurement", () => {
-    const { container, rerender } = render(
-      <MetricChip value="1M+" label="downloads" source={source} checkedOn="2026-10-05" />,
-    );
-    expect(container.querySelector("[popover]")).toHaveTextContent("Checked 5 Oct 2026");
-    rerender(
-      <MetricChip value="98" label="score" source={{ kind: "own", note: "Mobile" }} checkedOn="2026-10-05" />,
-    );
-    expect(container.querySelector("[popover]")).not.toHaveTextContent("Checked");
+    expect(screen.queryByText(/^\(.*\d{4}/)).toBeNull();
   });
 
   it("shows no credit for a claim without an attribution", () => {
-    render(
-      <MetricChip value="17" label="evaluation suites" source={source} attribution={null} year={2026} />,
-    );
-    expect(screen.queryByText(/^\((?!opens)/)).toBeNull();
+    render(<MetricChip value="17" label="evaluation suites" source={source} attribution={null} />);
+    expect(screen.queryByText(/^\((?!source)/)).toBeNull();
   });
 
-  it("never splits the figure, and keeps the credit on the line of the label's last word", () => {
-    render(
-      <MetricChip
-        value="2025 R4"
-        label="Aiana public launch"
-        source={source}
-        attribution="Optty"
-        year={2023}
-      />,
-    );
-    expect(screen.getByText("2025 R4")).toHaveClass("whitespace-nowrap");
-    const credit = screen.getByText("(Optty, 2023)");
-    const together = credit.parentElement;
+  it("never splits the figure, and keeps the last word, the arrow and the credit together", () => {
+    render(<MetricChip value="17M+" label="customers served" source={source} attribution="Mukuru" />);
+    expect(screen.getByText("17M+")).toHaveClass("whitespace-nowrap");
+    const credit = screen.getByText("(Mukuru)");
+    expect(credit).toHaveClass("whitespace-nowrap", "text-text-secondary");
+    // inline-block keeps the link's underline off the credit.
+    expect(credit).toHaveClass("inline-block");
+    const together = credit.parentElement!;
     expect(together).toHaveClass("whitespace-nowrap");
-    expect(together).toHaveTextContent(/^launch \(Optty, 2023\)$/);
+    expect(together).toContainElement(screen.getByRole("link").querySelector("svg"));
+    expect(together).toHaveTextContent(/^served \(Mukuru\)/);
   });
 
   it("does not compile without a source", () => {

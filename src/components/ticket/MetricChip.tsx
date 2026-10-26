@@ -41,6 +41,7 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
   const lastSpace = label.lastIndexOf(" ");
   const lead = lastSpace === -1 ? "" : label.slice(0, lastSpace + 1);
   const lastWord = label.slice(lastSpace + 1);
+  // text-balance evens the two lines a long figure wraps to, so no word sits alone.
   // inline-block stops the link's underline reaching the credit.
   const creditEl = (gap: string) =>
     credit ? (
@@ -53,7 +54,7 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
   if (source.kind === "own") {
     return (
       <p className="flex min-h-11 w-fit max-w-full items-center text-sm">
-        <span>
+        <span className="text-balance">
           {figure} {lead}
           <span className="whitespace-nowrap">
             {lastWord}
@@ -71,7 +72,7 @@ export function MetricChip({ value, label, source, attribution }: MetricChipProp
       rel="noopener"
       className="group flex min-h-11 w-fit max-w-full items-center text-sm"
     >
-      <span>
+      <span className="text-balance">
         <span className={underline}>
           {figure} {lead}
         </span>

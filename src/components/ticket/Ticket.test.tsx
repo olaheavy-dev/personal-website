@@ -32,7 +32,7 @@ describe("Ticket", () => {
 
   it("puts the stub after the body in the pass layout", () => {
     const { container } = render(
-      <Ticket as="div" layout="pass" title="Yours." stub={<p>Stub</p>}>
+      <Ticket as="div" layout="pass" title="Yours?" stub={<p>Stub</p>}>
         <p>Body</p>
       </Ticket>,
     );
@@ -44,7 +44,7 @@ describe("Ticket", () => {
   });
 
   it("does not name a plain div, which would be an invalid label", () => {
-    const { container } = render(<Ticket as="div" title="Yours." />);
+    const { container } = render(<Ticket as="div" title="Yours?" />);
     expect(container.firstElementChild).not.toHaveAttribute("aria-labelledby");
   });
 

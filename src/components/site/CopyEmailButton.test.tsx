@@ -31,9 +31,13 @@ describe("CopyEmailButton", () => {
     await user.click(copyButton());
     expect(writeText).toHaveBeenCalledWith(site.email);
     expect(screen.getByRole("button", { name: "Copied" })).toBeInTheDocument();
+    expect(status()).toBeEmptyDOMElement();
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
     expect(status()).toHaveTextContent("Email copied");
     act(() => {
-      vi.advanceTimersByTime(1900);
+      vi.advanceTimersByTime(1800);
     });
     expect(screen.getByRole("button", { name: "Copied" })).toBeInTheDocument();
     act(() => {
@@ -42,18 +46,36 @@ describe("CopyEmailButton", () => {
     expect(copyButton()).toBeInTheDocument();
   });
 
-  it("announces again on every click by remounting the message", async () => {
+  it("empties the status on every click and writes the message again after a pause", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     renderButton();
     await user.click(copyButton());
-    const first = status().firstElementChild;
-    expect(first).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Copied" }));
-    const second = status().firstElementChild;
-    expect(second).not.toBeNull();
-    expect(second).not.toBe(first);
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
     expect(status()).toHaveTextContent("Email copied");
+    await user.click(screen.getByRole("button", { name: "Copied" }));
+    expect(status()).toBeEmptyDOMElement();
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
+    expect(status()).toHaveTextContent("Email copied");
+  });
+
+  it("does not set state when unmounted while the copy is pending", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    let resolve!: () => void;
+    vi.spyOn(navigator.clipboard, "writeText").mockReturnValue(new Promise<void>((r) => (resolve = r)));
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { unmount } = render(<CopyEmailButton />);
+    await user.click(copyButton());
+    unmount();
+    await act(async () => {
+      resolve();
+    });
+    expect(vi.getTimerCount()).toBe(0);
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("restarts the timer on a repeated click", async () => {
@@ -111,6 +133,10 @@ describe("CopyEmailButton", () => {
     const address = screen.getByText(site.email);
     expect(address).toHaveClass("select-all", "font-mono", "break-all");
     expect(address).toHaveFocus();
+    expect(screen.getByText("Copy it from here")).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
     expect(status()).toHaveTextContent("Select the address to copy it");
   });
 
@@ -120,6 +146,9 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator, "clipboard", "get").mockReturnValue(undefined as unknown as Clipboard);
     await user.click(copyButton());
     expect(screen.getByText(site.email)).toHaveFocus();
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
     expect(status()).toHaveTextContent("Select the address to copy it");
   });
 
@@ -128,6 +157,9 @@ describe("CopyEmailButton", () => {
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
     renderButton();
     await user.click(copyButton());
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
     const withText = screen.getAllByRole("status").filter((region) => region.textContent?.trim());
     expect(withText).toHaveLength(1);
     expect(withText[0]!).toHaveTextContent("Email copied");

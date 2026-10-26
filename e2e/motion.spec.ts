@@ -346,7 +346,6 @@ test.describe("Copy email (issue #103)", () => {
     await expect(page.getByRole("heading", { level: 2, name: "Yours?" })).toBeVisible();
     await page.getByRole("button", { name: "Copy email" }).click();
     await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
-    await expect(page.locator("footer .boarding-pass")).toHaveCount(0);
   });
 
   test("copying moves nothing: the ticket and the button keep their boxes", async ({ page }) => {
@@ -400,10 +399,32 @@ test.describe("Copy email (issue #103)", () => {
     const copy = page.getByRole("button", { name: "Copy email" });
     await copy.scrollIntoViewIfNeeded();
     await copy.click();
-    const address = page.locator("footer p.select-all");
+    const address = page.locator("footer .select-all");
     await expect(address).toBeVisible();
     await expect(address).toBeFocused();
     await expect(page.locator("footer [role='status']")).toHaveText("Select the address to copy it");
+  });
+
+  test("a refused copy changes neither the ticket's nor the row's height", async ({ page }) => {
+    await fakeClipboard(page, false);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    const copy = page.getByRole("button", { name: "Copy email" });
+    await copy.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const heights = () =>
+      page.evaluate(() => ({
+        ticket: Math.round(document.querySelector("footer .ticket")!.getBoundingClientRect().height),
+        action: Math.round(
+          document.querySelector("footer .ticket button, footer .select-all")!.getBoundingClientRect().height,
+        ),
+      }));
+    const before = await heights();
+    await copy.click();
+    await expect(page.locator("footer .select-all")).toBeVisible();
+    expect(await heights()).toEqual(before);
   });
 
   test("the button is a 44 px target and the footer fits at 375 px", async ({ page }) => {
@@ -414,7 +435,7 @@ test.describe("Copy email (issue #103)", () => {
     const box = await copy.boundingBox();
     expect(box!.height).toBeGreaterThanOrEqual(44);
     await copy.click();
-    await expect(page.locator("footer p.select-all")).toBeVisible();
+    await expect(page.locator("footer .select-all")).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

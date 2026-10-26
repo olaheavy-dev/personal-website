@@ -21,7 +21,7 @@ describe("the seeded project", () => {
     if (!stops.ok) return;
     expect(stops.data.map((stop) => stop.number)).toEqual([1, 2, 3, 4, 5, 6, 7]);
     const figures = stops.data.flatMap((stop) => stop.outcomes.map((outcome) => outcome.figure));
-    expect(figures.sort()).toEqual(["1M+", "2025 R4", "90+", "~11%"].sort());
+    expect(figures.sort()).toEqual(["17M+", "1M+", "2025 R4", "90+", "~11%"].sort());
   });
 
   it("returns the four lab projects", async () => {
@@ -39,11 +39,17 @@ describe("the seeded project", () => {
     expect(countries.ok && countries.data[0]?.slug).toBe("nigeria");
   });
 
-  it("returns the settings and only page.home as an on flag", async () => {
+  // The owner switches flags on the hosted project after the seed, so only page.home is
+  // certain to be on; every other on flag must still be a known kind of key.
+  it("returns the settings, page.home on and only known flags", async () => {
     const settings = await loadSettings(db);
     expect(settings.ok && settings.data.name).toBe("Sunkanmi Olawuwo");
     const flags = await loadFlags(db);
-    expect(flags.ok && Object.keys(flags.data)).toEqual(["page.home"]);
+    expect(flags.ok).toBe(true);
+    if (!flags.ok) return;
+    const on = Object.keys(flags.data);
+    expect(on).toContain("page.home");
+    for (const key of on) expect(key).toMatch(/^(page|case|feature)\.[a-z0-9-]+$/);
   });
 
   it("keeps the server only tables closed to the publishable key", async () => {

@@ -43,6 +43,7 @@ const stopRow = (over: Partial<StopRow> = {}): StopRow => ({
   via: null,
   role: "Backend Software Engineer",
   summary: null,
+  details: [],
   stack: [],
   status: "published",
   created_at: "",
@@ -81,6 +82,14 @@ describe("mapStop", () => {
     expect(result.ok && result.data.filters).toEqual(["ai", "data-iot"]);
     expect(result.ok && result.data.outcomes.map((o) => o.id)).toEqual(["a", "b"]);
     expect(result.ok && result.data.endYear).toBeNull();
+  });
+
+  it("maps the details lines, empty by default", () => {
+    expect(mapStop(stopRow({ details: ["One.", "Two."] }))).toMatchObject({
+      ok: true,
+      data: { details: ["One.", "Two."] },
+    });
+    expect(mapStop(stopRow())).toMatchObject({ ok: true, data: { details: [] } });
   });
 
   it("fails with invalid_data when an outcome has no source", () => {

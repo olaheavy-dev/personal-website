@@ -9,6 +9,7 @@ import {
   type PageEntry,
 } from "@/lib/flags/registry";
 import { isFlagVisible, type Viewer } from "@/lib/flags/visibility";
+import { stopEyebrow, type StopEyebrow } from "@/lib/stops/eyebrow";
 
 // What the home page's Selected work section shows, worked out from the database rows and
 // the flags. Pure: no reading, no rendering, so every state is a plain unit test.
@@ -18,7 +19,7 @@ export const selectedStopSlugs = ["mukuru", "optty", "access-bank"] as const;
 
 export type SelectedTicket = {
   slug: string;
-  /** Role over meta, for example "Senior Software Engineer" over "via Deimos · 2022 to 2024". */
+  /** Role over meta, for example "Backend Software Engineer" over "2024 to now", or just "via Deimos". */
   eyebrow: StopEyebrow;
   title: string;
   /** Null when the stop has no summary: the ticket then shows no paragraph. */
@@ -34,21 +35,6 @@ export type SelectedStopsModel = {
   /** "See all work" shows only while /work is visible. */
   routeLink: "/work" | null;
 };
-
-/** A ticket eyebrow in two lines: the role, then the meta line. Role is null when there is none. */
-export type StopEyebrow = { role: string | null; meta: string };
-
-/**
- * The ticket's mono eyebrow, from the owner's CV: role "Senior Software Engineer" over meta
- * "via Deimos · 2022 to 2024" for a client stop of a consultancy, role "Technical Support
- * Engineer" over "2016 to 2018" otherwise, and "2024 to now" while the stop is current. A stop
- * with no role shows the years only (and no "via").
- */
-export function stopEyebrow(stop: Pick<Stop, "role" | "via" | "startYear" | "endYear">): StopEyebrow {
-  const years = `${stop.startYear} to ${stop.endYear ?? "now"}`;
-  if (!stop.role) return { role: null, meta: years };
-  return { role: stop.role, meta: stop.via ? `via ${stop.via} · ${years}` : years };
-}
 
 type Registries = {
   pages?: readonly PageEntry[];

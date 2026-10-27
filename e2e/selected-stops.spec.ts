@@ -16,12 +16,42 @@ test.describe("selected stops", () => {
     const stops = section(page);
     await expect(stops.getByRole("heading", { level: 2, name: "Selected work" })).toBeVisible();
     await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["Mukuru", "Optty", "Access Bank"]);
-    await expect(stops.getByText("Senior Software Engineer", { exact: true })).toHaveCount(3);
-    await expect(stops.getByText("via Deimos · 2022 to 2024", { exact: true })).toHaveCount(2);
+    await expect(stops.getByText("Senior Software Engineer", { exact: true })).toHaveCount(1);
+    await expect(stops.getByText("via Deimos", { exact: true })).toHaveCount(2);
+    await expect(stops.getByText("2022 to 2024")).toHaveCount(0);
     await expect(stops.getByText("2018 to 2021", { exact: true })).toBeVisible();
     await expect(stops.getByText(/^Integrations that land Mukuru's cross-border transfers/)).toBeVisible();
     await expect(stops.getByText(/^Design and delivery of the integrations behind Optty's/)).toBeVisible();
     await expect(stops.getByText(/^Built and shipped QuickBucks and Instant Account/)).toBeVisible();
+  });
+
+  test("starts the titles level where tickets share a row, whatever their eyebrow length", async ({
+    page,
+  }) => {
+    const tops = async () =>
+      section(page)
+        .getByRole("heading", { level: 3 })
+        .evaluateAll((headings) =>
+          headings.map((heading) => Math.round(heading.getBoundingClientRect().top)),
+        );
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const wide = await tops();
+    expect(wide).toHaveLength(3);
+    expect(new Set(wide).size).toBe(1);
+    // At 768 Mukuru spans the row alone (no blank line above its title); Optty and Access Bank share one.
+    await page.setViewportSize({ width: 768, height: 1024 });
+    const [, optty, access] = await tops();
+    expect(optty).toBe(access);
+    const offset = async (index: number) => {
+      const card = section(page).getByRole("article").nth(index);
+      const [title, box] = await Promise.all([
+        card.getByRole("heading", { level: 3 }).boundingBox(),
+        card.boundingBox(),
+      ]);
+      return title!.y - box!.y;
+    };
+    expect(await offset(0)).toBeLessThan(await offset(1));
   });
 
   test("gives each ticket one chip whose figure links to its source, with no year in the credit", async ({

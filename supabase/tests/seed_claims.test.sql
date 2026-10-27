@@ -62,10 +62,25 @@ select results_eq(
   $$select slug, summary from public.stops where summary is not null order by slug$$,
   $$values
     ('access-bank', 'Built and shipped QuickBucks and Instant Account, Access Bank''s mobile banking products, in a regulated, high-stakes production environment.'),
+    ('galooli', 'Field deployment and support of Galooli''s IoT energy management for telecom tower sites across Nigeria.'),
     ('hbk', 'Designing and building HBK''s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.'),
     ('mukuru', 'Integrations that land Mukuru''s cross-border transfers in Malawian mobile money wallets, with USSD payment flows built to handle errors and retries.'),
-    ('optty', 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.')$$,
-  'the Selected stops and HBK have their approved summaries and no other stop has one'
+    ('optty', 'Design and delivery of the integrations behind Optty''s payments orchestration platform, connecting merchants to buy now, pay later and local payment methods.'),
+    ('stanbic-ibtc', 'Digital banking products in Stanbic IBTC''s Innovation Lab, built on open banking APIs with fintech partners.'),
+    ('ulesson', 'Web platform work for uLesson''s learning app: a redesign, faster pages and better observability.')$$,
+  'the stops with approved summaries (Home and Work) have them word for word and no other stop has one'
+);
+
+-- The approved Work details (issue #10, 27 Oct 2026): four stops, in order, none for the others.
+select results_eq(
+  $$select slug, cardinality(details) from public.stops order by number$$,
+  $$values ('galooli', 2), ('access-bank', 0), ('stanbic-ibtc', 4), ('optty', 0), ('ulesson', 3), ('mukuru', 2), ('hbk', 0)$$,
+  'the approved Work details are seeded: Galooli 2, Stanbic IBTC 4, uLesson 3, Mukuru 2, the rest none'
+);
+select is(
+  (select details[1] from public.stops where slug = 'mukuru'),
+  'Integrated mobile wallet providers and Malawi''s national payment switch so remittances reach wallets.',
+  'Mukuru''s first detail line is the approved wording'
 );
 
 select results_eq(
@@ -79,12 +94,13 @@ select results_eq(
 
 select results_eq(
   $$select s.slug, o.figure, o.description from public.outcomes o join public.stops s on s.id = o.stop_id
-    where s.slug in ('mukuru','optty','access-bank') order by s.slug$$,
+    where s.slug in ('mukuru','optty','access-bank','galooli') order by s.slug$$,
   $$values
     ('access-bank', '1M+', 'downloads of the QuickBucks app'),
+    ('galooli', '~11%', 'fuel saving across several hundred sites in Nigeria'),
     ('mukuru', '17M+', 'customers served'),
     ('optty', '90+', 'BNPL and local payment methods across 120+ countries')$$,
-  'the three Selected stops chips (Mukuru, Optty, Access Bank) have the approved short descriptions, one outcome each'
+  'the Selected stops chips and Galooli''s have the approved short descriptions, one outcome each'
 );
 
 select is((select count(*) from public.case_studies where status = 'draft'), 4::bigint, 'four draft case studies');

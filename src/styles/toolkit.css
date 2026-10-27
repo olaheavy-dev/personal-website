@@ -158,12 +158,18 @@
     height: var(--toolkit-logo);
     object-fit: contain;
   }
-  .toolkit-plate[data-plate="logo"][data-wide] {
+  /* A chip holding only a wordmark keeps its symbol close to the logo. */
+  .toolkit-chip:has([data-wordmark]) {
+    gap: var(--space-1);
+    padding-inline-end: var(--space-2);
+  }
+  /* A wordmark stands in for the name, so it is drawn larger than the 12 px it had beside text. */
+  .toolkit-plate[data-plate="logo"][data-wordmark] {
     padding-inline: var(--space-2);
   }
-  .toolkit-plate[data-plate="logo"][data-wide] img {
+  .toolkit-plate[data-plate="logo"][data-wordmark] img {
     width: auto;
-    height: calc(var(--toolkit-logo) * 2 / 3);
+    height: calc(var(--toolkit-logo) * 8 / 9);
   }
   .toolkit-plate[data-tint="lilac"] {
     background: var(--color-lilac-soft);

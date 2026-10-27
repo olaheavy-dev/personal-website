@@ -12,7 +12,7 @@ export type ToolkitTint = "lilac" | "teal";
 export type ToolkitIcon = "code" | "ai" | "data" | "cloud" | "test" | "ship";
 
 export type ToolPlate =
-  { kind: "logo"; file: string; wide?: boolean } | { kind: "abbr"; text: string } | { kind: "icon" };
+  { kind: "logo"; file: string; wordmark?: boolean } | { kind: "abbr"; text: string } | { kind: "icon" };
 
 export interface ToolkitTool {
   /** The owner's official spelling of the tool, shown in the chip. */
@@ -31,10 +31,11 @@ export interface ToolkitGroup {
   tools: readonly ToolkitTool[];
 }
 
-// `wide` is for a wordmark (Redis): its plate becomes a pill and the logo is drawn shorter, so it can be read.
-const logo = (name: string, file: string, wide = false): ToolkitTool => ({
+// `wordmark` is for a logo that is the name itself (Redis): the chip shows the logo alone, on a pill
+// plate, with the name as its alt text, so the word is not written twice.
+const logo = (name: string, file: string, wordmark = false): ToolkitTool => ({
   name,
-  plate: wide ? { kind: "logo", file, wide } : { kind: "logo", file },
+  plate: wordmark ? { kind: "logo", file, wordmark } : { kind: "logo", file },
 });
 const abbr = (name: string, text: string): ToolkitTool => ({ name, plate: { kind: "abbr", text } });
 const icon = (name: string): ToolkitTool => ({ name, plate: { kind: "icon" } });

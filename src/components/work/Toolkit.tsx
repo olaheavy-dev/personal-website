@@ -18,7 +18,7 @@ import {
 //
 // A tool whose brand asks for a trademark symbol (Python, Redis) shows it as a small superscript
 // right after the name. Plates and icons are hidden from assistive technology (the chip's name is the text beside
-// them). Each group is a heading and a list named by it. The chips are not links yet.
+// them), except a wordmark: a logo that is the name itself stands alone, and its alt text is the name. Each group is a heading and a list named by it. The chips are not links yet.
 
 // Our own line icons, 24 px grid, drawn with a stroke in the plate's text colour.
 const iconPaths: Record<ToolkitIcon, string> = {
@@ -39,6 +39,8 @@ function breakable(name: string) {
     .flatMap((part, index, all) => (index < all.length - 1 ? [part + ".", <wbr key={part} />] : [part]));
 }
 
+const isWordmark = (tool: ToolkitTool) => tool.plate.kind === "logo" && tool.plate.wordmark === true;
+
 function Plate({ tool, group }: { tool: ToolkitTool; group: ToolkitGroup }) {
   const { plate } = tool;
   if (plate.kind === "logo") {
@@ -46,15 +48,15 @@ function Plate({ tool, group }: { tool: ToolkitTool; group: ToolkitGroup }) {
       <span
         className="toolkit-plate"
         data-plate="logo"
-        data-wide={plate.wide ? "" : undefined}
-        aria-hidden="true"
+        data-wordmark={plate.wordmark ? "" : undefined}
+        aria-hidden={plate.wordmark ? undefined : "true"}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- a small static SVG from public/logos/tools, sized by CSS */}
         <img
           src={`${toolLogoDir}${plate.file}`}
-          alt=""
-          width={plate.wide ? 38 : 18}
-          height={plate.wide ? 12 : 18}
+          alt={plate.wordmark ? tool.name : ""}
+          width={plate.wordmark ? 51 : 18}
+          height={plate.wordmark ? 16 : 18}
           decoding="async"
         />
       </span>
@@ -112,7 +114,9 @@ export function Toolkit() {
                     <li key={tool.name} className="toolkit-chip">
                       <Plate tool={tool} group={group} />
                       <span className="toolkit-chip-text">
-                        <span className="toolkit-chip-name">{breakable(tool.name)}</span>
+                        {isWordmark(tool) ? null : (
+                          <span className="toolkit-chip-name">{breakable(tool.name)}</span>
+                        )}
                         {tool.mark ? <sup className="toolkit-mark">{tool.mark}</sup> : null}
                       </span>
                     </li>

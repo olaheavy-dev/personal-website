@@ -40,7 +40,11 @@ const allNames = Object.values(groups).flat();
 const toolkit = (page: Page) => page.getByRole("region", { name: "Toolkit" });
 const overflow = (page: Page) =>
   page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-const chip = (page: Page, name: string) => page.locator(".toolkit-chip", { hasText: name }).first();
+const chip = (page: Page, name: string) =>
+  page
+    .locator(".toolkit-chip")
+    .filter({ has: page.getByText(name, { exact: true }).or(page.getByAltText(name, { exact: true })) })
+    .first();
 const hoverable = (page: Page) => page.evaluate(() => matchMedia("(hover: hover)").matches);
 const transformOf = (page: Page, name: string) =>
   chip(page, name).evaluate((el) => getComputedStyle(el).transform);
@@ -55,7 +59,10 @@ test.describe("work toolkit", () => {
     for (const [group, names] of Object.entries(groups)) {
       const list = section.getByRole("list", { name: group, exact: true });
       await expect(list.getByRole("listitem")).toHaveCount(names.length);
-      for (const name of names) await expect(list.getByText(name, { exact: true })).toBeVisible();
+      for (const name of names)
+        await expect(
+          list.getByText(name, { exact: true }).or(list.getByAltText(name, { exact: true })),
+        ).toBeVisible();
     }
     // No intro line, no counts, no group numbers: the section is the heading and the ticket.
     await expect(section.getByText(/\d+ tools|^0\d$/)).toHaveCount(0);
@@ -79,7 +86,10 @@ test.describe("work toolkit", () => {
 
   test("keeps the plates out of the accessibility tree and serves every logo file", async ({ page }) => {
     await page.goto("/work");
-    await expect(page.locator(".toolkit-plate[aria-hidden='true']")).toHaveCount(37);
+    await expect(page.locator(".toolkit-plate[aria-hidden='true']")).toHaveCount(36);
+    // The Redis wordmark is the chip's name, so it is the one logo assistive technology reads.
+    await expect(toolkit(page).getByRole("img")).toHaveCount(1);
+    await expect(toolkit(page).getByRole("img", { name: "Redis" })).toBeVisible();
     const sources = await page
       .locator(".toolkit-plate img")
       .evaluateAll((imgs) => imgs.map((i) => i.getAttribute("src")));
@@ -101,7 +111,7 @@ test.describe("work toolkit", () => {
     ])
       await expect(toolkit(page).getByText(sentence)).toBeVisible();
     await expect(chip(page, "Python")).toContainText("Python™");
-    await expect(chip(page, "Redis")).toContainText("Redis®");
+    await expect(chip(page, "Redis")).toHaveText("®");
   });
 
   for (const width of [320, 360, 375]) {
@@ -183,7 +193,11 @@ test.describe("work toolkit without JavaScript", () => {
 
   test("shows the same names, plates and notices", async ({ page }) => {
     await page.goto("/work");
-    for (const name of allNames) await expect(toolkit(page).getByText(name, { exact: true })).toBeVisible();
+    const section = toolkit(page);
+    for (const name of allNames)
+      await expect(
+        section.getByText(name, { exact: true }).or(section.getByAltText(name, { exact: true })),
+      ).toBeVisible();
     await expect(page.locator(".toolkit-plate")).toHaveCount(37);
     await expect(page.locator(".toolkit-notch")).toHaveCount(10);
     expect(await overflow(page)).toBeLessThanOrEqual(0);

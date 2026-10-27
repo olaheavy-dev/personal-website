@@ -21,20 +21,28 @@ describe("Toolkit", () => {
     render(<Toolkit />);
     const names = toolkitGroups.flatMap((group) => group.tools.map((tool) => tool.name));
     expect(names).toHaveLength(37);
-    for (const name of names) expect(screen.getByText(name)).toBeInTheDocument();
+    for (const name of names)
+      expect(screen.queryByText(name) ?? screen.getByAltText(name)).toBeInTheDocument();
     expect(screen.queryByText(/\b37\b|tools$/i)).toBeNull();
     expect(screen.queryByText(/^0\d$/)).toBeNull();
   });
 
-  it("hides every plate and icon from assistive technology, and gives logos empty alt text", () => {
+  it("hides every plate and icon from assistive technology, except the Redis wordmark, which names its chip", () => {
     const { container } = render(<Toolkit />);
-    const plates = container.querySelectorAll(".toolkit-plate");
-    expect(plates).toHaveLength(37);
+    const plates = container.querySelectorAll(".toolkit-plate:not([data-wordmark])");
+    expect(plates).toHaveLength(36);
     plates.forEach((plate) => expect(plate).toHaveAttribute("aria-hidden", "true"));
-    const logos = container.querySelectorAll("img");
-    expect(logos).toHaveLength(10);
+    const logos = container.querySelectorAll(".toolkit-plate:not([data-wordmark]) img");
+    expect(logos).toHaveLength(9);
     logos.forEach((img) => expect(img).toHaveAttribute("alt", ""));
-    expect(screen.queryAllByRole("img")).toHaveLength(0);
+    expect(screen.getAllByRole("img").map((img) => img.getAttribute("alt"))).toEqual(["Redis"]);
+  });
+
+  it("shows a wordmark alone, without the name written beside it", () => {
+    const { container } = render(<Toolkit />);
+    const redis = screen.getByAltText("Redis").closest("li")!;
+    expect(redis.querySelector(".toolkit-chip-name")).toBeNull();
+    expect(container.querySelectorAll(".toolkit-chip-name")).toHaveLength(36);
   });
 
   it("puts a notch pair on every divider and none above the first or after the last group", () => {
@@ -67,7 +75,7 @@ describe("Toolkit", () => {
     const marks = [...container.querySelectorAll("sup.toolkit-mark")];
     expect(marks.map((m) => m.textContent)).toEqual(["™", "®"]);
     expect(screen.getByText("Python").closest("li")).toHaveTextContent("Python™");
-    expect(screen.getByText("Redis").closest("li")).toHaveTextContent("Redis®");
+    expect(screen.getByAltText("Redis").closest("li")).toHaveTextContent("®");
   });
 
   it("does not lazy load the logos", () => {

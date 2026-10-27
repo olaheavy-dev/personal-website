@@ -117,3 +117,32 @@ describe("TicketExpander", () => {
     expect(screen.getByRole("button", { name: "Read more" })).toBeInTheDocument();
   });
 });
+
+describe("TicketExpander without JavaScript and with a subject", () => {
+  it("names the button after what it expands, starting with the visible words", () => {
+    render(<TicketExpander subject="Mukuru">Details</TicketExpander>);
+    const button = screen.getByRole("button", { name: "Read more about Mukuru" });
+    expect(button).toHaveTextContent("Read more");
+  });
+
+  it("keeps the plain name without a subject", () => {
+    render(<TicketExpander>Details</TicketExpander>);
+    expect(screen.getByRole("button")).not.toHaveAttribute("aria-label");
+  });
+
+  it("is not inert before hydration, so the server HTML can be read in full", async () => {
+    const { renderToString } = await import("react-dom/server");
+    const html = renderToString(<TicketExpander subject="Mukuru">Details</TicketExpander>);
+    expect(html).not.toContain("inert");
+    expect(html).toContain("ticket-expander-toggle");
+    expect(html).not.toContain("data-hydrated");
+  });
+
+  it("marks itself hydrated and inert once closed in the browser", () => {
+    render(<TicketExpander>Details</TicketExpander>);
+    const button = screen.getByRole("button");
+    const region = document.getElementById(button.getAttribute("aria-controls") as string)!;
+    expect(region).toHaveAttribute("data-hydrated");
+    expect(region.firstElementChild).toHaveAttribute("inert");
+  });
+});

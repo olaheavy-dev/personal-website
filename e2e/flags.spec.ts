@@ -564,3 +564,51 @@ test("@flags Writing on without posts leaves the Lab strip spanning, and Lab wit
   await expect(page.locator("#lab-strip")).toBeVisible();
   await expect(page.locator('a[href="/writing"]')).toHaveCount(0);
 });
+
+test("@flags the Lab band on Work follows page.lab: Off removes it with no gap and no link, On brings it back", async ({
+  page,
+  request,
+}) => {
+  const gap = () =>
+    page.evaluate(() => {
+      const list = document
+        .querySelector('section[aria-label="Work, newest first"]')!
+        .getBoundingClientRect();
+      const next = (document.querySelector("#work-lab") ??
+        document.querySelector("footer"))!.getBoundingClientRect();
+      return Math.round(next.top - list.bottom);
+    });
+
+  await applyFlags(request, flagsWithout("page.lab"), "203.0.113.33");
+  await page.goto("/work");
+  await expect(page.locator("#work-lab")).toHaveCount(0);
+  await expect(page.locator('a[href="/lab"]')).toHaveCount(0);
+  const html = await (await request.get("/work")).text();
+  expect(html).not.toContain("In the lab");
+  expect(html).not.toContain("foresight.olaheavy.dev");
+  // The list is still there, and the footer follows it after one section gap.
+  await expect(page.getByRole("heading", { level: 1, name: "Work" })).toBeVisible();
+  const closed = await gap();
+
+  await applyFlags(request, defaultFlags, "203.0.113.33");
+  await page.goto("/work");
+  await expect(page.locator("#work-lab")).toBeVisible();
+  await expect(page.locator("#work-lab").getByRole("link", { name: /See the whole lab/ })).toHaveAttribute(
+    "href",
+    "/lab",
+  );
+  expect(Math.abs((await gap()) - closed)).toBeLessThanOrEqual(1);
+});
+
+test("@flags with Work Off, Home's tickets are not linked and /work is the Wrong turn 404", async ({
+  page,
+  request,
+}) => {
+  await applyFlags(request, flagsWithout("page.work"), "203.0.113.34");
+  await expectStatus(request, "/work", 404);
+  await page.goto("/");
+  await expect(page.locator('a[href^="/work"]')).toHaveCount(0);
+  await applyFlags(request, defaultFlags, "203.0.113.34");
+  await page.goto("/");
+  await expect(page.locator('#selected-stops h3 a[href^="/work#"]')).toHaveCount(3);
+});

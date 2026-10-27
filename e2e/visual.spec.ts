@@ -3,13 +3,15 @@ import { expect, test } from "@playwright/test";
 // Visual regression (issue #60). Baselines exist only for Linux, made inside the
 // Playwright container that CI uses, because font rendering differs by platform.
 // Run with `make visual`; accept changes with `make visual-accept RUN=<id>`.
-// `/work` stands in for the four coming soon pages, which share one layout.
+// `/lab` stands in for the three coming soon pages, which share one layout; `/work` is the real
+// Work page.
 // Every width is captured in both themes, so the desktop-dark project is
 // skipped here: desktop-light already covers dark at desktop width.
 const themes = ["light", "dark"] as const;
 const routes = [
   { name: "home", path: "/" },
   { name: "work", path: "/work" },
+  { name: "lab", path: "/lab" },
   { name: "wrong-turn", path: "/this-page-does-not-exist" },
 ];
 

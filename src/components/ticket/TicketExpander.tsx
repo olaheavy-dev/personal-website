@@ -4,7 +4,8 @@ import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from
 
 // "Read more" / "Show less" for compact tickets. The height animates by growing a
 // grid row from 0fr to 1fr (see ".ticket-expander" in globals.css), so nothing is
-// measured. A URL hash matching `anchorId` (for example /work#mukuru) opens it, on
+// measured. Without JavaScript the content is open and the button is hidden; a :target
+// pre-opens it before hydration with no layout shift (see globals.css). A URL hash matching `anchorId` (for example /work#mukuru) opens it, on
 // first load and on later same-page navigation (hashchange, back and forward through
 // popstate, and the Navigation API where it exists, which also covers clicking a link
 // to the hash that is already in the URL).
@@ -27,19 +28,33 @@ function subscribeToHash(onChange: () => void) {
 const getHash = () => window.location.hash;
 const getServerHash = () => "";
 
+// False while the server HTML is on screen (and during hydration), true once React runs in the
+// browser. Until then the content is not inert, so a visitor without JavaScript can read it all.
+const subscribeNever = () => () => {};
+const isHydrated = () => true;
+const notHydrated = () => false;
+
 export function TicketExpander({
   anchorId,
   children,
   moreLabel = "Read more",
   lessLabel = "Show less",
+  subject,
 }: {
   /** The id of the ticket (or section) this expands, matched against the URL hash. */
   anchorId?: string;
   children: ReactNode;
   moreLabel?: string;
   lessLabel?: string;
+  /**
+   * What it expands ("Mukuru"). It joins the button's accessible name, "Read more about Mukuru",
+   * which still starts with the visible words (WCAG 2.5.3), so a list of buttons is not a list of
+   * identical "Read more".
+   */
+  subject?: string;
 }) {
   const regionId = useId();
+  const hydrated = useSyncExternalStore(subscribeNever, isHydrated, notHydrated);
   const hash = useSyncExternalStore(subscribeToHash, getHash, getServerHash);
   const matches = anchorId != null && hash === `#${anchorId}`;
   // The visitor's own choice wins until the URL points at this ticket again.
@@ -64,19 +79,34 @@ export function TicketExpander({
     };
   }, [anchorId]);
 
+  const label = open ? lessLabel : moreLabel;
   return (
     <div>
-      <div id={regionId} className="ticket-expander" data-open={open ? "" : undefined}>
-        <div inert={!open}>{children}</div>
+      {/* data-hydrated ends the CSS only states (open for a visitor without JavaScript, and for
+          a :target before this runs) so the state above decides from then on. */}
+      <div
+        id={regionId}
+        className="ticket-expander"
+        data-open={open ? "" : undefined}
+        data-hydrated={hydrated ? "" : undefined}
+      >
+        <div inert={hydrated && !open}>{children}</div>
       </div>
+      {/* Without JavaScript the content is open and there is nothing to press. (A noscript
+          style, not "@media (scripting: none)": it also holds in the browsers and test harness
+          where that feature is not reported.) */}
+      <noscript>
+        <style>{".ticket-expander{grid-template-rows:1fr}.ticket-expander-toggle{display:none}"}</style>
+      </noscript>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={regionId}
+        aria-label={subject ? `${label} about ${subject}` : undefined}
         onClick={() => setChoice({ open: !open, visit })}
-        className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
+        className="ticket-expander-toggle mt-3 inline-flex min-h-11 items-center text-sm font-medium text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
       >
-        {open ? lessLabel : moreLabel}
+        {label}
       </button>
     </div>
   );

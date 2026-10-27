@@ -134,6 +134,11 @@ test.describe("work vehicles", () => {
         }
       }).observe({ type: "layout-shift", buffered: true });
     });
+    // Font files are blocked, so no web font swap can shift text: on a remote server (the post-deploy
+    // smoke run) the fonts can arrive after the first paint, and at 1x pixel density on Linux their
+    // swap moves text slightly. e2e/font-swap.spec.ts measures font swaps separately. Any shift here
+    // is the page or the vehicles.
+    await page.route(/\.woff2?(\?|$)/, (route) => route.abort());
     await page.goto("/work");
     await scrollToEnd(page);
     await settle(page);

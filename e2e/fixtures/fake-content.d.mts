@@ -22,6 +22,7 @@ export type FakeRow = {
   end_year: number | null;
   via: string | null;
   role: string | null;
+  details: string[];
   in_progress: boolean;
   repo_url: string | null;
   live_url: string | null;

@@ -71,10 +71,10 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 6. **What's next (contact band):** eyebrow "What's next", title "Yours?". Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 
 ### Work `/work`
-1. Title + one-line framing ("Ten years of production, from Lagos to the UK") + filter chips.
-2. Vertical route, newest first: HBK (2024 to now) → Deimos clients: Mukuru, uLesson, Optty (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
-3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy), stack.
-4. Cross-link band: "Building on my own time → Lab" (Foresight).
+1. Title "Work" + one-line intro ("Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.", approved 27 Oct 2026) + filter chips.
+2. Vertical route, newest first: HBK (2024 to now) → one Deimos group with its clients Mukuru, uLesson, Optty (heading "Deimos · Senior Software Engineer · 2022 to 2024", each ticket "via Deimos") → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
+3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy). Per stop stacks are dropped; one Toolkit section covers tools.
+4. Cross-link band: "In the lab" → Lab (Foresight).
 5. What's next contact band.
 
 ### Case study `/work/[slug]`
@@ -98,7 +98,7 @@ Lab cards show evidence, not status badges: GitHub, a demo video or GIF, a write
 - Post: title, date, reading time, cover → body (code highlighting, headings TOC on long posts) → "Discuss on Hashnode" link → next/previous → contact band.
 
 ### Travel `/travel`
-1. Globe (lazy) with static map placeholder; journey arcs (Lagos → UK 2022, UK → Albania 2026) + home marker.
+1. Globe (lazy) with static map placeholder; journey arcs (Lagos → UK, UK → Albania; no years shown; the move to the UK was in 2024 with HBK) + home marker.
 2. Timeline scrubber + country list (accessible alternative; works without WebGL).
 3. Country gallery sheet (on selection): country name, years, short story, trips → masonry gallery → lightbox.
 4. Short "why I travel" note; counts (countries, trips) generated from data.
@@ -190,7 +190,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 
 | Concept | Label in UI | Notes |
 |---|---|---|
-| A job / engagement / project on the route | **Stop** (internal name; the UI does not say "stop") | "Project" only in Lab. Stops are numbered from the first job (Galooli 01 to HBK 07) in the data and the Work list order. A ticket eyebrow is the role and years from the owner's CV (owner decision, 27 Oct 2026): `<Role> · via Deimos · <start> to <end>` for a Deimos client stop, `<Role> · <start> to <end>` otherwise, `<start> to now` when the end year is empty. A stop with no role shows years only. Example: "Backend Software Engineer · 2024 to now" |
+| A job / engagement / project on the route | **Stop** (internal name; the UI does not say "stop") | "Project" only in Lab. Stops are numbered from the first job (Galooli 01 to HBK 07) in the data and the Work list order. A ticket eyebrow is the role and years from the owner's CV (owner decision, 27 Oct 2026): `<Role>` over `<start> to <end>`, with `<start> to now` when the end year is empty, and a stop with no role shows years only. A Deimos client stop (`via = 'Deimos'`) shows only `via Deimos`, with no role and no years (owner decision, 27 Oct 2026); its role and years appear once, in the Deimos group heading on /work, `Deimos · <Role> · <start> to <end>`, worked out from the three rows (`deimosGroupHeading`), or just `Deimos` if the rows disagree. Example: "Backend Software Engineer" over "2024 to now" |
 | Card representing a stop | **Ticket** (internal name) | UI shows the stop name, not "ticket" |
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
 | Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |

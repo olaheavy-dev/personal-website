@@ -1,7 +1,7 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, Outcome, Stop } from "@/lib/db/types";
 import type { CaseStudyEntry, PageEntry } from "@/lib/flags/registry";
-import { buildSelectedStops, stopEyebrow } from "./selected-stops";
+import { buildSelectedStops } from "./selected-stops";
 
 const chip: Outcome = {
   id: "o1",
@@ -27,6 +27,7 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
     via: null,
     role: "Senior Software Engineer",
     summary: `About ${slug}.`,
+    details: [],
     stack: [],
     outcomes: [chip],
     ...more,
@@ -52,27 +53,12 @@ const caseLive: CaseStudyEntry[] = [
 ];
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
 
-describe("stopEyebrow", () => {
-  it("is role, via and years, from the owner's CV", () => {
-    expect(stopEyebrow(hbk)).toEqual({ role: "Backend Software Engineer", meta: "2024 to now" });
-    expect(stopEyebrow(optty)).toEqual({
-      role: "Senior Software Engineer",
-      meta: "via Deimos · 2022 to 2024",
-    });
-    expect(stopEyebrow(access)).toEqual({ role: "Senior Software Engineer", meta: "2020 to 2022" });
-  });
-
-  it("shows the years only when the stop has no role", () => {
-    expect(stopEyebrow({ ...optty, role: null })).toEqual({ role: null, meta: "2022 to 2024" });
-  });
-});
-
 describe("buildSelectedStops", () => {
   it("shows Mukuru, Optty and Access Bank, and never HBK, newest first, whatever order they were read in", () => {
     const model = buildSelectedStops(success(all), {}, "public");
     expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["mukuru", "optty", "access-bank"]);
     expect(model?.tickets.at(0)).toMatchObject({
-      eyebrow: { role: "Senior Software Engineer", meta: "via Deimos · 2022 to 2024" },
+      eyebrow: { role: null, meta: "via Deimos" },
       summary: "About mukuru.",
       outcome: chip,
     });

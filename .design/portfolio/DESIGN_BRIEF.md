@@ -38,7 +38,7 @@ Behind the public site sits his own admin: image pipeline, Hashnode sync, assist
 | uLesson | No figures, like Stanbic IBTC. The work is described qualitatively. |
 | Galooli | Galooli's published Nigeria result (~11% fuel saving across several hundred sites, 2021) cited as company context, not a personal claim. |
 | Mukuru | Integration work only. Company context: **17M+ customers served (Mukuru)**, linked to Techzim's 20 years of Mukuru article. Do not imply he built the Oct 2024 Malawi wallet launch. |
-| Job titles | Role titles and years come from the owner's CV and were approved by the owner on 27 Oct 2026: Galooli Technical Support Engineer 2016 to 2018; Access Bank Senior Software Engineer 2018 to 2021; Stanbic IBTC Senior Solutions Developer 2021 to 2022; Optty, uLesson and Mukuru Senior Software Engineer (via Deimos) 2022 to 2024; HBK Backend Software Engineer 2024 to now. Shown as ticket eyebrows. No other title or seniority claim. |
+| Job titles | Role titles and years come from the owner's CV and were approved by the owner on 27 Oct 2026: Galooli Technical Support Engineer 2016 to 2018; Access Bank Senior Software Engineer 2018 to 2021; Stanbic IBTC Senior Solutions Developer 2021 to 2022; Optty, uLesson and Mukuru Senior Software Engineer (via Deimos) 2022 to 2024; HBK Backend Software Engineer 2024 to now. Shown as ticket eyebrows, except that a Deimos client ticket (Optty, uLesson, Mukuru) shows only "via Deimos" and the role and years appear once, in the Deimos group heading on /work ("Deimos · Senior Software Engineer · 2022 to 2024"). No other title or seniority claim. |
 | Personal projects | Repo-verified figures only (e.g. Foresight 17 eval suites; FastPilot faithfulness 0.992, ~210 tests, 90% coverage gate). |
 
 Every number on the site carries a source (public link, repo link, or "own measurement").
@@ -78,7 +78,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 | Work index + Case studies | HBK Aiana (flagship), Optty, Access QuickBucks / Instant Account, Foresight (flagship personal), plus shorter entries for Mukuru, uLesson, Stanbic, Galooli |
 | Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (in progress); GIF and screenshot-led cards |
 | Writing | Hashnode posts rendered natively at `/writing/<slug>`, canonical to olaheavy.dev |
-| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, UK 2022 to now, Albania 2026) |
+| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, United Kingdom, Albania; no years are shown, owner decision 27 Oct 2026) |
 | About | Story, portrait, career-as-route, certifications, education, colophon (perf/a11y badges) |
 | Admin (`/admin`) | Content, images, travel, Hashnode sync, assistant knowledge + evals, feature flags |
 
@@ -166,7 +166,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 
 ## Open Items
 
-- Travel photos and trip stories: supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), UK 2022 to now, Albania 2026).
+- Travel photos and trip stories: supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), United Kingdom, Albania; the owner moved to the UK in 2024 with HBK).
 - Illustrated avatar production (illustrator or image model) from `Andela_Profile.jpeg` and `GeneralProfilepic.jpeg`; poses: wave (hero), thinking (assistant loading), pointing (CTA), travelling (globe), lost (404).
 - FastPilot demo is down (Railway 404). Redeploy via SoloForge or link the Loom until then.
 - Hashnode publication host/handle needed for the integration.

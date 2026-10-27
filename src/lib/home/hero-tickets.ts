@@ -1,7 +1,7 @@
-import type { StopEyebrow } from "./selected-stops";
+import type { StopEyebrow } from "@/lib/stops/eyebrow";
 
 // The hero's two tickets are static (the hero must not wait for the database), so their
-// labels live here once. scripts/check-fake-content.test.ts proves they match what stopEyebrow
+// labels live here once. scripts/check-fake-content.test.ts proves they match what stopEyebrow (src/lib/stops/eyebrow.ts)
 // builds from the seeded HBK and Galooli rows, so they cannot drift from the data.
 
 /** The front ticket, HBK: role over years, as on the work tickets. */

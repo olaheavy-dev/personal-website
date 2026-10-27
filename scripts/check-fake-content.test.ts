@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { contentAnswer, labProjects, stops } from "../e2e/fixtures/fake-content.mjs";
 import { heroFrontEyebrow, heroPeekEyebrow } from "../src/lib/home/hero-tickets";
-import { stopEyebrow } from "../src/lib/home/selected-stops";
+import { stopEyebrow } from "../src/lib/stops/eyebrow";
 
 // The e2e fake serves content rows. This proves none of them can carry a claim the seed does
 // not: the seed's stops, lab projects and outcomes are parsed into records, and every fixture
@@ -99,6 +99,11 @@ describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
         String.raw`update public\.stops set summary = (${quoted}) where slug = '${stop.slug}';`,
       ).exec(code);
       expect(summary ? text(summary[1]!) : null, `${stop.slug} summary`).toEqual(stop.summary);
+      const details = new RegExp(
+        String.raw`update public\.stops set details = array\[(.*)\] where slug = '${stop.slug}';`,
+      ).exec(code);
+      const lines = details ? [...details[1]!.matchAll(new RegExp(quoted, "g"))].map((m) => text(m[0])) : [];
+      expect(lines, `${stop.slug} details`).toEqual(stop.details);
     }
   });
 

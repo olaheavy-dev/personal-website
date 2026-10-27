@@ -33,6 +33,7 @@ const stop = (slug: string, number: number, more: Partial<Stop>): Stop => ({
   via: null,
   role: "Senior Software Engineer",
   summary: `Summary of ${slug}.`,
+  details: [],
   stack: [],
   outcomes: [],
   ...more,
@@ -94,10 +95,11 @@ describe("SelectedStopsView", () => {
     expect(section.querySelectorAll("h1")).toHaveLength(0);
   });
 
-  it("labels each ticket with the role and years from the CV", () => {
+  it("labels each ticket from the CV: role and years, or only 'via Deimos' for a Deimos client", () => {
     const section = view();
-    expect(within(section).getAllByText("Senior Software Engineer")).toHaveLength(3);
-    expect(within(section).getAllByText("via Deimos · 2022 to 2024")).toHaveLength(2);
+    expect(within(section).getAllByText("Senior Software Engineer")).toHaveLength(1);
+    expect(within(section).getAllByText("via Deimos")).toHaveLength(2);
+    expect(within(section).queryByText(/2022 to 2024/)).not.toBeInTheDocument();
     expect(within(section).getByText("2018 to 2021")).toBeInTheDocument();
   });
 

@@ -43,6 +43,8 @@ export type Stop = {
   /** The owner's role at the stop, for example "Senior Software Engineer". Null shows years only. */
   role: string | null;
   summary: string | null;
+  /** Up to four short lines shown when the ticket on /work expands. Empty when there are none. */
+  details: string[];
   stack: string[];
   outcomes: Outcome[];
 };

@@ -533,6 +533,7 @@ export type Database = {
       stops: {
         Row: {
           created_at: string;
+          details: string[];
           end_year: number | null;
           filters: Database["public"]["Enums"]["stop_filter"][];
           id: string;
@@ -551,6 +552,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          details?: string[];
           end_year?: number | null;
           filters?: Database["public"]["Enums"]["stop_filter"][];
           id?: string;
@@ -568,6 +570,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          details?: string[];
           end_year?: number | null;
           filters?: Database["public"]["Enums"]["stop_filter"][];
           id?: string;

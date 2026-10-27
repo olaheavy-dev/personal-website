@@ -15,7 +15,7 @@ import { deimosGroupHeading } from "./deimos";
 // What the /work page shows, worked out from the database rows and the flags. Pure: no reading,
 // no rendering, so every rule and edge state is a plain unit test (issue #10, PR 1).
 
-/** Where the owner was when a stop happened. Lagos until the 2024 move; HBK is in the UK. */
+/** Where the owner was when a stop happened. Lagos until the 2024 move with HBK (owner, 27 Oct 2026: the Deimos years were remote from Lagos); HBK is in the UK. */
 export type WorkEra = "lagos" | "uk";
 
 /** The first stop number in the UK: HBK, stop 07. Every earlier stop is Lagos. One constant. */

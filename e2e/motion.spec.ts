@@ -179,22 +179,30 @@ test.describe("hero name sweep", () => {
 
   test("criterion 5: the sweep causes no layout shift", async ({ page }) => {
     await page.goto("/");
+    // Count from once the web fonts have applied: a font swap is measured in font-swap.spec.ts.
+    const since = await page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return performance.now();
+    });
     await settle(page);
     const shift = await page.evaluate(
-      () =>
+      (from) =>
         new Promise<number>((resolve) => {
           let total = 0;
           const observer = new PerformanceObserver((list) => {
             for (const entry of list.getEntries() as unknown as {
               value: number;
               hadRecentInput: boolean;
+              startTime: number;
             }[]) {
-              if (!entry.hadRecentInput) total += entry.value;
+              if (!entry.hadRecentInput && entry.startTime >= from) total += entry.value;
             }
           });
           observer.observe({ type: "layout-shift", buffered: true });
           setTimeout(() => resolve(total), 300);
         }),
+      since,
     );
     expect(shift).toBeLessThan(0.01);
   });

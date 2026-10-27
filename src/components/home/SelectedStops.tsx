@@ -6,6 +6,7 @@ import { getFlags } from "@/lib/db/queries/flags";
 import { getStops } from "@/lib/db/queries/stops";
 import { getViewer } from "@/lib/flags/visibility";
 import { buildSelectedStops, type SelectedStopsModel } from "@/lib/home/selected-stops";
+import { ArrowRight } from "@/components/site/ArrowRight";
 
 // Home section 4: depth on the three strongest proofs, from the database (stops.summary and
 // each stop's first sourced outcome). The text lives in the database so the owner can edit it
@@ -57,7 +58,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
             <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
               See all work
             </span>
-            <span aria-hidden="true">&rarr;</span>
+            <ArrowRight />
           </a>
         </p>
       ) : null}

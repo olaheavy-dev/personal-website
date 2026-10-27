@@ -293,7 +293,7 @@ test.describe("work page", () => {
   }, testInfo) => {
     test.skip(
       (testInfo.project.use.viewport?.width ?? 0) < 1100,
-      "the 300 and 760 px columns need a wide screen",
+      "the 240 and 760 px columns need a wide screen",
     );
     await page.goto("/work");
     const stops = page.locator("[data-work-entry]");
@@ -302,8 +302,8 @@ test.describe("work page", () => {
         entry.boundingBox(),
         entry.locator(".ticket").first().boundingBox(),
       ]);
-      // The ticket starts after the 300 px rail column and the 40 px gap.
-      expect(ticket!.x - rail!.x).toBeCloseTo(340, 0);
+      // The ticket starts after the 240 px rail column and the 40 px gap.
+      expect(ticket!.x - rail!.x).toBeCloseTo(280, 0);
       expect(ticket!.width).toBeLessThanOrEqual(760);
     }
     const sizes = await page

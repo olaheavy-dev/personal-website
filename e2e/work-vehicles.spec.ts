@@ -53,7 +53,7 @@ const box = (page: Page, selector: string) =>
     });
 
 test.describe("work vehicles", () => {
-  test("after scrolling, one danfo shows at the latest reached Lagos pin with its door open", async ({
+  test("after scrolling down, one danfo shows at the latest reached Lagos pin with its door open", async ({
     page,
   }) => {
     await page.goto("/work");

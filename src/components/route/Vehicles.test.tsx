@@ -206,7 +206,7 @@ describe("RouteObserver and the parked vehicles", () => {
       s.getAttribute("data-parked-at"),
     );
 
-  it("shows the danfo at the latest reached Lagos pin, with its door open there only", async () => {
+  it("scrolling down, shows the danfo at the latest reached Lagos pin, with its door open there only", async () => {
     const { container } = renderWork();
     const pins = [...container.querySelectorAll<HTMLElement>("[data-route-pin]")];
     await reach(pins, 0); // only HBK

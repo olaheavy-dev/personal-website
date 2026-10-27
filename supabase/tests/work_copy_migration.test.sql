@@ -48,9 +48,9 @@ select is(
 );
 
 select is(
-  (select count(*) from public.stops where cardinality(details) > 0),
+  (select count(*) from public.stops where cardinality(details) > 0 and slug in ('galooli', 'stanbic-ibtc', 'ulesson', 'mukuru')),
   4::bigint,
-  'four stops have details'
+  'the four stops this migration covers have details'
 );
 
 select is(

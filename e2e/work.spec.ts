@@ -56,7 +56,7 @@ test.describe("work page", () => {
     await expect(rail("Deimos")).toHaveText("2022 to 2024Senior Software EngineerDeimos · 3 clients");
     await expect(stops.getByText("2022 to 2024", { exact: true })).toHaveCount(1);
     // No role or years eyebrow repeats on a ticket: only the Deimos clients have one.
-    await expect(stops.locator(".ticket p.label-mono")).toHaveText([
+    await expect(stops.locator(".ticket-body > div > p.label-mono")).toHaveText([
       "via Deimos",
       "via Deimos",
       "via Deimos",
@@ -99,10 +99,64 @@ test.describe("work page", () => {
     await expect.poll(() => revealed(detailText, page)).toBe(false);
   });
 
+  test("every one of the seven tickets, flagship or compact, has a Read more button", async ({ page }) => {
+    await page.goto("/work");
+    await expect(list(page).getByRole("button", { name: /^Read more about / })).toHaveCount(7);
+    await expect(list(page).locator("li[id] .ticket")).toHaveCount(7);
+  });
+
+  test("/work#access-bank opens with its four lines and two source links that open in a new tab", async ({
+    page,
+  }) => {
+    await page.goto("/work#access-bank");
+    await expect(page.getByRole("button", { name: "Show less about Access Bank" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    const ticket = page.locator("li#access-bank .ticket");
+    await expect(ticket.locator(".ticket-expander ul").first().locator("li")).toHaveCount(4);
+    await expect(
+      ticket.getByText("Access Bank later extended QuickBucks to instalment checkout on Konga (2023)."),
+    ).toBeVisible();
+    const sources = ticket.getByRole("list", { name: "Sources" });
+    await expect(sources.getByRole("link")).toHaveCount(2);
+    const device = sources.getByRole("link", {
+      name: "Device Finance launch (BusinessPost) (opens in a new tab)",
+    });
+    const konga = sources.getByRole("link", { name: "Konga partnership (opens in a new tab)" });
+    await expect(device).toHaveAttribute(
+      "href",
+      "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
+    );
+    await expect(konga).toHaveAttribute(
+      "href",
+      "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
+    );
+    for (const link of [device, konga]) {
+      await expect(link).toHaveAttribute("target", "_blank");
+      await expect(link).toHaveAttribute("rel", /noopener/);
+    }
+    // Only Access Bank has sources.
+    await expect(list(page).getByRole("list", { name: "Sources" })).toHaveCount(1);
+  });
+
+  test("HBK and Optty open to their approved lines, and the figure stub stays", async ({ page }) => {
+    await page.goto("/work");
+    await page.getByRole("button", { name: "Read more about HBK" }).click();
+    await expect(
+      page.getByText(
+        "Built an evaluation workflow that turned AI quality questions into evidence-based decisions, and helped other teams set up their own.",
+      ),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Read more about Optty" }).click();
+    await expect(page.locator("li#optty .ticket-expander ul").first().locator("li")).toHaveCount(3);
+    await expect(page.locator("li#optty .ticket-stub").getByRole("link", { name: /90\+/ })).toBeVisible();
+  });
+
   test("Tab reaches every Read more button in order", async ({ page }) => {
     await page.goto("/work");
     const names: string[] = [];
-    for (let index = 0; index < 60 && names.length < 4; index += 1) {
+    for (let index = 0; index < 120 && names.length < 7; index += 1) {
       await page.keyboard.press("Tab");
       const name = await page.evaluate(() => {
         const el = document.activeElement;
@@ -111,9 +165,12 @@ test.describe("work page", () => {
       if (name.startsWith("Read more about")) names.push(name);
     }
     expect(names).toEqual([
+      "Read more about HBK",
       "Read more about Mukuru",
       "Read more about uLesson",
+      "Read more about Optty",
       "Read more about Stanbic IBTC",
+      "Read more about Access Bank",
       "Read more about Galooli",
     ]);
   });
@@ -183,7 +240,7 @@ test.describe("work page", () => {
     test(`does not scroll sideways at ${width} px, even with every ticket open`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto("/work");
-      for (const name of ["Mukuru", "uLesson", "Stanbic IBTC", "Galooli"]) {
+      for (const name of ["HBK", "Mukuru", "uLesson", "Optty", "Stanbic IBTC", "Access Bank", "Galooli"]) {
         await page.getByRole("button", { name: `Read more about ${name}` }).click();
       }
       expect(await overflow(page)).toBeLessThanOrEqual(0);
@@ -288,6 +345,8 @@ test.describe("work page", () => {
     expect(results.violations).toEqual([]);
     await page.getByRole("button", { name: "Read more about Galooli" }).click();
     await expect(page.getByText("Deployed IoT energy management")).toBeVisible();
+    await page.getByRole("button", { name: "Read more about Access Bank" }).click();
+    await expect(page.getByRole("link", { name: /Konga partnership/ })).toBeVisible();
     // Back to the top, so the sticky header does not sit over a button when axe measures targets.
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.evaluate(() =>
@@ -314,10 +373,13 @@ test.describe("work page without JavaScript", () => {
       "Mentored junior engineers on the team.",
       "Redesigned the uLesson web platform so pages load faster and learning flows read more clearly.",
       "Added value-added services for remittance customers alongside transfers.",
+      "Built the Device Finance vendor portal, where device partners managed their devices, customers, pickups and integrations.",
+      "Designed transaction tokenisation to keep payment data secure across multiple gateways.",
     ]) {
       await expect(page.getByText(text)).toBeVisible();
     }
     await expect(page.getByRole("link", { name: /17M\+/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Konga partnership/ })).toBeVisible();
     expect(await overflow(page)).toBeLessThanOrEqual(0);
   });
 });

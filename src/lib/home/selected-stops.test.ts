@@ -28,6 +28,7 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
     role: "Senior Software Engineer",
     summary: `About ${slug}.`,
     details: [],
+    detailSources: [],
     stack: [],
     outcomes: [chip],
     ...more,

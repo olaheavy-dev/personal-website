@@ -32,6 +32,7 @@ const stop = (slug: string, number: number, more: Partial<Stop> = {}): Stop => (
   role: "Senior Software Engineer",
   summary: `Summary of ${slug}.`,
   details: [],
+  detailSources: [],
   stack: [],
   outcomes: [],
   ...more,
@@ -43,7 +44,15 @@ const stops = [
     details: ["Deployed it.", "Built dashboards."],
     outcomes: [outcome({ figure: "~11%" })],
   }),
-  stop("access", 2, { kind: "flagship", outcomes: [outcome()] }),
+  stop("access", 2, {
+    kind: "flagship",
+    details: ["Built it.", "Later extended."],
+    detailSources: [
+      { label: "Device Finance FAQ", url: "https://example.com/faq" },
+      { label: "Konga partnership", url: "https://example.com/konga" },
+    ],
+    outcomes: [outcome()],
+  }),
   stop("ulesson", 5, { ...deimos, details: ["Redesigned it."] }),
   stop("mukuru", 6, { ...deimos, details: ["Integrated wallets."] }),
   stop("bare", 3, { summary: null }),
@@ -116,7 +125,9 @@ describe("WorkPageView", () => {
       .querySelectorAll(".ticket h2, .ticket h3");
     expect(titles).toHaveLength(6);
     for (const title of titles) expect(title.className).toContain("text-display-sm");
-    const eyebrows = [...document.querySelectorAll(".ticket p.label-mono")].map((p) => p.textContent);
+    const eyebrows = [...document.querySelectorAll(".ticket-body > div > p.label-mono")].map(
+      (p) => p.textContent,
+    );
     expect(eyebrows).toEqual(["via Deimos", "via Deimos"]);
   });
 
@@ -145,6 +156,32 @@ describe("WorkPageView", () => {
       "true",
     );
     expect(screen.getByText("Deployed it.")).toBeInTheDocument();
+  });
+
+  it("gives a flagship Read more only when it has details, with its sources named and opening in a new tab", async () => {
+    const user = userEvent.setup();
+    render(<WorkPageView model={model()} />);
+    // Access has details, HBK has none: only Access gets the button.
+    expect(screen.getByRole("button", { name: "Read more about Access" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /about Hbk/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Read more about Access" }));
+    expect(screen.getByText("Later extended.")).toBeInTheDocument();
+    const sources = screen.getByRole("list", { name: "Sources" });
+    const links = within(sources).getAllByRole("link");
+    expect(links.map((a) => [a.textContent, a.getAttribute("href"), a.getAttribute("target")])).toEqual([
+      ["Device Finance FAQ (opens in a new tab)", "https://example.com/faq", "_blank"],
+      ["Konga partnership (opens in a new tab)", "https://example.com/konga", "_blank"],
+    ]);
+    for (const link of links) expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+    // The figure stub keeps its own source link.
+    expect(screen.getAllByRole("link", { name: /\(source: Google Play listing/ }).length).toBeGreaterThan(0);
+  });
+
+  it("shows no Sources row on a ticket without sources", async () => {
+    const user = userEvent.setup();
+    render(<WorkPageView model={model()} />);
+    await user.click(screen.getByRole("button", { name: "Read more about Galooli" }));
+    expect(screen.getAllByRole("list", { name: "Sources" })).toHaveLength(1);
   });
 
   it("shows the header and one calm sentence with a home link when the stops are unavailable", () => {

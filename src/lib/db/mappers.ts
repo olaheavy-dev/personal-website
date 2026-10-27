@@ -5,6 +5,7 @@ import type {
   CaseStudy,
   CaseStudySection,
   Country,
+  DetailSource,
   FeatureFlags,
   LabProject,
   Outcome,
@@ -56,9 +57,20 @@ function mapOutcomes(rows: Row<"outcomes">[]): Result<Outcome[]> {
   return success(outcomes);
 }
 
+const detailSourcesSchema = z.array(
+  z.object({ label: z.string().min(1), url: z.string().regex(/^https:\/\/.+/) }),
+);
+
+function mapDetailSources(value: Json): DetailSource[] | null {
+  const parsed = detailSourcesSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
 export function mapStop(row: Row<"stops"> & { outcomes: Row<"outcomes">[] }): Result<Stop> {
   const outcomes = mapOutcomes(row.outcomes);
   if (!outcomes.ok) return outcomes;
+  const detailSources = mapDetailSources(row.detail_sources);
+  if (!detailSources) return failure("invalid_data", `Stop ${row.slug} has malformed detail sources.`);
   return success({
     id: row.id,
     slug: row.slug,
@@ -72,6 +84,7 @@ export function mapStop(row: Row<"stops"> & { outcomes: Row<"outcomes">[] }): Re
     role: row.role,
     summary: row.summary,
     details: row.details,
+    detailSources,
     stack: row.stack,
     outcomes: outcomes.data,
   });

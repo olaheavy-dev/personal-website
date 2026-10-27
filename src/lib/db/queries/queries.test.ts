@@ -24,6 +24,7 @@ const stopRow = {
   via: null,
   summary: null,
   details: [],
+  detail_sources: [],
   stack: [],
   status: "published",
   created_at: "",

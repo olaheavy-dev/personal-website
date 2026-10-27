@@ -22,6 +22,8 @@ const allowedLinks = new Set([
   "https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey",
   "https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/",
   "https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",
+  "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
+  "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
 ]);
 
 describe("supabase/seed.sql", () => {
@@ -222,6 +224,45 @@ describe("supabase/seed.sql", () => {
       "'~11%', 'fuel saving across several hundred sites in Nigeria',\n    'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',\n    'company', 'Galooli', 2021)",
     );
     expect(code).not.toContain("reported by Galooli");
+  });
+
+  it("holds the 27 Oct flagship details and Access Bank sources word for word, and the details migration matches", () => {
+    const details = {
+      hbk: [
+        "Built an evaluation workflow that turned AI quality questions into evidence-based decisions, and helped other teams set up their own.",
+      ],
+      optty: [
+        "Built the API integrations that connect Optty's merchants to buy now, pay later providers and alternative payment methods.",
+        "Designed transaction tokenisation to keep payment data secure across multiple gateways.",
+        "Helped build configurable user experiences and reporting tools that gave the team clearer operational visibility.",
+      ],
+      "access-bank": [
+        "Built QuickBucks, Access Bank's digital lending app for web and mobile, including Device Finance, which lets salaried customers buy a smartphone over 12 months.",
+        "Built the Device Finance vendor portal, where device partners managed their devices, customers, pickups and integrations.",
+        "Built the Instant Account Opening portal, automating onboarding with the Nigeria Inter-Bank Settlement System, identity verification and KYC checks.",
+        "Access Bank later extended QuickBucks to instalment checkout on Konga (2023).",
+      ],
+    };
+    const sources =
+      '[{"label": "Device Finance launch (BusinessPost)", "url": "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]';
+    const migrationFile = "supabase/migrations/20261027163838_ticket_details_content.sql";
+    expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
+    const migration = readFileSync(migrationFile, "utf8");
+    const sql = (text: string) => `'${text.replaceAll("'", "''")}'`;
+    const statements = Object.entries(details).map(([slug, lines]) => {
+      expect(lines.length).toBeLessThanOrEqual(4);
+      return `update public.stops set details = array[${lines.map(sql).join(", ")}] where slug = '${slug}';`;
+    });
+    statements.push(
+      `update public.stops set detail_sources = '${sources}'::jsonb where slug = 'access-bank';`,
+    );
+    for (const statement of statements) {
+      expect(code, statement).toContain(statement);
+      expect(migration, statement).toContain(statement);
+    }
+    expect([...migration.matchAll(/^update public\.stops set /gm)]).toHaveLength(4);
+    // HBK's evaluation work is described by outcome only: no internal tool name.
+    expect(migration).not.toMatch(/raglab|ragas|langsmith/i);
   });
 
   it("starts with only the home flag on", () => {

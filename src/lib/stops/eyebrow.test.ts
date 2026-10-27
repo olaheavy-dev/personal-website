@@ -14,6 +14,7 @@ const base: Stop = {
   role: "Senior Software Engineer",
   summary: null,
   details: [],
+  detailSources: [],
   stack: [],
   outcomes: [],
 };

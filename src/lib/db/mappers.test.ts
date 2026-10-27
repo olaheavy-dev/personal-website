@@ -44,6 +44,7 @@ const stopRow = (over: Partial<StopRow> = {}): StopRow => ({
   role: "Backend Software Engineer",
   summary: null,
   details: [],
+  detail_sources: [],
   stack: [],
   status: "published",
   created_at: "",
@@ -90,6 +91,23 @@ describe("mapStop", () => {
       data: { details: ["One.", "Two."] },
     });
     expect(mapStop(stopRow())).toMatchObject({ ok: true, data: { details: [] } });
+  });
+
+  it("maps the detail sources, empty by default, and fails on a malformed or non https one", () => {
+    const sources = [{ label: "Konga partnership", url: "https://brandcom.ng/x/" }];
+    expect(mapStop(stopRow({ detail_sources: sources }))).toMatchObject({
+      ok: true,
+      data: { detailSources: sources },
+    });
+    expect(mapStop(stopRow())).toMatchObject({ ok: true, data: { detailSources: [] } });
+    for (const bad of [
+      [{ label: "A", url: "http://example.com" }],
+      [{ label: "", url: "https://example.com" }],
+      [{ url: "https://example.com" }],
+      "https://example.com",
+    ]) {
+      expect(mapStop(stopRow({ detail_sources: bad }))).toMatchObject({ ok: false, reason: "invalid_data" });
+    }
   });
 
   it("fails with invalid_data when an outcome has no source", () => {

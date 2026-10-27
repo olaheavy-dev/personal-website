@@ -23,11 +23,13 @@ export interface RouteProps {
   variant: RouteVariant;
   /** on-view: draws once when it enters the viewport. progressive: each pin as it is reached. static: always finished. */
   draw?: RouteDraw;
+  /** Hook for filters: "hidden" hides every vehicle (CSS in globals.css). Default shown. */
+  vehicles?: "shown" | "hidden";
   children: ReactNode;
   className?: string;
 }
 
-export function Route({ variant, draw = "on-view", children, className }: RouteProps) {
+export function Route({ variant, draw = "on-view", vehicles = "shown", children, className }: RouteProps) {
   const base = typeof variant === "string" ? variant : variant.base;
   const md = typeof variant === "string" ? undefined : variant.md;
   const Tag = base === "inline" ? "span" : "div";
@@ -37,6 +39,7 @@ export function Route({ variant, draw = "on-view", children, className }: RouteP
       data-variant={base}
       data-md-variant={md}
       data-draw={draw}
+      data-vehicles={vehicles}
       className={`route ${base === "inline" ? "inline-flex items-center gap-(--route-gap)" : "block"} ${className ?? ""}`.trim()}
     >
       {children}

@@ -1,7 +1,10 @@
+import { PlaneVehicle } from "@/components/route/PaperPlane";
 import { Route } from "@/components/route/Route";
 import { RoutePin, type PinTone } from "@/components/route/RoutePin";
+import { ParkedVehicle, VehicleSprites } from "@/components/route/Vehicles";
 import { WorkStopTicket } from "@/components/work/WorkStopTicket";
-import type { WorkRouteEntry } from "@/lib/work/route";
+import type { WorkRouteEntry, WorkRouteModel } from "@/lib/work/route";
+import { entryKey, planWorkVehicles } from "@/lib/work/vehicles";
 
 // The Work timeline: every stop as a ticket, newest first. From md it is two columns, a rail on
 // the left (a dotted route line, one pin per entry, then the years and the role) and the
@@ -20,24 +23,46 @@ import type { WorkRouteEntry } from "@/lib/work/route";
 //
 // The Deimos entry's pin id is the consultancy's name, "Deimos", not a slug (it has no anchor).
 //
+// Vehicles (issue #66, src/lib/work/vehicles.ts): one danfo drives the Lagos entries (it shows at
+// the latest one the reader has scrolled to, its door open), the paper plane rides the handover
+// leg from the Deimos entry up to HBK, and the London bus waits beside HBK. Each is placed in the
+// rail with no layout effect (absolute, transform and opacity only), and without motion or
+// JavaScript the danfo is parked at the Deimos entry with its door open.
+//
 // Later (the Toolkit PR): the Toolkit section sits in the same two column grid after this list,
 // with the rail label "Toolkit".
 
-const railText = "min-w-0 pt-0.5";
+const railText = "relative min-w-0 self-start pt-0.5";
 const years = "label-mono text-text-secondary";
 const roleLine = "mt-1 text-sm leading-snug font-semibold";
+
+// The parked vehicle for this entry, if it has one: the danfo at a Lagos entry, the bus at HBK.
+function ParkedFor({ keyName, plan }: { keyName: string; plan: ReturnType<typeof planWorkVehicles> }) {
+  if (plan.danfoAt.includes(keyName)) {
+    return <ParkedVehicle kind="danfo" at={keyName} home={keyName === plan.danfoHome} />;
+  }
+  if (keyName === plan.busAt) return <ParkedVehicle kind="bus" at={keyName} home />;
+  return null;
+}
 
 function pinTone(last: boolean, current: boolean): PinTone {
   if (last) return "start";
   return current ? "end" : "default";
 }
 
-export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
+type WorkRouteProps = {
+  entries: WorkRouteEntry[];
+  handover?: Extract<WorkRouteModel, { unavailable: false }>["handover"];
+};
+
+export function WorkRoute({ entries, handover = null }: WorkRouteProps) {
+  const plan = planWorkVehicles({ entries, handover });
   return (
     <section aria-label="Work, newest first" className="mx-auto w-full max-w-wide px-(--gutter)">
+      <VehicleSprites />
       <Route
         variant="vertical"
-        draw="static"
+        draw="progressive"
         className="[--route-gap:var(--space-7)] md:[--route-gap:var(--space-8)]"
       >
         <ol role="list" className="grid gap-(--route-gap)">
@@ -45,7 +70,7 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
             const last = index === entries.length - 1;
             const current =
               entry.type === "stop" ? entry.ticket.current : entry.tickets.some((t) => t.current);
-            const key = entry.type === "stop" ? entry.ticket.slug : entry.via;
+            const key = entryKey(entry);
             return (
               <li
                 key={key}
@@ -57,9 +82,18 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
                   className="grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3"
                   aria-hidden="true"
                 >
-                  <RoutePin id={key} index={index} tone={pinTone(last, current)} leg={!last} />
+                  <RoutePin
+                    id={key}
+                    index={index}
+                    tone={pinTone(last, current)}
+                    leg={!last}
+                    park={plan.danfoAt.includes(key) ? "danfo" : key === plan.busAt ? "bus" : undefined}
+                    vehicle={key === plan.planeLegAt ? <PlaneVehicle /> : undefined}
+                    vehicleDirection="up"
+                  />
                   {entry.type === "stop" ? (
                     <div className={railText} data-rail="">
+                      <ParkedFor keyName={key} plan={plan} />
                       <p className={years}>{entry.ticket.eyebrow.meta}</p>
                       {entry.ticket.eyebrow.role ? (
                         <p className={roleLine}>{entry.ticket.eyebrow.role}</p>
@@ -67,6 +101,7 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
                     </div>
                   ) : (
                     <div className={railText} data-rail="">
+                      <ParkedFor keyName={key} plan={plan} />
                       {entry.years ? <p className={years}>{entry.years}</p> : null}
                       {entry.role ? <p className={roleLine}>{entry.role}</p> : null}
                       <p className="label-mono mt-1 text-lilac-text">

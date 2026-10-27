@@ -496,6 +496,101 @@
     }
   }
 
+  /* Work route vehicles (issue #66). The plane rides the handover leg towards the pin above
+     (nose up); the danfo and the bus are ParkedVehicles in the rail, beside a stop. All are
+     absolutely positioned and move with transform and opacity only, so they never shift layout.
+     Base styles are the parked state (reduced motion, no JavaScript): the vehicle marked
+     data-home shows, the others stay hidden, the danfo's door is open. With motion,
+     RouteObserver marks the latest pin's vehicle (data-latest) and it slows in. */
+  .route-vehicle[data-direction="up"] {
+    --route-plane-turn: -90deg;
+    --route-undrawn-shift: 0 100%;
+  }
+  .route-vehicle[data-direction="up"] .route-seat {
+    /* Clear of the bus disc on phones, which overhangs the pin by half the size difference. */
+    top: calc(var(--danfo-pin-size) / 2 + var(--space-2) + var(--route-plane-length) / 2);
+  }
+  /* Filter hook: a later filter sets data-vehicles="hidden" on the route. */
+  .route[data-vehicles="hidden"] :is(.route-parked, .route-vehicle) {
+    display: none;
+  }
+  .route-parked {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    opacity: 0;
+    z-index: calc(var(--z-base) + 11); /* just above the route pins (z-10) */
+    /* Phones: a 32 px disc centred on the stop's pin (the rail text sits one pin column and
+       one gap to the right of it). */
+    top: calc((var(--route-pin-size) - var(--danfo-pin-size)) / 2 + var(--route-pin-offset, 0px));
+    left: calc((var(--route-pin-size) - var(--danfo-pin-size)) / 2 - var(--route-pin-size) - var(--space-3));
+  }
+  .route-parked[data-home] {
+    opacity: 1;
+  }
+  .route-parked svg {
+    display: block;
+    height: auto;
+  }
+  .route-parked .vehicle-pin {
+    width: var(--danfo-pin-size);
+  }
+  .route-parked .vehicle-side {
+    display: none;
+  }
+  /* The door is shut unless open; sliding back (towards the rear) shows the dark inside. */
+  .route-parked[data-door="open"] .vehicle-door {
+    translate: -30px 0;
+  }
+  /* Forced colours: the outline becomes the system text colour. */
+  @media (forced-colors: active) {
+    .route-parked {
+      --color-border-strong: CanvasText;
+    }
+  }
+  /* From md: the side view, parked under the stop's years and role. */
+  @media (min-width: 48rem) {
+    .route-parked {
+      top: 100%;
+      left: 0;
+      margin-top: var(--space-3);
+    }
+    .route-parked .vehicle-pin {
+      display: none;
+    }
+    .route-parked .vehicle-side {
+      display: block;
+    }
+    .route-parked[data-vehicle="danfo"] .vehicle-side {
+      width: var(--vehicle-danfo-width);
+    }
+    .route-parked[data-vehicle="bus"] .vehicle-side {
+      width: var(--vehicle-bus-width);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .route-parked,
+    .vehicle-door {
+      transition-property: opacity, translate;
+      transition-duration: var(--duration-slow);
+      transition-timing-function: var(--easing-out);
+    }
+    /* The door waits for the van to arrive. */
+    .vehicle-door {
+      transition-delay: var(--duration-slow);
+    }
+    .route-parked[data-vehicle="bus"] {
+      transition-delay: var(--route-draw-duration); /* after the plane has landed */
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-armed] .route-parked:not([data-latest]) {
+      opacity: 0;
+      translate: 0 calc(-1 * var(--space-5));
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-armed] .route-parked[data-latest] {
+      opacity: 1;
+    }
+  }
+
   /* Hero name highlight. The lilac fill lives on a ::before layer so it can sweep in
      without ever touching the text's opacity or visibility (the name is an LCP
      candidate). The base style is the finished highlight: reduced motion, no

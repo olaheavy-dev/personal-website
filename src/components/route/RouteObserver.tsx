@@ -47,9 +47,38 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       if (duplicate) console.warn(`Route: more than one pin has the id "${duplicate}".`);
     }
 
+    // Parked vehicles (the Lagos danfo, the London bus): pins that share a data-route-park group
+    // are visited by one vehicle, which shows at the most recently reached pin of its group
+    // (data-latest, and data-door open on a vehicle that has a door). With reduced motion the
+    // vehicles stay where the markup parks them (data-home), so nothing is marked at all.
+    const slots = new Map<string, HTMLElement>();
+    for (const slot of root.querySelectorAll<HTMLElement>("[data-parked-at]")) {
+      slots.set(slot.dataset.parkedAt ?? "", slot);
+    }
+    const groups = new Map<string, HTMLElement[]>();
+    for (const pin of pins) {
+      const group = pin.dataset.routePark;
+      if (group) groups.set(group, [...(groups.get(group) ?? []), pin]);
+    }
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const park = () => {
+      if (reduced) return;
+      for (const members of groups.values()) {
+        const latest = members.findLast((pin) => pin.hasAttribute("data-reached"));
+        for (const pin of members) {
+          const slot = slots.get(pin.dataset.routePin ?? "");
+          if (!slot) continue;
+          const here = pin === latest;
+          slot.toggleAttribute("data-latest", here);
+          if (slot.hasAttribute("data-door")) slot.setAttribute("data-door", here ? "open" : "closed");
+        }
+      }
+    };
+
     const finish = () => {
       root.setAttribute("data-drawn", "");
       for (const pin of pins) pin.setAttribute("data-reached", "");
+      park();
     };
 
     // No IntersectionObserver: show the finished route at once.
@@ -98,6 +127,7 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
         pinObserver.unobserve(pin);
       }
       reachedCount = Math.max(reachedCount, upTo + 1);
+      park();
       if (reachedCount >= pins.length) {
         window.removeEventListener("resize", onResize);
         pinObserver.disconnect();

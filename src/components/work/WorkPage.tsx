@@ -10,7 +10,11 @@ export function WorkPageView({ model }: { model: WorkRouteModel }) {
   return (
     <main id="main" className="flex flex-col gap-(--section-gap)">
       <PageHeader title={workCopy.h1} intro={workCopy.intro} />
-      {model.unavailable ? <WorkUnavailable /> : <WorkRoute entries={model.entries} />}
+      {model.unavailable ? (
+        <WorkUnavailable />
+      ) : (
+        <WorkRoute entries={model.entries} handover={model.handover} />
+      )}
     </main>
   );
 }

@@ -19,13 +19,22 @@ function Line({ axis }: { axis: "v" | "h" }) {
   );
 }
 
-export function RouteLeg({ style, children }: { style: CSSProperties; children?: ReactNode }) {
+export function RouteLeg({
+  style,
+  children,
+  direction = "down",
+}: {
+  style: CSSProperties;
+  children?: ReactNode;
+  /** Which way the vehicle faces: along the leg ("down") or back towards the pin it left ("up"). */
+  direction?: "down" | "up";
+}) {
   return (
     <span aria-hidden="true" data-route-leg="" style={style} className="route-leg">
       <Line axis="v" />
       <Line axis="h" />
       {children != null && (
-        <span className="route-vehicle">
+        <span className="route-vehicle" data-direction={direction}>
           <span className="route-seat">{children}</span>
         </span>
       )}

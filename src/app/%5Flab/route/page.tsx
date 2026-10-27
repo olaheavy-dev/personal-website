@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import { PlaneVehicle } from "@/components/route/PaperPlane";
 import { Route } from "@/components/route/Route";
 import { RoutePin } from "@/components/route/RoutePin";
+import { ParkedVehicle, VehicleSprites } from "@/components/route/Vehicles";
 import { labPagesEnabled } from "@/lib/lab-pages";
 
 export const metadata: Metadata = { title: "Route lab", robots: { index: false, follow: false } };
@@ -23,6 +24,12 @@ const stops = [
   { slug: "hbk", label: "Stop 07", name: "HBK · Now" },
 ] as const;
 const heights = ["h-16", "h-32", "h-20", "h-40", "h-16", "h-28", "h-20"] as const;
+// The Work route's vehicles, on a small made up route (newest first, like /work).
+const vehicleStops = [
+  { id: "lab-london", name: "London stop", years: "2024 to now", park: "bus" },
+  { id: "lab-lagos-b", name: "Lagos stop, newer", years: "2020 to 2022", park: "danfo" },
+  { id: "lab-lagos-a", name: "Lagos stop, older", years: "2018 to 2020", park: "danfo" },
+] as const;
 const steps = ["Idea", "Design", "Build", "Ship", "Scale"] as const;
 
 function toneFor(index: number, length: number) {
@@ -79,6 +86,39 @@ async function Lab() {
                   vehicle={index === steps.length - 2 ? <PlaneVehicle /> : undefined}
                 />
                 <p className="font-display text-lg tracking-tight">{step}</p>
+              </li>
+            ))}
+          </ol>
+        </Route>
+      </section>
+
+      <section aria-labelledby="lab-vehicles" className="mt-16" data-testid="lab-vehicles">
+        <h2 id="lab-vehicles" className="label-mono text-text-tertiary">
+          Vehicles: the danfo follows the latest Lagos pin reached, the plane rides the leg to London, the bus
+          waits there
+        </h2>
+        <VehicleSprites />
+        <Route variant="vertical" draw="progressive" className="mt-6 [--route-gap:var(--space-9)]">
+          <ol className="grid gap-(--route-gap)">
+            {vehicleStops.map((stop, index) => (
+              <li
+                key={stop.id}
+                className="relative grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3"
+              >
+                <RoutePin
+                  id={stop.id}
+                  index={index}
+                  tone={index === 0 ? "end" : index === vehicleStops.length - 1 ? "start" : "default"}
+                  leg={index < vehicleStops.length - 1}
+                  park={stop.park}
+                  vehicle={index === 0 ? <PlaneVehicle /> : undefined}
+                  vehicleDirection="up"
+                />
+                <div className="relative min-w-0 self-start pt-0.5">
+                  <ParkedVehicle kind={stop.park} at={stop.id} home={index === 1} />
+                  <p className="label-mono text-text-tertiary">{stop.years}</p>
+                  <p className="text-sm font-semibold">{stop.name}</p>
+                </div>
               </li>
             ))}
           </ol>

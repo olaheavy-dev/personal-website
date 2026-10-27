@@ -28,20 +28,20 @@ Only the new Supabase keys are supported. The code refuses the legacy `anon` and
 
 ## Tables
 
-| Table                          | Holds                                                                                          | Public read                       |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------- |
-| `settings`                     | Name, one liner, availability, time zone, social links (key and JSON value)                    | All rows                          |
-| `feature_flags`                | `page.*`, `case.*`, `feature.*` with state on, preview or off. `page.home` is locked on        | Rows that are `on`                |
-| `stops`                        | Jobs and engagements, numbered 01 to 07, years only, with the Work filters                     | Published                         |
-| `case_studies`                 | Long write-ups, TL;DR bullets. Publishing needs 1 to 4 bullets and at least 3 sourced outcomes | Published                         |
-| `case_study_sections`          | The seven fixed sections (`context` to `reflection`)                                           | With a published case study       |
-| `outcomes`                     | Figures with their source. One parent (stop, case study or lab project)                        | With a published parent           |
-| `lab_projects`                 | Personal projects, evidence links, `in_progress`. `raglab` is refused                          | Published                         |
-| `media`                        | Images and video. Alt text needed to publish; AI generated images need a caption               | Published                         |
-| `countries`, `trips`, `photos` | Travel. One home country. Photos carry no coordinates                                          | Published, with published parents |
-| `posts_cache`                  | Hashnode posts cached for Writing                                                              | Published                         |
-| `kb_chunks`                    | Assistant knowledge: `vector(1024)` embeddings (HNSW cosine), generated `fts` (GIN)            | Never (server only)               |
-| `assistant_evals`              | Questions the assistant is scored against                                                      | Never (server only)               |
+| Table                          | Holds                                                                                                      | Public read                       |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `settings`                     | Name, one liner, availability, time zone, social links (key and JSON value)                                | All rows                          |
+| `feature_flags`                | `page.*`, `case.*`, `feature.*` with state on, preview or off. `page.home` is locked on                    | Rows that are `on`                |
+| `stops`                        | Jobs and engagements, numbered 01 to 07, with role, years, up to four `details` lines and the Work filters | Published                         |
+| `case_studies`                 | Long write-ups, TL;DR bullets. Publishing needs 1 to 4 bullets and at least 3 sourced outcomes             | Published                         |
+| `case_study_sections`          | The seven fixed sections (`context` to `reflection`)                                                       | With a published case study       |
+| `outcomes`                     | Figures with their source. One parent (stop, case study or lab project)                                    | With a published parent           |
+| `lab_projects`                 | Personal projects, evidence links, `in_progress`. `raglab` is refused                                      | Published                         |
+| `media`                        | Images and video. Alt text needed to publish; AI generated images need a caption                           | Published                         |
+| `countries`, `trips`, `photos` | Travel. One home country. Photos carry no coordinates                                                      | Published, with published parents |
+| `posts_cache`                  | Hashnode posts cached for Writing                                                                          | Published                         |
+| `kb_chunks`                    | Assistant knowledge: `vector(1024)` embeddings (HNSW cosine), generated `fts` (GIN)                        | Never (server only)               |
+| `assistant_evals`              | Questions the assistant is scored against                                                                  | Never (server only)               |
 
 ### The claims policy in constraints
 
@@ -97,7 +97,7 @@ Content changes are migrations too (decision 0019), because the seed does not re
 
 1. Write the migration so it can run twice and on a fresh database: `update ... where slug = '...'`, and for outcomes `delete from public.outcomes where stop_id = (select id from public.stops where slug = '...')` then `insert ... select ... from public.stops where slug = '...'`, which inserts nothing when the stop does not exist yet.
 2. Put the same values in `supabase/seed.sql`, so a local reset gives the same content.
-3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP tests `supabase/tests/content_migration.test.sql` (26 Oct) and `supabase/tests/stops_role_migration.test.sql` (27 Oct roles) replay a content migration on seeded data and check nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
+3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP tests `supabase/tests/content_migration.test.sql` (26 Oct) and `supabase/tests/stops_role_migration.test.sql` (27 Oct roles) and `supabase/tests/work_copy_migration.test.sql` (27 Oct Work copy) replay a content migration on seeded data and check nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
 
 When the admin (#26, #27) ships, content migrations stop: content is edited in the admin, and migrations are for structure only.
 

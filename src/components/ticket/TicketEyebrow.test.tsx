@@ -23,4 +23,10 @@ describe("TicketEyebrow", () => {
     const { container } = render(<TicketEyebrow role={null} meta="via Deimos" />);
     expect(container.textContent).toBe("via Deimos");
   });
+
+  it("can reserve two lines of height from 768 px so neighbouring titles line up", () => {
+    const { container } = render(<TicketEyebrow role={null} meta="via Deimos" reserveLines />);
+    expect(container.firstElementChild).toHaveClass("md:min-h-[2lh]");
+    expect(container.textContent).toBe("via Deimos");
+  });
 });

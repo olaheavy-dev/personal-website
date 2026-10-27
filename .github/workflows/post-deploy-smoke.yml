@@ -24,6 +24,19 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+    # The same pinned Playwright image as the e2e and visual jobs in ci.yml, so the browser
+    # is preinstalled (`playwright install --with-deps` waited on the apt mirrors for 10 to
+    # 12 minutes on 27 Oct 2026, issue #122). The digest appears in three places (the visual
+    # and e2e jobs in ci.yml, and here); bump all three with @playwright/test. The "Check the
+    # container matches" step fails if the image and the package drift, and `make check`
+    # (scripts/check-playwright-image.mjs) fails if the three digests differ. The image has
+    # git, curl, sed and seq, which the steps below use. Steps in a container job run with
+    # sh, not bash.
+    container:
+      image: mcr.microsoft.com/playwright@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+    env:
+      HOME: /root
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       # Test with the code of the deployed commit, not whatever main is now.
       - name: Check out the deployed commit
@@ -32,6 +45,13 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      # The job runs as root in the container but the workspace belongs to the runner user, and
+      # actions/checkout removes its own temporary safe.directory entry when it finishes, so
+      # without this the git commands in the next step fail with "dubious ownership".
+      # HOME is /root, so the setting persists for the rest of the job.
+      - name: Let git read the workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # If a newer commit reaches the site first (two merges close together), this run stops
       # cleanly: the newer commit's own smoke run tests it.
@@ -78,17 +98,20 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - name: Install dependencies and the Playwright browser
+      # The Playwright image has no make, so these steps call what the make targets run.
+      - name: Install dependencies
         if: ${{ steps.wait.outputs.superseded != 'true' }}
-        run: |
-          make install
-          make e2e-install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check the container matches the Playwright version
+        if: ${{ steps.wait.outputs.superseded != 'true' }}
+        run: ./scripts/check-playwright-container.sh
 
       - name: Browser journeys and axe against the live URL
         if: ${{ steps.wait.outputs.superseded != 'true' }}
         env:
           E2E_BASE_URL: ${{ env.BASE_URL }}
-        run: make e2e
+        run: pnpm test:e2e --grep-invert "@visual|@flags|@cold|@speed"
 
       - name: Keep the Playwright report of a failed run
         if: ${{ failure() }}

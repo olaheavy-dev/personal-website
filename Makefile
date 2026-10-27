@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install migration-order check lint dashes format format-check typecheck test coverage build budget e2e e2e-speed e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
+.PHONY: help install migration-order check lint dashes playwright-image formatformat-check typecheck test coverage build budget e2e e2e-speed e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -12,13 +12,16 @@ help: ## List the available commands
 install: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
 
-check: install lint dashes format-check typecheck coverage build budget client-secrets ## Every gate CI runs on a pull request (except e2e)
+check: install lint dashes playwright-image format-check typecheck coverage build budget client-secrets ## Every gate CI runs on a pull request (except e2e)
 
 lint: ## ESLint, zero warnings allowed
 	pnpm lint
 
 dashes: ## Fail on dashes used between words in any public text (decision 0014)
 	node scripts/check-dashes.mjs
+
+playwright-image: ## Fail unless every workflow pins the same Playwright image digest
+	node scripts/check-playwright-image.mjs
 
 format: ## Rewrite files with Prettier
 	pnpm format
@@ -56,18 +59,11 @@ e2e-speed: ## Home LCP on simulated mobile (Lighthouse's throttling), alone on o
 e2e-flags: ## Flag journeys against the fake Supabase server, one at a time, because they change shared state (after build)
 	pnpm test:e2e --grep @flags --workers=1 --project=desktop-light --project=small-phone
 
-# A cold start with every flagged page Off at build time. It builds on its own (the pages must be
-# baked Off, which needs the fake to start without them) and removes .next afterwards, so run
-# `make build` again before make e2e. Limit: it proves what the build wrote and a fresh server
-# serves. It stops first if port 54329 (the fake) or 3210 (the site) is taken, because a leftover
-# server would be reused and the test would pass or fail against the wrong build. A failed build
-# leaves a partial .next behind; `make build` replaces it. It cannot prove a restart after a revalidation, because `pnpm serve` copies
-# .next/server/app, where the running server writes rebuilt pages, back into the standalone folder.
+# A cold start with every flagged page Off at build time. The steps and their limits are described in
+# scripts/e2e-cold.sh, which CI also runs because its e2e job is in the Playwright image, which has
+# no make. It builds its own build and removes .next afterwards, so run `make build` again before make e2e.
 e2e-cold: ## Off at build time: every flagged page answers 404 on a fresh server (builds its own Off build, removes .next after)
-	@for port in 54329 3210; do if lsof -ti tcp:$$port >/dev/null 2>&1; then echo "e2e-cold: port $$port is in use. Stop that server first."; exit 1; fi; done
-	rm -rf .next
-	FAKE_FLAGS_OFF=page.work,page.lab,page.writing,page.travel,page.about node e2e/fixtures/with-fake-supabase.mjs pnpm build
-	FAKE_FLAGS_OFF=page.work,page.lab,page.writing,page.travel,page.about pnpm test:e2e --grep @cold --workers=1 --project=desktop-light --project=small-phone; status=$$?; rm -rf .next; exit $$status
+	./scripts/e2e-cold.sh
 
 visual: ## Screenshot comparison against the Linux baselines (after build; CI runs it in the Playwright container)
 	pnpm test:e2e --grep @visual

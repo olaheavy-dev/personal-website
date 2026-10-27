@@ -1,3 +1,4 @@
+import { HomeTwoUp } from "@/components/home/HomeTwoUp";
 import { Hero } from "@/components/home/Hero";
 import { JourneyStations } from "@/components/home/JourneyStations";
 import { SelectedStops } from "@/components/home/SelectedStops";
@@ -10,6 +11,7 @@ export default function Home() {
       <LogoRail />
       <JourneyStations />
       <SelectedStops />
+      <HomeTwoUp />
     </main>
   );
 }

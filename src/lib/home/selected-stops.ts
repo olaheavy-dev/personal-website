@@ -4,6 +4,7 @@ import {
   caseStudyHref,
   caseStudyRegistry,
   pageRegistry,
+  visiblePageHref,
   type CaseStudyEntry,
   type PageEntry,
 } from "@/lib/flags/registry";
@@ -89,5 +90,5 @@ export function buildSelectedStops(
     });
   }
   if (tickets.length === 0) return null;
-  return { tickets, routeLink: workVisible ? "/work" : null };
+  return { tickets, routeLink: visiblePageHref("/work", flags, viewer, pages) };
 }

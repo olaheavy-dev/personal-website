@@ -7,6 +7,10 @@ vi.mock("@/components/home/SelectedStops", () => ({
   SelectedStops: () => <section aria-label="Selected stops" />,
 }));
 
+vi.mock("@/components/home/HomeTwoUp", () => ({
+  HomeTwoUp: () => <section aria-label="In the lab" />,
+}));
+
 describe("Home", () => {
   it("has one main heading that names the owner and the positioning line", () => {
     render(<Home />);
@@ -70,5 +74,13 @@ describe("Home", () => {
     const route = screen.getByRole("region", { name: /The route, every time/ });
     const stops = screen.getByRole("region", { name: "Selected stops" });
     expect(route.compareDocumentPosition(stops) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("puts the Lab strip after Selected stops, with no Next stop band of its own", () => {
+    render(<Home />);
+    const stops = screen.getByRole("region", { name: "Selected stops" });
+    const lab = screen.getByRole("region", { name: "In the lab" });
+    expect(stops.compareDocumentPosition(lab) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Yours?" })).toBeNull();
   });
 });

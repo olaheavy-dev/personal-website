@@ -6,6 +6,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
+import { downloadedAssets } from "./budget-assets.mjs";
 import { referencedPublicFiles } from "./budget-public-files.mjs";
 
 const KB = 1024;
@@ -37,13 +38,23 @@ for (const { route, file, maxBytes } of budgets) {
     process.exit(1);
   }
   const html = readFileSync(file);
-  const assets = new Set(html.toString().match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
+  const named = new Set(html.toString().match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
+  const files = new Map();
+  for (const asset of named) {
+    const path = join(".next", decodeURIComponent(asset.replace(/^\/_next/, "")));
+    if (existsSync(path)) files.set(asset, { path, bytes: readFileSync(path) });
+  }
+  // Only what a first visit downloads (budget-assets.mjs): not an inlined stylesheet's file, nor
+  // the font subsets the page has no characters for.
+  const cssTexts = [
+    html.toString(),
+    ...[...files.values()].filter((f) => f.path.endsWith(".css")).map((f) => f.bytes.toString()),
+  ];
+  const assets = downloadedAssets(files.keys(), html.toString(), cssTexts);
   let total = gz(html);
   const texts = [html.toString()];
   for (const asset of assets) {
-    const path = join(".next", decodeURIComponent(asset.replace(/^\/_next/, "")));
-    if (!existsSync(path)) continue;
-    const bytes = readFileSync(path);
+    const { path, bytes } = files.get(asset);
     total += gz(bytes);
     if (path.endsWith(".css")) texts.push(bytes.toString());
   }
@@ -53,7 +64,7 @@ for (const { route, file, maxBytes } of budgets) {
   const ok = total <= maxBytes;
   failed ||= !ok;
   console.log(
-    `budget ${ok ? "ok  " : "FAIL"} ${route}: ${(total / KB).toFixed(1)} KB of ${maxBytes / KB} KB (${assets.size} assets, ${publicFiles.length} public files)`,
+    `budget ${ok ? "ok  " : "FAIL"} ${route}: ${(total / KB).toFixed(1)} KB of ${maxBytes / KB} KB (${assets.length} assets, ${publicFiles.length} public files)`,
   );
 }
 

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
+  // The stylesheet (small, Tailwind) goes inside the HTML, so the first paint does not wait for a
+  // second round trip on a slow phone connection (LCP, issue #9). Experimental in Next 16.
+  experimental: { inlineCss: true },
   // The commit this build came from (the Dockerfile sets BUILD_SHA in its build stage only).
   // Written into the build so /healthz, which runs at request time, can still report it.
   env: { BUILD_SHA: process.env.BUILD_SHA ?? "dev" },

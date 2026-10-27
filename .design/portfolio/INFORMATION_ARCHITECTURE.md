@@ -71,7 +71,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 6. **What's next (contact band):** eyebrow "What's next", title "Yours?". Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 
 ### Work `/work`
-1. Title "Work" + one-line intro ("Seven roles across IoT, banking, cross-border payments, edtech and AI, newest first.", approved 27 Oct 2026) + filter chips.
+1. Title "Work" + one-line intro ("Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.", approved 27 Oct 2026) + filter chips.
 2. Vertical route, newest first: HBK (2024 to now) → one Deimos group with its clients Mukuru, uLesson, Optty (heading "Deimos · Senior Software Engineer · 2022 to 2024", each ticket "via Deimos") → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
 3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy). Per stop stacks are dropped; one Toolkit section covers tools.
 4. Cross-link band: "In the lab" → Lab (Foresight).

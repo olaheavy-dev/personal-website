@@ -21,7 +21,7 @@ export function wayBackLinks(items: readonly NavItem[]): WayBackLink[] {
     links.push({
       href: "/work",
       label: "Work",
-      note: "Seven roles across IoT, banking, cross-border payments, edtech and AI, newest first.",
+      note: "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.",
     });
   }
   return links;

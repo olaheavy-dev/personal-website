@@ -8,7 +8,7 @@
     border: var(--toolkit-border) solid var(--color-border-strong);
     border-radius: var(--border-radius-lg);
     background: var(--color-bg-elevated);
-    box-shadow: var(--shadow-toolkit);
+    box-shadow: var(--shadow-ticket); /* the work tickets' shadow: hard ink offset in light, lilac glow in dark */
   }
 
   /* A group: its name above the chips on phones, beside them from md. Groups run edge to edge

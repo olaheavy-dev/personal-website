@@ -399,7 +399,6 @@
   --toolkit-chip-lift: 2px; /* a chip lifts up and left by this much on hover and focus */
   --shadow-chip: 3px 3px 0 0 var(--color-border-strong); /* hard offset, as the ticket's */
   --shadow-chip-hover: 5px 5px 0 0 var(--color-border-strong);
-  --shadow-toolkit: 4px 4px 0 0 var(--color-border-strong); /* the toolkit ticket's hard offset, ink in light and soft grey in dark */
   --z-skip-link: 100;
 
   /* Motion */

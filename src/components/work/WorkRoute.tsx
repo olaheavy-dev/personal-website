@@ -20,8 +20,8 @@ import type { WorkRouteEntry } from "@/lib/work/route";
 //
 // The Deimos entry's pin id is the consultancy's name, "Deimos", not a slug (it has no anchor).
 //
-// Later (the Toolkit PR): the Toolkit section sits in the same two column grid after this list,
-// with the rail label "Toolkit".
+// The Toolkit section (Toolkit.tsx) sits in the same two column grid after this list, with
+// the rail label "Toolkit".
 
 const railText = "min-w-0 pt-0.5";
 const years = "label-mono text-text-secondary";

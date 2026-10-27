@@ -47,3 +47,46 @@ describe("company logos", () => {
     },
   );
 });
+
+// Tool logos (#10, the Toolkit): official files from the tools' own sites, sanitised copies in
+// public/logos/tools/ (sources and rules in docs/references/logos.md). Held to a stricter rule than
+// the company logos: only shapes, gradients and clips, colours as attributes, nothing external.
+const toolsDir = join(dir, "tools");
+const toolFiles = readdirSync(toolsDir).filter((name) => name.endsWith(".svg"));
+
+describe("tool logos", () => {
+  it("ships exactly the thirteen logos the brands allow, and nothing else", () => {
+    expect([...toolFiles].sort()).toEqual([
+      "csharp.svg",
+      "fastapi.svg",
+      "github.svg",
+      "microsoft-agent-framework.svg",
+      "nextjs.svg",
+      "playwright.svg",
+      "pytest.svg",
+      "python.svg",
+      "qdrant.svg",
+      "react.svg",
+      "redis.svg",
+      "terraform.svg",
+      "typescript.svg",
+    ]);
+    expect(readdirSync(toolsDir)).toHaveLength(toolFiles.length);
+  });
+
+  it.each(toolFiles)("%s is a plain, sanitised SVG with a tight viewBox", (name) => {
+    const svg = readFileSync(join(toolsDir, name), "utf8");
+    expect(svg.startsWith("<svg")).toBe(true);
+    expect(svg).toMatch(/viewBox="[-\d.]+ [-\d.]+ [\d.]+ [\d.]+"/);
+    expect(svg).not.toMatch(/<script/i);
+    expect(svg).not.toMatch(/\son[a-z]+\s*=/i);
+    expect(svg).not.toMatch(/<(image|foreignObject|iframe|style|metadata|title|mask)\b/i);
+    expect(svg).not.toMatch(/<!DOCTYPE|<\?xml|<!--/i);
+    expect(svg).not.toMatch(/\s(class|style)\s*=/i);
+    expect(svg).not.toMatch(/<svg[^>]*\s(width|height)\s*=/);
+    expect(svg).not.toMatch(/(inkscape|sodipodi):/i);
+    expect(svg).not.toMatch(/(href|src)\s*=\s*"(?!#)/i);
+    expect(svg).not.toMatch(/url\(\s*['"]?(?!#)/i);
+    expect(svg).not.toMatch(/https?:\/\/(?!www\.w3\.org\/)/i);
+  });
+});

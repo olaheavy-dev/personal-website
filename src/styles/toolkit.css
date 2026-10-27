@@ -1,0 +1,172 @@
+/* Toolkit (src/components/work/Toolkit.tsx, #10). One large ticket: paper fill, an outline, a
+   hard offset shadow, rounded corners, no stub. Six groups share it, divided by the ticket's
+   dashed tear line with a notch cut into each edge. The notch is a half circle in the page
+   colour with its own outline, centred on the ticket's outer edge. Chips are small solid
+   cards that lift onto a deeper shadow on hover and focus. Every value comes from the tokens. */
+@layer components {
+  .toolkit-ticket {
+    border: var(--toolkit-border) solid var(--color-border-strong);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-toolkit);
+  }
+
+  /* A group: its name above the chips on phones, beside them from md. Groups run edge to edge
+     of the ticket so their notches sit on its outline; the padding is inside. */
+  .toolkit-group {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+  }
+  .toolkit-group:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--ticket-tear-width);
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-border-primary) 0 var(--ticket-perforation),
+      transparent var(--ticket-perforation) calc(2 * var(--ticket-perforation))
+    );
+  }
+  .toolkit-notch {
+    position: absolute;
+    top: calc(var(--ticket-tear-width) / 2 - var(--ticket-notch));
+    width: calc(2 * var(--ticket-notch));
+    height: calc(2 * var(--ticket-notch));
+    box-sizing: border-box;
+    border: var(--toolkit-border) solid var(--color-border-strong);
+    border-radius: var(--border-radius-full);
+    background: var(--color-bg-primary);
+  }
+  .toolkit-notch[data-side="left"] {
+    left: calc(-1 * (var(--toolkit-border) + var(--ticket-notch)));
+    clip-path: inset(0 0 0 50%);
+  }
+  .toolkit-notch[data-side="right"] {
+    right: calc(-1 * (var(--toolkit-border) + var(--ticket-notch)));
+    clip-path: inset(0 50% 0 0);
+  }
+
+  .toolkit-group-name {
+    font-size: var(--toolkit-group-size);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+    min-width: 0;
+  }
+
+  .toolkit-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-content: center;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .toolkit-group {
+      grid-template-columns: var(--toolkit-label-width-md) minmax(0, 1fr);
+      column-gap: var(--space-5);
+      padding-inline: var(--space-5);
+    }
+  }
+  @media (min-width: 64rem) {
+    .toolkit-group {
+      grid-template-columns: var(--toolkit-label-width) minmax(0, 1fr);
+    }
+  }
+
+  /* A chip. The shadow sits inside the flex gap's reach: the gap is wider than the rest shadow. */
+  .toolkit-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    box-sizing: border-box;
+    max-width: 100%;
+    min-height: calc(var(--toolkit-plate) + 2 * var(--space-1) + 2 * var(--toolkit-border));
+    margin: 0 var(--space-1) var(--space-1) 0;
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+    border: var(--toolkit-border) solid var(--color-border-strong);
+    border-radius: var(--border-radius-md);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-chip);
+    transition:
+      transform var(--duration-normal) var(--easing-bounce),
+      box-shadow var(--duration-normal) var(--easing-bounce);
+  }
+  .toolkit-chip-name {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-snug);
+    overflow-wrap: anywhere;
+  }
+
+  /* Lift up and left onto the deeper shadow. Hover only where a pointer can hover; focus covers
+     the day a chip becomes a link. Under reduced motion the shadow changes and nothing moves. */
+  @media (hover: hover) {
+    .toolkit-chip:hover {
+      transform: translate(calc(-1 * var(--toolkit-chip-lift)), calc(-1 * var(--toolkit-chip-lift)));
+      box-shadow: var(--shadow-chip-hover);
+    }
+  }
+  .toolkit-chip:focus-within {
+    transform: translate(calc(-1 * var(--toolkit-chip-lift)), calc(-1 * var(--toolkit-chip-lift)));
+    box-shadow: var(--shadow-chip-hover);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toolkit-chip,
+    .toolkit-chip:hover,
+    .toolkit-chip:focus-within {
+      transform: none;
+    }
+  }
+
+  /* Plates: a round disc beside the name. */
+  .toolkit-plate {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: var(--toolkit-plate);
+    min-width: var(--toolkit-plate);
+    border-radius: var(--border-radius-full);
+  }
+  .toolkit-plate[data-plate="logo"] {
+    background: var(--color-plate);
+    box-shadow: inset 0 0 0 1px var(--color-border-primary);
+  }
+  .toolkit-plate[data-plate="logo"] img {
+    width: var(--toolkit-logo);
+    height: var(--toolkit-logo);
+    object-fit: contain;
+  }
+  .toolkit-plate[data-plate="logo"][data-wide] {
+    padding-inline: var(--space-2);
+  }
+  .toolkit-plate[data-plate="logo"][data-wide] img {
+    width: auto;
+    height: calc(var(--toolkit-logo) * 2 / 3);
+  }
+  .toolkit-plate[data-tint="lilac"] {
+    background: var(--color-lilac-soft);
+    color: var(--color-lilac-text);
+  }
+  .toolkit-plate[data-tint="teal"] {
+    background: var(--color-teal-soft);
+    color: var(--color-teal-text);
+  }
+  .toolkit-plate[data-plate="abbr"] {
+    padding-inline: var(--space-2);
+    font-weight: var(--font-weight-semibold);
+  }
+  .toolkit-plate[data-plate="icon"] svg {
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+}

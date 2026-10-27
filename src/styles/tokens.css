@@ -113,6 +113,9 @@
   --color-route-pin: var(--teal-500);
   --color-route-pin-ring: var(--ink-900);
   --color-plane-paper: var(--paper-50); /* hero paper plane wings: white paper in both themes */
+  --color-plate: var(
+    --paper-50
+  ); /* round plate behind a tool logo: paper in both themes, so black marks stay visible */
 
   /* Status */
   --color-status-success: var(--green-600);
@@ -410,6 +413,17 @@
   --ticket-tear-width: 2px; /* dashed tear line on tickets */
   --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
   --ticket-tear-angle: 0.6deg; /* how far the stub lifts when Email me is hovered or focused */
+  /* Toolkit (Work page, #10): one big ticket of grouped tool chips */
+  --toolkit-border: 2px; /* outline of the ticket and its notches */
+  --toolkit-label-width: 12.5rem; /* 200: group name column from lg */
+  --toolkit-label-width-md: 9.375rem; /* 150: the same at tablet width */
+  --toolkit-group-size: 1.375rem; /* 22: group name */
+  --toolkit-plate: 1.75rem; /* 28: round plate in a chip */
+  --toolkit-logo: 1.125rem; /* 18: logo inside the plate */
+  --toolkit-chip-lift: 2px; /* a chip lifts up and left by this much on hover and focus */
+  --shadow-chip: 3px 3px 0 0 var(--color-border-strong); /* hard offset, as the ticket's */
+  --shadow-chip-hover: 5px 5px 0 0 var(--color-border-strong);
+  --shadow-toolkit: 4px 4px 0 0 var(--color-border-strong); /* the toolkit ticket's hard offset, ink in light and soft grey in dark */
   --z-skip-link: 100;
 
   /* Motion */

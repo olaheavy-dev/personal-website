@@ -22,7 +22,7 @@ pnpm dev                # http://localhost:3000
 
 ```bash
 make check              # lint, format, types, unit tests + coverage, build, page budgets
-make e2e-install        # once: Playwright browser
+make e2e-install        # once: Playwright browser (CI runs in the pinned Playwright image instead)
 make build && make e2e  # browser journeys + axe accessibility (light, dark, mobile)
 make e2e-flags          # feature flag journeys against the fake Supabase server (one at a time)
 make e2e-cold           # every flagged page Off at build time (builds its own build, removes .next after)

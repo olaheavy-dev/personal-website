@@ -1,0 +1,197 @@
+/* --------------------------------------------------------------------------
+   Fallback fonts sized to match the web fonts (layout shift on a late font swap).
+
+   With `font-display: swap` the page paints in a fallback font and swaps when the web font
+   arrives. These rules make the fallback take the same room, so the swap moves nothing.
+   next/font's own fallback is not used: it is `local(Arial)` only, which Chrome on Linux does not
+   resolve, and it is measured at the Regular weight, not the ExtraBold the display text uses
+   (tokens.css names the web fonts directly, because next/font's --font-* variables also list it;
+   `adjustFontFallback: false` is not honoured by this build's Turbopack).
+   Each rule below names fonts that really ship on a platform:
+   Arial / Helvetica / Liberation Sans / Arimo (Windows, macOS, iOS, Linux; same letter widths,
+   so one rule), Roboto (Android), DejaVu Sans (Linux without Liberation), Menlo and DejaVu Sans
+   Mono (macOS, Linux), Courier New / Liberation Mono / Roboto Mono / Cousine (Windows, Linux,
+   Android; same 0.6 em advance). Consolas has no metrics file to read here, so Windows uses
+   Courier New.
+
+   How the numbers were made (recompute them when a font, or a weight used on the site, changes):
+   - size-adjust = width of the web font / width of the fallback font, measured in Chromium with
+     canvas measureText on the real Home text of that family, per weight, with subpixel text
+     positioning (macOS, Windows, Android; Linux at 1x rounds each glyph to whole pixels and no
+     single factor follows that). Weights 400 and 500 use the Regular fallback, 600 and up the Bold
+     one. Measured against Arial: Geist 400 1.0253, 500 1.0411, 600 1.0029 (Arial Bold);
+     Bricolage Grotesque 800 1.0325 (Arial Bold); Geist Mono 0.9966 (Menlo). Roboto, DejaVu Sans
+     and the Courier group are derived from those with each font's average letter width
+     (Next's capsize-font-metrics.json for Arial, Roboto, Roboto Mono and Courier New; fontTools on
+     the DejaVu Sans and Arial files).
+   - ascent, descent and line-gap = the web font's hhea metrics (Bricolage 930 / 270 / 0 per 1000,
+     Geist and Geist Mono 1005 / 295 / 0, read from the woff2 files with fontTools) divided by
+     the size-adjust, as next/font does.
+   MDN: @font-face size-adjust, ascent-override, descent-override and line-gap-override.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Bricolage Fallback Arial";
+  font-weight: 600 900;
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Helvetica-Bold"),
+    local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Arimo Bold");
+  size-adjust: 103.25%;
+  ascent-override: 90.07%;
+  descent-override: 26.15%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Bricolage Fallback Roboto";
+  font-weight: 600 900;
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  size-adjust: 109.61%;
+  ascent-override: 84.85%;
+  descent-override: 24.63%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Bricolage Fallback DejaVu Sans";
+  font-weight: 600 900;
+  src: local("DejaVu Sans Bold"), local("DejaVuSans-Bold");
+  size-adjust: 86.16%;
+  ascent-override: 107.94%;
+  descent-override: 31.34%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Arial";
+  font-weight: 400;
+  src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
+  size-adjust: 102.53%;
+  ascent-override: 98.02%;
+  descent-override: 28.77%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Arial";
+  font-weight: 500;
+  src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
+  size-adjust: 104.1%;
+  ascent-override: 96.54%;
+  descent-override: 28.34%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Arial";
+  font-weight: 600 900;
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Helvetica-Bold"),
+    local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Arimo Bold");
+  size-adjust: 100.29%;
+  ascent-override: 100.21%;
+  descent-override: 29.41%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Roboto";
+  font-weight: 400;
+  src: local("Roboto");
+  size-adjust: 102.76%;
+  ascent-override: 97.81%;
+  descent-override: 28.71%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Roboto";
+  font-weight: 500;
+  src: local("Roboto");
+  size-adjust: 104.33%;
+  ascent-override: 96.33%;
+  descent-override: 28.28%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback Roboto";
+  font-weight: 600 900;
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  size-adjust: 106.46%;
+  ascent-override: 94.4%;
+  descent-override: 27.71%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback DejaVu Sans";
+  font-weight: 400;
+  src: local("DejaVu Sans");
+  size-adjust: 89.39%;
+  ascent-override: 112.43%;
+  descent-override: 33%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback DejaVu Sans";
+  font-weight: 500;
+  src: local("DejaVu Sans");
+  size-adjust: 90.76%;
+  ascent-override: 110.73%;
+  descent-override: 32.5%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Fallback DejaVu Sans";
+  font-weight: 600 900;
+  src: local("DejaVu Sans Bold"), local("DejaVuSans-Bold");
+  size-adjust: 83.69%;
+  ascent-override: 120.09%;
+  descent-override: 35.25%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback Menlo";
+  font-weight: 400;
+  src: local("Menlo"), local("DejaVu Sans Mono");
+  size-adjust: 99.66%;
+  ascent-override: 100.84%;
+  descent-override: 29.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback Menlo";
+  font-weight: 600 900;
+  src: local("Menlo Bold"), local("Menlo-Bold"), local("DejaVu Sans Mono Bold"), local("DejaVuSansMono-Bold");
+  size-adjust: 99.66%;
+  ascent-override: 100.84%;
+  descent-override: 29.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback Courier";
+  font-weight: 400;
+  src: local("Courier New"), local("Liberation Mono"), local("Roboto Mono"), local("Cousine");
+  size-adjust: 99.98%;
+  ascent-override: 100.52%;
+  descent-override: 29.5%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback Courier";
+  font-weight: 600 900;
+  src:
+    local("Courier New Bold"), local("CourierNewPS-BoldMT"), local("Liberation Mono Bold"),
+    local("LiberationMono-Bold"), local("Roboto Mono Bold"), local("Cousine Bold");
+  size-adjust: 99.98%;
+  ascent-override: 100.52%;
+  descent-override: 29.5%;
+  line-gap-override: 0%;
+}

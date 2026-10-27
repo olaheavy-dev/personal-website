@@ -49,12 +49,13 @@ describe("WayBack", () => {
     expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("You are here");
   });
 
-  it("shows an arrow after Home and Work that assistive technology skips", () => {
+  it("shows a drawn arrow after Home and Work that assistive technology skips", () => {
     render(<WayBack items={pageRegistry} />);
     for (const name of [/Home/, /Work/]) {
       const link = screen.getByRole("link", { name });
-      expect(link.querySelector("[aria-hidden='true']")).toHaveTextContent("→");
-      expect(link).not.toHaveAccessibleName(/→/);
+      const arrow = link.querySelector("svg");
+      expect(arrow).toHaveAttribute("aria-hidden", "true");
+      expect(link).toHaveAccessibleName(link.textContent!.trim());
     }
   });
 });

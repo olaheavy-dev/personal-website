@@ -26,6 +26,13 @@ export interface RoutePinProps {
    * stays on the single leg that follows its pin.
    */
   vehicle?: ReactNode;
+  /** Which way the vehicle faces along the leg: "down" (default, towards the next pin) or "up" (back towards the pin above). */
+  vehicleDirection?: "down" | "up";
+  /**
+   * Names a group of pins that one parked vehicle visits (the Lagos danfo). RouteObserver marks
+   * the most recently reached pin of each group, and the ParkedVehicle beside it shows there.
+   */
+  park?: string;
   /**
    * Draws (true) or leaves out (false) the leg after the pin, whatever the tone or `last`. A
    * route listed newest first has its teal "end" pin at the top, with a leg below it.
@@ -46,6 +53,8 @@ export function RoutePin({
   tone = "default",
   index = 0,
   vehicle,
+  vehicleDirection,
+  park,
   leg,
   last = false,
   marker,
@@ -57,6 +66,7 @@ export function RoutePin({
         aria-hidden="true"
         data-route-pin={id}
         data-tone={tone}
+        data-route-park={park}
         style={style}
         className={`route-pin relative z-10 size-(--route-pin-size) shrink-0 rounded-full border-2 border-border-strong ${pinToneClass[tone]}`}
       >
@@ -64,7 +74,11 @@ export function RoutePin({
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{marker}</span>
         )}
       </span>
-      {(leg ?? (tone !== "end" && !last)) && <RouteLeg style={style}>{vehicle}</RouteLeg>}
+      {(leg ?? (tone !== "end" && !last)) && (
+        <RouteLeg style={style} direction={vehicleDirection}>
+          {vehicle}
+        </RouteLeg>
+      )}
     </>
   );
 }

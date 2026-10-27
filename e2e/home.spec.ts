@@ -70,12 +70,20 @@ test.describe("home", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.evaluate(() => {
+    // Count from once the web fonts have applied: a font swap is measured in font-swap.spec.ts.
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const from = performance.now();
       const w = window as unknown as { __cls: number };
       w.__cls = 0;
       new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) {
-          if (!entry.hadRecentInput) w.__cls += entry.value;
+        for (const entry of list.getEntries() as unknown as {
+          value: number;
+          hadRecentInput: boolean;
+          startTime: number;
+        }[]) {
+          if (!entry.hadRecentInput && entry.startTime >= from) w.__cls += entry.value;
         }
       }).observe({ type: "layout-shift", buffered: true });
     });

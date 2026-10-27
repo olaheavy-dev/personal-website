@@ -39,7 +39,7 @@ export function HeroTickets() {
           </ul>
         }
         stub={
-          <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-x-1.5 text-sm">
             <span className="inline-flex items-center gap-2 font-medium whitespace-nowrap">
               <span className="size-2 rounded-full bg-live" aria-hidden="true" />
               Aiana live since 2025 R4
@@ -68,7 +68,9 @@ export function HeroTickets() {
           </div>
         }
       >
-        <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+        {/* Six lines is what it takes with the web font at nearly every width. Reserving them keeps the ticket
+            from growing when a late font swap needs one line more than the fallback did. */}
+        <p className="mt-2 min-h-[6lh] text-sm leading-relaxed text-text-secondary">
           Designing and building HBK&rsquo;s sensor-data analytics platform for test, durability and fatigue
           engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like
           Python code suggestions and file data analysis.

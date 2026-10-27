@@ -98,12 +98,16 @@ async function Lab() {
           waits there
         </h2>
         <VehicleSprites />
-        <Route variant="vertical" draw="progressive" className="mt-6 [--route-gap:var(--space-9)]">
+        <Route
+          variant="vertical"
+          draw="progressive"
+          className="mt-6 [--route-gap:var(--space-9)] [--route-rail-gap:var(--space-3)]"
+        >
           <ol className="grid gap-(--route-gap)">
             {vehicleStops.map((stop, index) => (
               <li
                 key={stop.id}
-                className="relative grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3"
+                className="relative grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-(--route-rail-gap)"
               >
                 <RoutePin
                   id={stop.id}
@@ -115,7 +119,12 @@ async function Lab() {
                   vehicleDirection="up"
                 />
                 <div className="relative min-w-0 self-start pt-0.5">
-                  <ParkedVehicle kind={stop.park} at={stop.id} home={index === 1} />
+                  <ParkedVehicle
+                    kind={stop.park}
+                    at={stop.id}
+                    home={index === 1}
+                    ring={index === 0 ? "end" : index === vehicleStops.length - 1 ? "start" : undefined}
+                  />
                   <p className="label-mono text-text-tertiary">{stop.years}</p>
                   <p className="text-sm font-semibold">{stop.name}</p>
                 </div>

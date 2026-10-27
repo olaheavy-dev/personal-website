@@ -101,10 +101,10 @@ export function VehicleSprites() {
               strokeWidth="1.5"
             />
           ))}
-          <rect x="99" y="40" width="11" height="16" rx="2.5" fill={glass} stroke={ink} strokeWidth="1.5" />
+          <rect x="99" y="40" width="11" height="14" rx="2.5" fill={glass} stroke={ink} strokeWidth="1.5" />
           <path d="M12 36 V66" stroke={paper} strokeWidth="2" strokeLinecap="round" />
-          <circle cx="110" cy="60" r="3.5" fill={paper} stroke={ink} strokeWidth="1.5" />
           <path d="M4 60 H114 V60 a6 6 0 0 1 -6 6 H10 a6 6 0 0 1 -6 -6 Z" fill={ink} />
+          <circle cx="110" cy="57.5" r="3" fill={paper} stroke={ink} strokeWidth="1.25" />
           <path
             d="M4 14 a10 10 0 0 1 10 -10 H98 a16 16 0 0 1 16 16 V60 a6 6 0 0 1 -6 6 H10 a6 6 0 0 1 -6 -6 Z"
             fill="none"
@@ -119,20 +119,22 @@ export function VehicleSprites() {
         {/* Phone pins, 32 px discs: a tiny van front on yellow, two window rows on red. */}
         <symbol id="vehicle-danfo-pin" viewBox="0 0 32 32">
           <circle cx="16" cy="16" r="15" fill="var(--color-danfo)" stroke={outline} strokeWidth="2" />
+          {/* A van's front: windscreen, black grille band, two round headlights, bumper. */}
           <rect
-            x="8"
-            y="7.5"
-            width="16"
-            height="17"
-            rx="3"
+            x="5"
+            y="8"
+            width="22"
+            height="16"
+            rx="3.5"
             fill="var(--color-danfo-band)"
             stroke={ink}
             strokeWidth="1.5"
           />
-          <rect x="10.5" y="10" width="11" height="6" rx="1.5" fill={glass} stroke={ink} strokeWidth="1" />
-          <rect x="10.5" y="18" width="11" height="3" fill={ink} />
-          <circle cx="12.5" cy="19.5" r="1.1" fill={paper} />
-          <circle cx="19.5" cy="19.5" r="1.1" fill={paper} />
+          <rect x="8" y="10.5" width="16" height="6" rx="1.5" fill={glass} stroke={ink} strokeWidth="1" />
+          <rect x="8" y="18" width="16" height="3.5" rx="0.75" fill={ink} />
+          <circle cx="9.5" cy="19.75" r="2" fill={paper} stroke={ink} strokeWidth="0.9" />
+          <circle cx="22.5" cy="19.75" r="2" fill={paper} stroke={ink} strokeWidth="0.9" />
+          <rect x="8" y="22.6" width="16" height="1.4" rx="0.7" fill={ink} />
         </symbol>
         <symbol id="vehicle-bus-pin" viewBox="0 0 32 32">
           <circle cx="16" cy="16" r="15" fill="var(--color-bus)" stroke={outline} strokeWidth="2" />
@@ -156,9 +158,11 @@ export interface ParkedVehicleProps {
   at: string;
   /** Where it rests with reduced motion or without JavaScript. */
   home?: boolean;
+  /** The tone of the pin it covers on phones: a thin ring in that colour shows round the disc. */
+  ring?: "start" | "end";
 }
 
-export function ParkedVehicle({ kind, at, home = false }: ParkedVehicleProps) {
+export function ParkedVehicle({ kind, at, home = false, ring }: ParkedVehicleProps) {
   const door = kind === "danfo" ? (home ? "open" : "closed") : undefined;
   return (
     <span
@@ -169,6 +173,7 @@ export function ParkedVehicle({ kind, at, home = false }: ParkedVehicleProps) {
       data-home={home ? "" : undefined}
       data-door={door}
       data-direction="right"
+      data-ring={ring}
     >
       <svg viewBox={vehicleViewBox[kind]} className="vehicle-side" data-view="side" overflow="visible">
         <use href={`#vehicle-${kind}`} />

@@ -37,11 +37,21 @@ const years = "label-mono text-text-secondary";
 const roleLine = "mt-1 text-sm leading-snug font-semibold";
 
 // The parked vehicle for this entry, if it has one: the danfo at a Lagos entry, the bus at HBK.
-function ParkedFor({ keyName, plan }: { keyName: string; plan: ReturnType<typeof planWorkVehicles> }) {
+function ParkedFor({
+  keyName,
+  plan,
+  tone,
+}: {
+  keyName: string;
+  plan: ReturnType<typeof planWorkVehicles>;
+  tone: PinTone;
+}) {
+  // On phones the disc covers the pin, so it keeps the colour of the first and current pins.
+  const ring = tone === "start" || tone === "end" ? tone : undefined;
   if (plan.danfoAt.includes(keyName)) {
-    return <ParkedVehicle kind="danfo" at={keyName} home={keyName === plan.danfoHome} />;
+    return <ParkedVehicle kind="danfo" at={keyName} home={keyName === plan.danfoHome} ring={ring} />;
   }
-  if (keyName === plan.busAt) return <ParkedVehicle kind="bus" at={keyName} home />;
+  if (keyName === plan.busAt) return <ParkedVehicle kind="bus" at={keyName} home ring={ring} />;
   return null;
 }
 
@@ -63,7 +73,7 @@ export function WorkRoute({ entries, handover = null }: WorkRouteProps) {
       <Route
         variant="vertical"
         draw="progressive"
-        className="[--route-gap:var(--space-7)] md:[--route-gap:var(--space-8)]"
+        className="[--route-gap:var(--space-7)] [--route-rail-gap:var(--space-3)] md:[--route-gap:var(--space-8)]"
       >
         <ol role="list" className="grid gap-(--route-gap)">
           {entries.map((entry, index) => {
@@ -79,7 +89,7 @@ export function WorkRoute({ entries, handover = null }: WorkRouteProps) {
                 className="relative grid gap-y-4 md:grid-cols-[var(--work-rail-width-md)_minmax(0,var(--work-ticket-max))] md:gap-x-6 lg:grid-cols-[var(--work-rail-width)_minmax(0,var(--work-ticket-max))] lg:gap-x-10"
               >
                 <div
-                  className="grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3"
+                  className="grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-(--route-rail-gap)"
                   aria-hidden="true"
                 >
                   <RoutePin
@@ -93,7 +103,7 @@ export function WorkRoute({ entries, handover = null }: WorkRouteProps) {
                   />
                   {entry.type === "stop" ? (
                     <div className={railText} data-rail="">
-                      <ParkedFor keyName={key} plan={plan} />
+                      <ParkedFor keyName={key} plan={plan} tone={pinTone(last, current)} />
                       <p className={years}>{entry.ticket.eyebrow.meta}</p>
                       {entry.ticket.eyebrow.role ? (
                         <p className={roleLine}>{entry.ticket.eyebrow.role}</p>
@@ -101,7 +111,7 @@ export function WorkRoute({ entries, handover = null }: WorkRouteProps) {
                     </div>
                   ) : (
                     <div className={railText} data-rail="">
-                      <ParkedFor keyName={key} plan={plan} />
+                      <ParkedFor keyName={key} plan={plan} tone={pinTone(last, current)} />
                       {entry.years ? <p className={years}>{entry.years}</p> : null}
                       {entry.role ? <p className={roleLine}>{entry.role}</p> : null}
                       <p className="label-mono mt-1 text-lilac-text">

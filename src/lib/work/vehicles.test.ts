@@ -55,14 +55,16 @@ describe("planWorkVehicles", () => {
     expect(plan(all)).toMatchObject({ busAt: "hbk", planeLegAt: "hbk" });
   });
 
-  it("has no plane when the two ends of the handover are not neighbours, but keeps the bus", () => {
+  it("shows neither bus nor plane when the Lagos end of the handover is not in the list", () => {
     const model = modelOf(all);
     const entries = [model.entries[0]!, model.entries[2]!, ...model.entries.slice(3)];
     const result = planWorkVehicles({ entries, handover: { fromSlug: "mukuru", toSlug: "hbk" } });
-    // Mukuru's group entry is gone from the list: no Lagos end to fly from.
     expect(result).toMatchObject({ busAt: null, planeLegAt: null });
+  });
+
+  it("keeps the bus but has no plane when the two ends of the handover are not neighbours", () => {
     const skipped = planWorkVehicles({
-      entries: model.entries,
+      entries: modelOf(all).entries,
       handover: { fromSlug: "galooli", toSlug: "hbk" },
     });
     expect(skipped).toMatchObject({ busAt: "hbk", planeLegAt: null });

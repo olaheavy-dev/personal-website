@@ -52,11 +52,29 @@ function renderWork() {
   return render(<WorkRoute entries={model.entries} handover={model.handover} />);
 }
 
+// jsdom lays nothing out: put every pin below the fold and make the page tall, so a route is not
+// reached at load and the end of the page is not "scrolled to". Tests change `page` to move.
+const page = { scrollY: 0, innerHeight: 768, scrollHeight: 5000 };
+function stubLayout() {
+  page.scrollY = 0;
+  page.scrollHeight = 5000;
+  Object.defineProperty(window, "scrollY", { configurable: true, get: () => page.scrollY });
+  Object.defineProperty(document.documentElement, "scrollHeight", {
+    configurable: true,
+    get: () => page.scrollHeight,
+  });
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ top: 9999 } as DOMRect);
+}
+
 beforeEach(() => {
   observers = [];
   vi.stubGlobal("IntersectionObserver", FakeObserver);
+  stubLayout();
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("VehicleSprites", () => {
   it("draws each vehicle once as a symbol, hidden from assistive technology", () => {

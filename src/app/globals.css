@@ -508,7 +508,7 @@
   }
   .route-vehicle[data-direction="up"] .route-seat {
     /* Clear of the bus disc on phones, which overhangs the pin by half the size difference. */
-    top: calc(var(--danfo-pin-size) / 2 + var(--space-2) + var(--route-plane-length) / 2);
+    top: calc(var(--vehicle-pin-size) / 2 + var(--space-2) + var(--route-plane-length) / 2);
   }
   /* Filter hook: a later filter sets data-vehicles="hidden" on the route. */
   .route[data-vehicles="hidden"] :is(.route-parked, .route-vehicle) {
@@ -519,11 +519,15 @@
     display: block;
     pointer-events: none;
     opacity: 0;
-    z-index: calc(var(--z-base) + 11); /* just above the route pins (z-10) */
-    /* Phones: a 32 px disc centred on the stop's pin (the rail text sits one pin column and
-       one gap to the right of it). */
-    top: calc((var(--route-pin-size) - var(--danfo-pin-size)) / 2 + var(--route-pin-offset, 0px));
-    left: calc((var(--route-pin-size) - var(--danfo-pin-size)) / 2 - var(--route-pin-size) - var(--space-3));
+    z-index: var(--z-route-vehicle);
+    /* Phones: a 32 px disc centred on the stop's pin. The rail text sits one pin column and one
+       column gap to the right of the pin, so the offset is minus both: --route-rail-gap is the
+       same variable the rail grid uses for its gap (WorkRoute and the lab set it on the route). */
+    top: calc((var(--route-pin-size) - var(--vehicle-pin-size)) / 2 + var(--route-pin-offset, 0px));
+    left: calc(
+      (var(--route-pin-size) - var(--vehicle-pin-size)) / 2 - var(--route-pin-size) -
+        var(--route-rail-gap, var(--space-3))
+    );
   }
   .route-parked[data-home] {
     opacity: 1;
@@ -533,14 +537,28 @@
     height: auto;
   }
   .route-parked .vehicle-pin {
-    width: var(--danfo-pin-size);
+    width: var(--vehicle-pin-size);
   }
   .route-parked .vehicle-side {
     display: none;
+    filter: var(--vehicle-drop);
   }
-  /* The door is shut unless open; sliding back (towards the rear) shows the dark inside. */
+  /* A phone disc keeps the colour of the pin it covers: a thin ring, lilac at the first stop
+     and teal at the current one. */
+  .route-parked[data-ring="start"] .vehicle-pin {
+    border-radius: var(--border-radius-full);
+    box-shadow: 0 0 0 var(--route-halo-width) var(--color-lilac);
+  }
+  .route-parked[data-ring="end"] .vehicle-pin {
+    border-radius: var(--border-radius-full);
+    box-shadow: 0 0 0 var(--route-halo-width) var(--color-route-pin);
+  }
+  /* The door is shut unless open. It slides back, in SVG user units (the danfo's 120 wide
+     drawing): from x 44 to the rear edge of the rear window at x 10, so the window is covered
+     whole and the dark inside shows where the door was. */
   .route-parked[data-door="open"] .vehicle-door {
-    translate: -30px 0;
+    --vehicle-door-slide: -34px;
+    translate: var(--vehicle-door-slide) 0;
   }
   /* Forced colours: the outline becomes the system text colour. */
   @media (forced-colors: active) {
@@ -582,12 +600,24 @@
     .route-parked[data-vehicle="bus"] {
       transition-delay: var(--route-draw-duration); /* after the plane has landed */
     }
-    html[data-js]:not([data-route-fallback]) .route[data-armed] .route-parked:not([data-latest]) {
+    /* Hidden from first paint (like the undrawn pins, so nothing shows then vanishes) until
+       RouteObserver marks it. Phones drive in along the line; from md the vehicle drives in
+       from the left (it faces right) and slows into the stop. */
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-parked:not([data-latest]) {
       opacity: 0;
       translate: 0 calc(-1 * var(--space-5));
     }
-    html[data-js]:not([data-route-fallback]) .route[data-armed] .route-parked[data-latest] {
+    html[data-js]:not([data-route-fallback]) .route[data-draw="progressive"] .route-parked[data-latest] {
       opacity: 1;
+    }
+    @media (min-width: 48rem) {
+      html[data-js]:not([data-route-fallback])
+        .route[data-draw="progressive"]
+        .route-parked:not([data-latest]) {
+        translate: calc(-1 * var(--space-7)) 0;
+      }
     }
   }
 

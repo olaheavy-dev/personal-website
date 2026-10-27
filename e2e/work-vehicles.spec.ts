@@ -179,6 +179,87 @@ test.describe("work vehicles", () => {
   });
 });
 
+test.describe("work vehicles on first load", () => {
+  for (const height of [700, 900]) {
+    test(`at 1440 by ${height}, nothing shows then vanishes and the bus follows the plane`, async ({
+      page,
+    }) => {
+      test.skip(page.viewportSize()!.width < 1280, "desktop only");
+      await page.setViewportSize({ width: 1440, height });
+      // From the first frame, note when each vehicle first shows and whether it ever fades out.
+      await page.addInitScript(() => {
+        const w = window as unknown as {
+          __v: Record<string, { first?: number; peak: number; dropped: boolean }>;
+        };
+        w.__v = {};
+        const sample = () => {
+          for (const el of document.querySelectorAll<HTMLElement>(".route-parked, .route-vehicle")) {
+            const key = el.matches(".route-vehicle")
+              ? "plane"
+              : `${el.dataset.vehicle}:${el.dataset.parkedAt}`;
+            const o = Number(getComputedStyle(el).opacity);
+            const entry = (w.__v[key] ??= { peak: 0, dropped: false });
+            if (o > 0.01 && entry.first === undefined) entry.first = performance.now();
+            if (o < entry.peak - 0.3) entry.dropped = true;
+            entry.peak = Math.max(entry.peak, o);
+          }
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+      await page.goto("/work");
+      await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+      await page.waitForTimeout(2500);
+      const seen = await page.evaluate(
+        () =>
+          (window as unknown as { __v: Record<string, { first?: number; peak: number; dropped: boolean }> })
+            .__v,
+      );
+      for (const [key, entry] of Object.entries(seen)) expect(entry.dropped, key).toBe(false);
+      expect(seen["bus:hbk"]?.peak).toBeGreaterThan(0.99);
+      expect(seen["plane"]?.first).toBeDefined();
+      expect(seen["bus:hbk"]!.first!).toBeGreaterThanOrEqual(seen["plane"]!.first!);
+      // The vehicles that show are the bus and the one danfo, with the pins on screen.
+      const shown = Object.entries(seen)
+        .filter(([key, e]) => key !== "plane" && e.peak > 0.99)
+        .map(([key]) => key);
+      expect(shown).toContain("bus:hbk");
+      expect(shown.filter((k) => k.startsWith("danfo")).length).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test("a last pin that is only just visible does not take the danfo past the pins between", async ({
+    page,
+  }) => {
+    test.skip(page.viewportSize()!.width < 1280, "desktop only");
+    await page.setViewportSize({ width: 1440, height: 700 });
+    await page.goto("/work");
+    await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+    // Galooli's pin 10 px above the bottom edge of the screen: visible, below the 60% line.
+    await page.locator("[data-route-pin='galooli']").evaluate((pin) => {
+      window.scrollTo(0, pin.getBoundingClientRect().top + window.scrollY - (window.innerHeight - 10));
+    });
+    await expect(page.locator("[data-route-pin='access-bank'][data-reached]")).toHaveCount(1);
+    await page.waitForTimeout(300);
+    const room =
+      (await page.evaluate(
+        () => document.documentElement.scrollHeight - window.scrollY - window.innerHeight,
+      )) > 1;
+    expect(room).toBe(true);
+    await expect(page.locator("[data-route-pin='galooli'][data-reached]")).toHaveCount(0);
+    await expect(page.locator("[data-vehicle='danfo'][data-latest]")).toHaveAttribute(
+      "data-parked-at",
+      "access-bank",
+    );
+    // At the very end of the page the last pin counts as reached and the danfo arrives.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(page.locator("[data-vehicle='danfo'][data-latest]")).toHaveAttribute(
+      "data-parked-at",
+      "galooli",
+    );
+  });
+});
+
 test.describe("work vehicles with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 

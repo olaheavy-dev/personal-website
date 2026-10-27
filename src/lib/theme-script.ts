@@ -7,11 +7,34 @@
 // Well above a normal hydration time.
 const ROUTE_FALLBACK_MS = 3000;
 
+/**
+ * A deep link to a ticket (/work#galooli) lands on it open from the first layout. The :target
+ * rule in globals.css cannot do that alone: on a slow device the browser paints the page before
+ * it has read to the end and resolved the fragment, so the ticket would open after that paint
+ * and push everything below it down (a layout shift). Runs in <head>, before the body exists,
+ * and adds one rule for the stop the hash names. Only a slug is accepted (lowercase letters,
+ * digits, single hyphens), so the hash cannot inject CSS. The rule ends at hydration, as the
+ * :target one does, or at the first hash change. Written as a function so it can be tested;
+ * the script is its source text.
+ */
+export function openDeepLinkedTicket(): void {
+  const match = /^#([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(window.location.hash);
+  if (!match) return;
+  const style = document.createElement("style");
+  style.setAttribute("data-deep-link", "");
+  style.textContent =
+    'li[id="' + match[1] + '"] .ticket-expander:not([data-hydrated]){grid-template-rows:1fr;transition:none}';
+  document.head.appendChild(style);
+  // The rule is for the first layout only. Once the hash changes, :target decides again.
+  window.addEventListener("hashchange", () => style.remove(), { once: true });
+}
+
 // Runs before first paint. Marks that JavaScript runs (data-js, which gates the
-// route's undrawn state), arms the fallback above, and applies a saved theme.
-// With no saved choice the stylesheet follows prefers-color-scheme, so there is
-// nothing to set for the theme. Shared by the root layout and the global error page.
-export const themeScript = `(function(){var h=document.documentElement;h.setAttribute("data-js","");setTimeout(function(){if(document.querySelector("[data-route]")&&!document.querySelector("[data-armed]"))h.setAttribute("data-route-fallback","")},${ROUTE_FALLBACK_MS});try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})()`;
+// route's undrawn state), arms the fallback above, applies a saved theme and opens a
+// deep linked ticket (above). With no saved choice the stylesheet follows
+// prefers-color-scheme, so there is nothing to set for the theme. Shared by the root
+// layout and the global error page.
+export const themeScript = `(function(){var h=document.documentElement;h.setAttribute("data-js","");setTimeout(function(){if(document.querySelector("[data-route]")&&!document.querySelector("[data-armed]"))h.setAttribute("data-route-fallback","")},${ROUTE_FALLBACK_MS});try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")h.setAttribute("data-theme",t)}catch(e){}})();(${openDeepLinkedTicket.toString()})()`;
 
 /**
  * Applies the saved theme again. The global error page replaces the whole

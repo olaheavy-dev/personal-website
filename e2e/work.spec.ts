@@ -179,6 +179,35 @@ test.describe("work page", () => {
     expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBeLessThan(0.05);
   });
 
+  // On a slow device the browser paints the page before it resolves the fragment, so only the
+  // script that runs before first paint can open the ticket in the first layout (theme-script.ts).
+  test("a deep link on a slow device opens the ticket in the first layout (CLS under 0.05)", async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "CPU throttling needs the Chrome DevTools Protocol");
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 8 });
+    await page.addInitScript(() => {
+      const w = window as unknown as { __cls: number };
+      w.__cls = 0;
+      new PerformanceObserver((entries) => {
+        for (const entry of entries.getEntries() as (PerformanceEntry & {
+          value: number;
+          hadRecentInput: boolean;
+        })[]) {
+          if (!entry.hadRecentInput) w.__cls += entry.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.goto("/work#galooli");
+    await expect(page.getByRole("button", { name: "Show less about Galooli" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.waitForTimeout(800);
+    expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBeLessThan(0.05);
+  });
+
   for (const width of [320, 360, 375]) {
     test(`does not scroll sideways at ${width} px, even with every ticket open`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });

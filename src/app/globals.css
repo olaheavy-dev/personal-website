@@ -251,9 +251,12 @@
   /* A link to /work#mukuru lands on an open ticket before any script runs, so hydration
      changes nothing and the page does not move. Only a stop (an li with an id) opens its
      ticket, so /work#main opens none. data-hydrated ends this rule, and the component's own
-     state decides from then on. */
+     state decides from then on. It opens at once, with no transition: on a slow device the
+     page streams in and paints the ticket closed before :target matches, and growing it then
+     would push everything below it down in view (a layout shift). */
   li[id]:target .ticket-expander:not([data-hydrated]) {
     grid-template-rows: 1fr;
+    transition: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .ticket-expander {

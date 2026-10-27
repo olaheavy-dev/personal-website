@@ -134,19 +134,12 @@ test.describe("work vehicles", () => {
         }
       }).observe({ type: "layout-shift", buffered: true });
     });
+    // Font files are blocked, so no web font swap can shift text: on a remote server (the post-deploy
+    // smoke run) the fonts can arrive after the first paint, and at 1x pixel density on Linux their
+    // swap moves text slightly. e2e/font-swap.spec.ts measures font swaps separately. Any shift here
+    // is the page or the vehicles.
+    await page.route(/\.woff2?(\?|$)/, (route) => route.abort());
     await page.goto("/work");
-    // On a remote server (the post-deploy smoke run) the web fonts can arrive after the first paint,
-    // and on Linux their swap moves text by a fraction of a pixel. That is the font swap, held under
-    // 0.01 by e2e/font-swap.spec.ts, not the vehicles. So the page load gets the same allowance, and
-    // the scroll, when the vehicles drive and park, must shift nothing at all.
-    await page.evaluate(() => document.fonts.ready);
-    const atLoad = await page.evaluate(() => {
-      const w = window as unknown as { __cls: number };
-      const value = w.__cls;
-      w.__cls = 0;
-      return value;
-    });
-    expect(atLoad).toBeLessThan(0.01);
     await scrollToEnd(page);
     await settle(page);
     expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBe(0);

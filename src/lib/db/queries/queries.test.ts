@@ -23,6 +23,7 @@ const stopRow = {
   end_year: 2021,
   via: null,
   summary: null,
+  details: [],
   stack: [],
   status: "published",
   created_at: "",

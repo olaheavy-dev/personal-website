@@ -71,6 +71,7 @@ export function mapStop(row: Row<"stops"> & { outcomes: Row<"outcomes">[] }): Re
     via: row.via,
     role: row.role,
     summary: row.summary,
+    details: row.details,
     stack: row.stack,
     outcomes: outcomes.data,
   });

@@ -97,7 +97,7 @@ Lab cards show evidence, not status badges: GitHub, a demo video or GIF, a write
 - Post: title, date, reading time, cover → body (code highlighting, headings TOC on long posts) → "Discuss on Hashnode" link → next/previous → contact band.
 
 ### Travel `/travel`
-1. Globe (lazy) with static map placeholder; journey arcs (Lagos → UK 2022, UK → Albania 2026) + home marker.
+1. Globe (lazy) with static map placeholder; journey arcs (Lagos → UK, UK → Albania; no years shown; the move to the UK was in 2024 with HBK) + home marker.
 2. Timeline scrubber + country list (accessible alternative; works without WebGL).
 3. Country gallery sheet (on selection): country name, years, short story, trips → masonry gallery → lightbox.
 4. Short "why I travel" note; counts (countries, trips) generated from data.

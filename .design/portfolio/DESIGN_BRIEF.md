@@ -78,7 +78,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 | Work index + Case studies | HBK Aiana (flagship), Optty, Access QuickBucks / Instant Account, Foresight (flagship personal), plus shorter entries for Mukuru, uLesson, Stanbic, Galooli |
 | Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (in progress); GIF and screenshot-led cards |
 | Writing | Hashnode posts rendered natively at `/writing/<slug>`, canonical to olaheavy.dev |
-| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, UK 2022 to now, Albania 2026) |
+| Travel | 3D globe, journey arcs + timeline, per-country gallery (Nigeria home, United Kingdom, Albania; no years are shown, owner decision 27 Oct 2026) |
 | About | Story, portrait, career-as-route, certifications, education, colophon (perf/a11y badges) |
 | Admin (`/admin`) | Content, images, travel, Hashnode sync, assistant knowledge + evals, feature flags |
 
@@ -166,7 +166,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 
 ## Open Items
 
-- Travel photos and trip stories: supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), UK 2022 to now, Albania 2026).
+- Travel photos and trip stories: supplied via admin after launch of the Travel page (seeded countries: Nigeria (home), United Kingdom, Albania; the owner moved to the UK in 2024 with HBK).
 - Illustrated avatar production (illustrator or image model) from `Andela_Profile.jpeg` and `GeneralProfilepic.jpeg`; poses: wave (hero), thinking (assistant loading), pointing (CTA), travelling (globe), lost (404).
 - FastPilot demo is down (Railway 404). Redeploy via SoloForge or link the Loom until then.
 - Hashnode publication host/handle needed for the integration.

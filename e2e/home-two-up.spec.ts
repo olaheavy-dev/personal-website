@@ -196,6 +196,22 @@ test.describe("lab strip", () => {
     }
   });
 
+  test("fits 320 px without scrolling sideways, with every ticket eyebrow inside its ticket", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto("/");
+    expect(await overflow(page), "320px").toBeLessThanOrEqual(0);
+    const outside = await page.evaluate(
+      () =>
+        [...document.querySelectorAll("p.label-mono span")].filter((el) => {
+          const ticket = el.closest("[data-layout]");
+          return ticket && el.getBoundingClientRect().right > ticket.getBoundingClientRect().right;
+        }).length,
+    );
+    expect(outside).toBe(0);
+  });
+
   test("has no accessibility violations", async ({ page }) => {
     await page.goto("/");
     const results = await new AxeBuilder({ page }).include("#lab-writing").withTags(tags).analyze();

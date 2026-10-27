@@ -38,6 +38,7 @@ Behind the public site sits his own admin: image pipeline, Hashnode sync, assist
 | uLesson | No figures, like Stanbic IBTC. The work is described qualitatively. |
 | Galooli | Galooli's published Nigeria result (~11% fuel saving across several hundred sites, 2021) cited as company context, not a personal claim. |
 | Mukuru | Integration work only. Company context: **17M+ customers served (Mukuru)**, linked to Techzim's 20 years of Mukuru article. Do not imply he built the Oct 2024 Malawi wallet launch. |
+| Job titles | Role titles and years come from the owner's CV and were approved by the owner on 27 Oct 2026: Galooli Technical Support Engineer 2016 to 2018; Access Bank Senior Software Engineer 2018 to 2021; Stanbic IBTC Senior Solutions Developer 2021 to 2022; Optty, uLesson and Mukuru Senior Software Engineer (via Deimos) 2022 to 2024; HBK Backend Software Engineer 2024 to now. Shown as ticket eyebrows. No other title or seniority claim. |
 | Personal projects | Repo-verified figures only (e.g. Foresight 17 eval suites; FastPilot faithfulness 0.992, ~210 tests, 90% coverage gate). |
 
 Every number on the site carries a source (public link, repo link, or "own measurement").
@@ -73,7 +74,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 
 | Page | Purpose |
 |---|---|
-| Home | 5-second answer + journey + selected stops + email CTA (≤ 5 viewports at 1440×900) |
+| Home | 5-second answer + How I work + selected work + email CTA (≤ 5 viewports at 1440×900) |
 | Work index + Case studies | HBK Aiana (flagship), Optty, Access QuickBucks / Instant Account, Foresight (flagship personal), plus shorter entries for Mukuru, uLesson, Stanbic, Galooli |
 | Lab | Foresight, FastPilot, HomeScout (in progress), SabiTutor (in progress); GIF and screenshot-led cards |
 | Writing | Hashnode posts rendered natively at `/writing/<slug>`, canonical to olaheavy.dev |
@@ -145,7 +146,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 3. **Robust routing:** 0 × 404s on a crawl; per-page OG images; stable, readable slugs.
 4. **Proof density:** each flagship case study has TL;DR ≤ 4 bullets, ≥ 3 sourced outcomes (or sourced public facts), one architecture diagram, one V1→V2 decision, one production trade-off or incident, sticky TOC.
 5. **Grounded assistant:** suggested prompts; first token < 1s; every answer cited and deep-linked; graceful refusals; "How this works" trace; keyboard-operable; never auto-opens; passes its own eval set in CI.
-6. **One metaphor:** the route appears in ≥ 4 places (hero, work, travel, contact "next stop"); no competing gimmick system.
+6. **One metaphor:** the route appears in ≥ 4 places (hero line, How I work, Work, Travel; the contact band is "What's next"); no competing gimmick system.
 7. **Type & colour discipline:** 2 typefaces + 1 mono; designed light and dark themes; no theme flash.
 8. **Delight budget:** exactly three (assistant, ⌘K, passport), each discoverable within 10s, none blocking; sound off.
 9. **Globe quality:** loaded on route/intent only; ≤ 250KB gzip for the 3D layer; 60fps M1 / ≥ 45fps mid Android; static placeholder until hydrated; accessible list fallback.

@@ -1,4 +1,6 @@
 import { Ticket } from "@/components/ticket/Ticket";
+import { TicketEyebrow } from "@/components/ticket/TicketEyebrow";
+import { heroFrontEyebrow, heroPeekEyebrow } from "@/lib/home/hero-tickets";
 
 // Two stacked, slightly tilted tickets beside the hero: the current stop (HBK)
 // in front, the previous one peeking behind. Built on the shared Ticket component.
@@ -14,14 +16,14 @@ export function HeroTickets() {
         notches="side"
         className="absolute inset-x-6 top-0"
         bodyPadding="px-5 pt-4 pb-16"
-        eyebrow="Technical Support Engineer · 2016 to 2018"
+        eyebrow={heroPeekEyebrow}
         aria-hidden="true"
       />
 
       {/* Current stop */}
       <Ticket
         tilt="front"
-        eyebrow="Backend Software Engineer · 2024 to now"
+        eyebrow={<TicketEyebrow {...heroFrontEyebrow} />}
         badge="HBK"
         title="Advantage Insights"
         chips={

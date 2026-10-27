@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import { contentAnswer, labProjects, stops } from "../e2e/fixtures/fake-content.mjs";
+import { heroFrontEyebrow, heroPeekEyebrow } from "../src/lib/home/hero-tickets";
+import { stopEyebrow } from "../src/lib/home/selected-stops";
 
 // The e2e fake serves content rows. This proves none of them can carry a claim the seed does
 // not: the seed's stops, lab projects and outcomes are parsed into records, and every fixture
@@ -159,5 +161,15 @@ describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
     expect(contentAnswer("stops", "empty")).toEqual({ status: 200, body: [] });
     expect(contentAnswer("lab_projects", "error")?.status).toBe(500);
     expect(contentAnswer("feature_flags", "ok")).toBeNull();
+  });
+
+  it("keeps the static hero ticket labels in step with the HBK and Galooli rows", () => {
+    const toStop = (slug: string) => {
+      const row = stops.find((stop) => stop.slug === slug)!;
+      return { role: row.role, via: row.via, startYear: row.start_year, endYear: row.end_year };
+    };
+    expect(heroFrontEyebrow).toEqual(stopEyebrow(toStop("hbk")));
+    const galooli = stopEyebrow(toStop("galooli"));
+    expect(heroPeekEyebrow).toBe(`${galooli.meta} \u00b7 Galooli`);
   });
 });

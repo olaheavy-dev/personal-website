@@ -1,21 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import { Ticket } from "./Ticket";
+import { TicketEyebrow } from "./TicketEyebrow";
 
 describe("Ticket", () => {
-  it("keeps each part of a string eyebrow on one line, so a wrap only falls between parts", () => {
-    const { container } = render(
-      <Ticket as="div" eyebrow="Senior Software Engineer · via Deimos · 2022 to 2024" />,
-    );
-    const label = container.querySelector("p.label-mono")!;
-    expect(label.textContent).toBe(
-      "Senior\u00a0Software\u00a0Engineer\u00a0· via\u00a0Deimos\u00a0· 2022\u00a0to\u00a02024",
-    );
-  });
-
   it("renders every slot in the large stacked layout", () => {
     render(
       <Ticket
-        eyebrow="Backend Software Engineer · 2024 to now"
+        eyebrow={<TicketEyebrow role="Backend Software Engineer" meta="2024 to now" />}
         badge="HBK"
         title="Advantage Insights"
         chips={
@@ -32,7 +23,8 @@ describe("Ticket", () => {
     expect(ticket).toHaveAttribute("data-layout", "stacked");
     expect(ticket).toHaveAttribute("data-size", "large");
     expect(ticket).toHaveAttribute("data-stub");
-    expect(within(ticket).getByText("Backend Software Engineer · 2024 to now")).toBeInTheDocument();
+    expect(within(ticket).getByText("Backend Software Engineer")).toBeInTheDocument();
+    expect(within(ticket).getByText("2024 to now")).toBeInTheDocument();
     expect(within(ticket).getByText("HBK")).toBeInTheDocument();
     expect(within(ticket).getByRole("heading", { level: 2 })).toHaveTextContent("Advantage Insights");
     expect(within(ticket).getByText("Body text")).toBeInTheDocument();

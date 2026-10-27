@@ -1,3 +1,4 @@
+import { TicketEyebrow } from "@/components/ticket/TicketEyebrow";
 import { SectionLabel } from "@/components/home/SectionLabel";
 import { MetricChip } from "@/components/ticket/MetricChip";
 import { Ticket } from "@/components/ticket/Ticket";
@@ -26,7 +27,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
               {...(ticket.href ? { href: ticket.href } : {})}
               title={ticket.title}
               headingLevel={3}
-              eyebrow={ticket.eyebrow}
+              eyebrow={<TicketEyebrow {...ticket.eyebrow} />}
               className="w-full"
               bodyPadding="flex-1 px-6 pt-5 pb-5"
               stub={

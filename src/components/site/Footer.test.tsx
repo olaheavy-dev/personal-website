@@ -12,7 +12,7 @@ function renderFooter() {
 }
 
 describe("Footer", () => {
-  it("ends the route with a next stop and both contact actions", () => {
+  it("ends the route with a What's next band and both contact actions", () => {
     renderFooter();
     expect(screen.getByRole("heading", { level: 2, name: "Yours?" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Email me/ })).toHaveAttribute("href", `mailto:${site.email}`);

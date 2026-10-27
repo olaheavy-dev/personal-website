@@ -24,7 +24,10 @@ export function NextStopBand() {
               <p className="label-mono text-text-tertiary">Availability</p>
               <p className="mt-3 flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-live" aria-hidden="true" />
-                {site.availability}
+                <span>
+                  <span className="block">{site.availabilityParts[0]}</span>
+                  <span className="block">{site.availabilityParts[1]}</span>
+                </span>
               </p>
             </div>
             {profiles.length || site.resumeUrl ? (

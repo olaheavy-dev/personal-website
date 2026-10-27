@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 // The seed is public content, so it follows the claims policy (decision 0005) and the
 // personal data rules. The pgTAP test seed_claims.test.sql checks what the database
@@ -154,7 +154,9 @@ describe("supabase/seed.sql", () => {
       mukuru: "Senior Software Engineer",
       hbk: "Backend Software Engineer",
     };
-    const migration = readFileSync("supabase/migrations/20261027115039_stops_role_content.sql", "utf8");
+    const migrationFile = "supabase/migrations/20261027115039_stops_role_content.sql";
+    expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
+    const migration = readFileSync(migrationFile, "utf8");
     for (const [slug, text] of Object.entries(roles)) {
       const statement = `update public.stops set role = '${text}' where slug = '${slug}';`;
       expect(code, `${slug} in the seed`).toContain(statement);

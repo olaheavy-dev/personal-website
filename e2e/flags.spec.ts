@@ -177,7 +177,7 @@ test("@flags with every page off the header is still usable: no empty nav, no Me
   request,
 }) => {
   await applyFlags(request, flagsWithout(...allPages), "203.0.113.7");
-  for (const width of [1440, 375, 360]) {
+  for (const width of [1440, 375, 360, 320]) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Main" })).toHaveCount(0);
@@ -197,9 +197,9 @@ test("@flags with every page off the header is still usable: no empty nav, no Me
   await expect(page.getByRole("list", { name: "The way back" }).getByRole("link")).toHaveCount(1);
 });
 
-test("@flags with items off there is no sideways scroll at 375 and 360", async ({ page, request }) => {
+test("@flags with items off there is no sideways scroll at 375, 360 and 320", async ({ page, request }) => {
   await applyFlags(request, flagsWithout("page.work", "page.lab"), "203.0.113.8");
-  for (const width of [375, 360]) {
+  for (const width of [375, 360, 320]) {
     await page.setViewportSize({ width, height: 800 });
     for (const path of ["/", "/writing", "/this-page-does-not-exist"]) {
       await page.goto(path);

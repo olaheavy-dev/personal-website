@@ -18,8 +18,8 @@ export const selectedStopSlugs = ["mukuru", "optty", "access-bank"] as const;
 
 export type SelectedTicket = {
   slug: string;
-  /** Mono station label, for example "Senior Software Engineer · via Deimos · 2022 to 2024". */
-  eyebrow: string;
+  /** Role over meta, for example "Senior Software Engineer" over "via Deimos · 2022 to 2024". */
+  eyebrow: StopEyebrow;
   title: string;
   /** Null when the stop has no summary: the ticket then shows no paragraph. */
   summary: string | null;
@@ -35,16 +35,19 @@ export type SelectedStopsModel = {
   routeLink: "/work" | null;
 };
 
+/** A ticket eyebrow in two lines: the role, then the meta line. Role is null when there is none. */
+export type StopEyebrow = { role: string | null; meta: string };
+
 /**
- * The ticket's mono eyebrow, from the owner's CV: "Senior Software Engineer · via Deimos · 2022
- * to 2024" for a client stop of a consultancy, "Technical Support Engineer · 2016 to 2018"
- * otherwise, and "2024 to now" while the stop is current. A stop with no role shows the years
- * only.
+ * The ticket's mono eyebrow, from the owner's CV: role "Senior Software Engineer" over meta
+ * "via Deimos · 2022 to 2024" for a client stop of a consultancy, role "Technical Support
+ * Engineer" over "2016 to 2018" otherwise, and "2024 to now" while the stop is current. A stop
+ * with no role shows the years only (and no "via").
  */
-export function stopEyebrow(stop: Pick<Stop, "role" | "via" | "startYear" | "endYear">): string {
+export function stopEyebrow(stop: Pick<Stop, "role" | "via" | "startYear" | "endYear">): StopEyebrow {
   const years = `${stop.startYear} to ${stop.endYear ?? "now"}`;
-  if (!stop.role) return years;
-  return [stop.role, ...(stop.via ? [`via ${stop.via}`] : []), years].join(" · ");
+  if (!stop.role) return { role: null, meta: years };
+  return { role: stop.role, meta: stop.via ? `via ${stop.via} · ${years}` : years };
 }
 
 type Registries = {

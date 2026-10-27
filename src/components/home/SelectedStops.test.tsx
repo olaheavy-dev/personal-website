@@ -96,10 +96,9 @@ describe("SelectedStopsView", () => {
 
   it("labels each ticket with the role and years from the CV", () => {
     const section = view();
-    expect(within(section).getAllByText("Senior Software Engineer · via Deimos · 2022 to 2024")).toHaveLength(
-      2,
-    );
-    expect(within(section).getByText("Senior Software Engineer · 2018 to 2021")).toBeInTheDocument();
+    expect(within(section).getAllByText("Senior Software Engineer")).toHaveLength(3);
+    expect(within(section).getAllByText("via Deimos · 2022 to 2024")).toHaveLength(2);
+    expect(within(section).getByText("2018 to 2021")).toBeInTheDocument();
   });
 
   it("shows each summary and one chip with its attribution, no year, and the figure as the source link", () => {

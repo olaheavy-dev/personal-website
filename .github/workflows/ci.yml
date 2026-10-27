@@ -65,6 +65,16 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    # Runs in the same pinned Playwright image as the visual job below, so the browser and its
+    # system packages are already installed. (`playwright install --with-deps` took 10 to 12
+    # minutes on 27 Oct 2026, waiting on the apt mirrors, issue #122.) Keep the image in step
+    # with @playwright/test: the "Check the container matches" step fails if it drifts, and
+    # the visual job's image must be bumped in the same change.
+    container:
+      image: mcr.microsoft.com/playwright@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+    env:
+      HOME: /root
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -80,29 +90,31 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # The Playwright image has no make, so these steps call what the make targets run
+      # (see the Makefile: build, e2e, e2e-flags, e2e-speed, e2e-cold).
       - name: Install dependencies
-        run: make install
+        run: pnpm install --frozen-lockfile
 
-      - name: Install the Playwright browser
-        run: make e2e-install
+      - name: Check the container matches the Playwright version
+        run: ./scripts/check-playwright-container.sh
 
       - name: Build for production
-        run: make build
+        run: node e2e/fixtures/with-fake-supabase.mjs pnpm build
 
       - name: Run browser journeys and axe checks
-        run: make e2e
+        run: pnpm test:e2e --grep-invert "@visual|@flags|@cold|@speed"
 
       # They change the flags the site reads, so they run alone, one at a time (make e2e-flags).
       - name: Run the feature flag journeys
-        run: make e2e-flags
+        run: pnpm test:e2e --grep @flags --workers=1 --project=desktop-light --project=small-phone
 
       # Measures the home LCP under Lighthouse's mobile throttling, so it runs alone (make e2e-speed).
       - name: Run the home speed measurement
-        run: make e2e-speed
+        run: pnpm test:e2e --grep @speed --workers=1 --project=mobile
 
       # Builds its own build with every flagged page Off, so it runs last (make e2e-cold).
       - name: Run the cold start journey
-        run: make e2e-cold
+        run: ./scripts/e2e-cold.sh
 
       - name: Upload the Playwright report
         if: ${{ failure() }}
@@ -182,21 +194,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # The image ships the browsers for one Playwright version. Ask the installed
-      # @playwright/test where it expects its browsers (a dry run downloads nothing) and
-      # fail if any of those folders is missing from the image. That is true exactly when
-      # the package and the image tag disagree, for example after a Dependabot bump.
+      # The image ships the browsers for one Playwright version; fail if the package and the
+      # image tag disagree (see the script).
       - name: Check the container matches the Playwright version
-        run: |
-          set -eu
-          missing=0
-          for dir in $(pnpm exec playwright install --dry-run chromium | sed -n 's/^ *Install location: *//p'); do
-            if [ ! -d "$dir" ]; then
-              echo "::error::Missing $dir. The Playwright image in ci.yml does not match @playwright/test in package.json. Update the image tag and digest to the same version."
-              missing=1
-            fi
-          done
-          exit "$missing"
+        run: ./scripts/check-playwright-container.sh
 
       # Reads the flags from the fake Supabase server, as make build does.
       - name: Build for production

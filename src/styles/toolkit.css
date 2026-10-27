@@ -151,7 +151,7 @@
   }
   .toolkit-plate[data-plate="logo"] {
     background: var(--color-plate);
-    box-shadow: inset 0 0 0 1px var(--color-plate-ring);
+    box-shadow: var(--shadow-plate-ring);
   }
   .toolkit-plate[data-plate="logo"] img {
     width: var(--toolkit-logo);

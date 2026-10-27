@@ -24,11 +24,13 @@ test.describe("work page", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Work");
     await expect(page).toHaveTitle(/^Work \|/);
     await expect(
-      page.getByText("Seven roles across IoT, banking, cross-border payments, edtech and AI, newest first."),
+      page.getByText(
+        "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.",
+      ),
     ).toBeVisible();
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
-      "Seven roles of production software across banking, cross-border payments, edtech, IoT and AI, from Galooli to HBK.",
+      "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, from Galooli to HBK.",
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/work$/);
   });

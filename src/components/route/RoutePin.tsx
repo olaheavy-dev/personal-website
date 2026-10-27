@@ -30,7 +30,8 @@ export interface RoutePinProps {
   vehicleDirection?: "down" | "up";
   /**
    * Names a group of pins that one parked vehicle visits (the Lagos danfo). RouteObserver marks
-   * the most recently reached pin of each group, and the ParkedVehicle beside it shows there.
+   * the reader's place in each group (the last reached pin above the reading line, the first one
+   * above them all, the last one at the page end), and the ParkedVehicle beside it shows there.
    */
   park?: string;
   /**

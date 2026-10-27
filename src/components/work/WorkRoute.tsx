@@ -24,7 +24,7 @@ import { entryKey, planWorkVehicles } from "@/lib/work/vehicles";
 // The Deimos entry's pin id is the consultancy's name, "Deimos", not a slug (it has no anchor).
 //
 // Vehicles (issue #66, src/lib/work/vehicles.ts): one danfo drives the Lagos entries (it shows at
-// the latest one the reader has scrolled to, its door open), the paper plane rides the handover
+// the Lagos entry the reader is at, following them up and down, its door open), the paper plane rides the handover
 // leg from the Deimos entry up to HBK, and the London bus waits beside HBK. Each is placed in the
 // rail with no layout effect (absolute, transform and opacity only), and without motion or
 // JavaScript the danfo is parked at the Deimos entry with its door open.

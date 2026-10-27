@@ -11,10 +11,13 @@ import { ParkedVehicle, VehicleSprites } from "./Vehicles";
 type Callback = (entries: Partial<IntersectionObserverEntry>[]) => void;
 let observers: FakeObserver[] = [];
 class FakeObserver {
+  observed: Element[] = [];
   constructor(public callback: Callback) {
     observers.push(this);
   }
-  observe() {}
+  observe(target: Element) {
+    this.observed.push(target);
+  }
   unobserve() {}
   disconnect() {}
 }
@@ -224,8 +227,11 @@ describe("RouteObserver and the parked vehicles", () => {
     const pins = [...container.querySelectorAll<HTMLElement>("[data-route-pin]")];
     await reach(pins, 3); // HBK, Deimos, Stanbic IBTC, Access Bank
     expect(latest(container)).toEqual(["hbk", "access-bank"]);
-    // The parking observer is the last one created; any crossing of the line re-parks.
-    const parking = observers.at(-1)!;
+    // Found by what they watch: the end observer watches only the last pin, the parking one only
+    // the pins that have a vehicle (here every pin but none of the others' order is relied on).
+    const end = observers.find((o) => o.observed.length === 1 && o.observed[0] === pins.at(-1))!;
+    const parking = observers.find((o) => o !== observers[0] && o !== end)!;
+    // Any crossing of the line re-parks.
     const repark = () => act(async () => parking.callback([]));
     // Scrolled back up: Access Bank drops below the reading line, Stanbic IBTC is still above it.
     placeAt(pins[3]!, 600);
@@ -236,8 +242,8 @@ describe("RouteObserver and the parked vehicles", () => {
     await repark();
     expect(latest(container)).toEqual(["hbk", "Deimos"]);
     // At the very end of the page the danfo parks at the last reached pin, wherever the line is.
-    // (The end observer, the second one, reports the last pin on screen; then the page end scroll.)
-    await act(async () => observers[1]!.callback([{ isIntersecting: true }]));
+    // (The end observer reports the last pin on screen; then the page end scroll.)
+    await act(async () => end.callback([{ isIntersecting: true }]));
     page.scrollY = page.scrollHeight - page.innerHeight;
     await act(async () => window.dispatchEvent(new Event("scroll")));
     expect(latest(container)).toEqual(["hbk", "galooli"]);
@@ -245,6 +251,11 @@ describe("RouteObserver and the parked vehicles", () => {
       d.getAttribute("data-door"),
     );
     expect(doors).toEqual(["closed", "closed", "closed", "open"]);
+    // Every pin is reached now; the parking still follows the reader back up from the end.
+    placeAt(pins[3]!, 100);
+    page.scrollY = 0;
+    await act(async () => window.dispatchEvent(new Event("scroll")));
+    expect(latest(container)).toEqual(["hbk", "access-bank"]);
   });
 
   it("leaves the vehicles parked at home with reduced motion", async () => {

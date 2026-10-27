@@ -31,6 +31,7 @@ export function PlaneVehicle() {
       overflow="visible"
       className="route-plane block h-(--route-plane-size) w-auto"
       aria-hidden="true"
+      data-vehicle="plane"
     >
       <PaperPlane />
     </svg>

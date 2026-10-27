@@ -497,6 +497,131 @@
     }
   }
 
+  /* Work route vehicles (issue #66). The plane rides the handover leg towards the pin above
+     (nose up); the danfo and the bus are ParkedVehicles in the rail, beside a stop. All are
+     absolutely positioned and move with transform and opacity only, so they never shift layout.
+     Base styles are the parked state (reduced motion, no JavaScript): the vehicle marked
+     data-home shows, the others stay hidden, the danfo's door is open. With motion,
+     RouteObserver marks the latest pin's vehicle (data-latest) and it slows in. */
+  .route-vehicle[data-direction="up"] {
+    --route-plane-turn: -90deg;
+    --route-undrawn-shift: 0 100%;
+  }
+  .route-vehicle[data-direction="up"] .route-seat {
+    /* Clear of the bus disc on phones, which overhangs the pin by half the size difference. */
+    top: calc(var(--vehicle-pin-size) / 2 + var(--space-2) + var(--route-plane-length) / 2);
+  }
+  /* Filter hook: a later filter sets data-vehicles="hidden" on the route. */
+  .route[data-vehicles="hidden"] :is(.route-parked, .route-vehicle) {
+    display: none;
+  }
+  .route-parked {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    opacity: 0;
+    z-index: var(--z-route-vehicle);
+    /* Phones: a 32 px disc centred on the stop's pin. The rail text sits one pin column and one
+       column gap to the right of the pin, so the offset is minus both: --route-rail-gap is the
+       same variable the rail grid uses for its gap (WorkRoute and the lab set it on the route). */
+    top: calc((var(--route-pin-size) - var(--vehicle-pin-size)) / 2 + var(--route-pin-offset, 0px));
+    left: calc(
+      (var(--route-pin-size) - var(--vehicle-pin-size)) / 2 - var(--route-pin-size) -
+        var(--route-rail-gap, var(--space-3))
+    );
+  }
+  .route-parked[data-home] {
+    opacity: 1;
+  }
+  .route-parked svg {
+    display: block;
+    height: auto;
+  }
+  .route-parked .vehicle-pin {
+    width: var(--vehicle-pin-size);
+  }
+  .route-parked .vehicle-side {
+    display: none;
+    filter: var(--vehicle-drop);
+  }
+  /* A phone disc keeps the colour of the pin it covers: a thin ring, lilac at the first stop
+     and teal at the current one. */
+  .route-parked[data-ring="start"] .vehicle-pin {
+    border-radius: var(--border-radius-full);
+    box-shadow: 0 0 0 var(--route-halo-width) var(--color-lilac);
+  }
+  .route-parked[data-ring="end"] .vehicle-pin {
+    border-radius: var(--border-radius-full);
+    box-shadow: 0 0 0 var(--route-halo-width) var(--color-route-pin);
+  }
+  /* The door is shut unless open. It slides back, in SVG user units (the danfo's 120 wide
+     drawing): from x 44 to the rear edge of the rear window at x 10, so the window is covered
+     whole and the dark inside shows where the door was. */
+  .route-parked[data-door="open"] .vehicle-door {
+    --vehicle-door-slide: -34px;
+    translate: var(--vehicle-door-slide) 0;
+  }
+  /* Forced colours: the outline becomes the system text colour. */
+  @media (forced-colors: active) {
+    .route-parked {
+      --color-border-strong: CanvasText;
+    }
+  }
+  /* From md: the side view, parked under the stop's years and role. */
+  @media (min-width: 48rem) {
+    .route-parked {
+      top: 100%;
+      left: 0;
+      margin-top: var(--space-3);
+    }
+    .route-parked .vehicle-pin {
+      display: none;
+    }
+    .route-parked .vehicle-side {
+      display: block;
+    }
+    .route-parked[data-vehicle="danfo"] .vehicle-side {
+      width: var(--vehicle-danfo-width);
+    }
+    .route-parked[data-vehicle="bus"] .vehicle-side {
+      width: var(--vehicle-bus-width);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .route-parked,
+    .vehicle-door {
+      transition-property: opacity, translate;
+      transition-duration: var(--duration-slow);
+      transition-timing-function: var(--easing-out);
+    }
+    /* The door waits for the van to arrive. */
+    .vehicle-door {
+      transition-delay: var(--duration-slow);
+    }
+    .route-parked[data-vehicle="bus"] {
+      transition-delay: var(--route-draw-duration); /* after the plane has landed */
+    }
+    /* Hidden from first paint (like the undrawn pins, so nothing shows then vanishes) until
+       RouteObserver marks it. Phones drive in along the line; from md the vehicle drives in
+       from the left (it faces right) and slows into the stop. */
+    html[data-js]:not([data-route-fallback])
+      .route[data-draw="progressive"]
+      .route-parked:not([data-latest]) {
+      opacity: 0;
+      translate: 0 calc(-1 * var(--space-5));
+    }
+    html[data-js]:not([data-route-fallback]) .route[data-draw="progressive"] .route-parked[data-latest] {
+      opacity: 1;
+    }
+    @media (min-width: 48rem) {
+      html[data-js]:not([data-route-fallback])
+        .route[data-draw="progressive"]
+        .route-parked:not([data-latest]) {
+        translate: calc(-1 * var(--space-7)) 0;
+      }
+    }
+  }
+
   /* Hero name highlight. The lilac fill lives on a ::before layer so it can sweep in
      without ever touching the text's opacity or visibility (the name is an LCP
      candidate). The base style is the finished highlight: reduced motion, no

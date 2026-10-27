@@ -47,9 +47,38 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       if (duplicate) console.warn(`Route: more than one pin has the id "${duplicate}".`);
     }
 
+    // Parked vehicles (the Lagos danfo, the London bus): pins that share a data-route-park group
+    // are visited by one vehicle, which shows at the most recently reached pin of its group
+    // (data-latest, and data-door open on a vehicle that has a door). With reduced motion the
+    // vehicles stay where the markup parks them (data-home), so nothing is marked at all.
+    const slots = new Map<string, HTMLElement>();
+    for (const slot of root.querySelectorAll<HTMLElement>("[data-parked-at]")) {
+      slots.set(slot.dataset.parkedAt ?? "", slot);
+    }
+    const groups = new Map<string, HTMLElement[]>();
+    for (const pin of pins) {
+      const group = pin.dataset.routePark;
+      if (group) groups.set(group, [...(groups.get(group) ?? []), pin]);
+    }
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const park = () => {
+      if (reduced) return;
+      for (const members of groups.values()) {
+        const latest = members.findLast((pin) => pin.hasAttribute("data-reached"));
+        for (const pin of members) {
+          const slot = slots.get(pin.dataset.routePin ?? "");
+          if (!slot) continue;
+          const here = pin === latest;
+          slot.toggleAttribute("data-latest", here);
+          if (slot.hasAttribute("data-door")) slot.setAttribute("data-door", here ? "open" : "closed");
+        }
+      }
+    };
+
     const finish = () => {
       root.setAttribute("data-drawn", "");
       for (const pin of pins) pin.setAttribute("data-reached", "");
+      park();
     };
 
     // No IntersectionObserver: show the finished route at once.
@@ -98,8 +127,10 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
         pinObserver.unobserve(pin);
       }
       reachedCount = Math.max(reachedCount, upTo + 1);
+      park();
       if (reachedCount >= pins.length) {
         window.removeEventListener("resize", onResize);
+        window.removeEventListener("scroll", checkEnd);
         pinObserver.disconnect();
         endObserver.disconnect();
       }
@@ -130,16 +161,39 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
     };
     window.addEventListener("resize", onResize);
     // The last pin can sit closer to the page end than 40% of the viewport (a tall
-    // screen, a short footer), so it could never pass the line above. Once it is
-    // visible at all, every remaining pin counts as reached.
+    // screen, a short footer), so it could never pass the line above. While it is on
+    // screen at all, a scroll to the very end of the page (or a page that cannot scroll
+    // further) counts every remaining pin as reached. Merely seeing the last pin is not
+    // enough: that would skip the pins between, and a vehicle that visits them.
+    const atPageEnd = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+    const checkEnd = () => {
+      if (atPageEnd()) reach(pins.length - 1);
+    };
+    let watchingEnd = false;
     const endObserver = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) reach(pins.length - 1);
+      const visible = entries.some((entry) => entry.isIntersecting);
+      if (visible && !watchingEnd) {
+        watchingEnd = true;
+        window.addEventListener("scroll", checkEnd, { passive: true });
+        checkEnd();
+      } else if (!visible && watchingEnd) {
+        watchingEnd = false;
+        window.removeEventListener("scroll", checkEnd);
+      }
     });
     for (const pin of pins) pinObserver.observe(pin);
     const last = pins.at(-1);
     if (last) endObserver.observe(last);
+    // Every pin already on screen at load counts as reached, so a short desktop shows the
+    // first stops (and their vehicles) above the fold instead of waiting for a scroll.
+    const onScreen = pins.reduce(
+      (highest, pin, i) => (pin.getBoundingClientRect().top < window.innerHeight ? i : highest),
+      -1,
+    );
+    if (onScreen >= 0) reach(onScreen);
     return () => {
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", checkEnd);
       pinObserver.disconnect();
       endObserver.disconnect();
     };

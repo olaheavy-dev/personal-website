@@ -175,9 +175,14 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
         { rootMargin: `0px 0px -${lineMargin()}px 0px` },
       );
     let pinObserver = observePins();
-    // Parking: any group pin crossing the reading line, either way, moves its vehicle.
+    // Parking: any group pin crossing the reading line, either way, moves its vehicle. The area
+    // reaches far above the screen (the whole page height), so it is everything above the line:
+    // a jump that carries a pin from below the line straight past the top of the screen (a
+    // scrollbar drag) still changes its state, and so still re-parks.
     const observeParking = () =>
-      new IntersectionObserver(() => park(), { rootMargin: `0px 0px -${lineMargin()}px 0px` });
+      new IntersectionObserver(() => park(), {
+        rootMargin: `${Math.max(document.documentElement.scrollHeight, window.innerHeight) * 2}px 0px -${lineMargin()}px 0px`,
+      });
     // Only a route with parked vehicles watches for parking (Home's route has none).
     let parkObserver = parkPins.length > 0 ? observeParking() : undefined;
     const onResize = () => {

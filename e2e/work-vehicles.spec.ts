@@ -95,6 +95,24 @@ test.describe("work vehicles", () => {
       .toBe("1");
   });
 
+  test("a jump that carries pins straight past the screen, a scrollbar drag, still moves the danfo", async ({
+    page,
+  }) => {
+    // A short window, so a pin can go from below the reading line to above the screen in one jump.
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await page.goto("/work");
+    await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+    await scrollToEnd(page);
+    await settle(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["Deimos"]);
+    // One jump: Access Bank lands just above the screen and Galooli stays below the line.
+    await page
+      .locator("[data-route-pin='access-bank']")
+      .evaluate((pin) => window.scrollTo(0, pin.getBoundingClientRect().top + window.scrollY + 20));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["access-bank"]);
+  });
+
   test("the danfo is only ever at a Lagos entry, never at HBK", async ({ page }) => {
     await page.goto("/work");
     await scrollToEnd(page);

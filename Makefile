@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 export NEXT_TELEMETRY_DISABLED := 1
 
-.PHONY: help install migration-order check lint dashes format format-check typecheck test coverage build budget e2e e2e-speed e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
+.PHONY: help install migration-order check lint dashes playwright-image formatformat-check typecheck test coverage build budget e2e e2e-speed e2e-flags e2e-cold e2e-install visual visual-accept shots docker-build docker-check db-start db-reset db-test db-lint db-types db-check db-stop clean
 
 help: ## List the available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -12,13 +12,16 @@ help: ## List the available commands
 install: ## Install dependencies exactly as locked
 	pnpm install --frozen-lockfile
 
-check: install lint dashes format-check typecheck coverage build budget client-secrets ## Every gate CI runs on a pull request (except e2e)
+check: install lint dashes playwright-image format-check typecheck coverage build budget client-secrets ## Every gate CI runs on a pull request (except e2e)
 
 lint: ## ESLint, zero warnings allowed
 	pnpm lint
 
 dashes: ## Fail on dashes used between words in any public text (decision 0014)
 	node scripts/check-dashes.mjs
+
+playwright-image: ## Fail unless every workflow pins the same Playwright image digest
+	node scripts/check-playwright-image.mjs
 
 format: ## Rewrite files with Prettier
 	pnpm format

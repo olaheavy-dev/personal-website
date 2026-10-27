@@ -5,7 +5,7 @@
 # `make build` again before the other e2e targets. Limit: it proves what the build wrote and a fresh
 # server serves. It stops first if port 54329 (the fake) or 3210 (the site) is taken, because a
 # leftover server would be reused and the test would pass or fail against the wrong build. A failed
-# build leaves a partial .next behind; `make build` replaces it. It cannot prove a restart after a
+# build removes the partial .next, like a finished run does. It cannot prove a restart after a
 # revalidation, because `pnpm serve` copies .next/server/app, where the running server writes rebuilt
 # pages, back into the standalone folder.
 set -u

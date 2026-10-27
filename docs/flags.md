@@ -41,24 +41,24 @@ Two follow ons depend on this rule:
 
 State as set on the hosted project, 25 Oct 2026. Staging and production share one Supabase project, so they share one set of flags.
 
-| Flag                | Controls                                            | State | In effect now?                                                                                                                               |
-| ------------------- | --------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `page.home`         | The home page `/`                                   | `on`  | Locked on: the database refuses any other state or a delete                                                                                  |
-| `page.work`         | `/work` and its nav item                            | `off` | No: Work is a real page now (#10), kept Off in the hosted project until its last pull request (the vehicles, PR 4); the owner switches it On |
-| `page.lab`          | `/lab` and its nav item                             | `on`  | Yes                                                                                                                                          |
-| `page.writing`      | `/writing` and its nav item                         | `on`  | Yes                                                                                                                                          |
-| `page.travel`       | `/travel` and its nav item                          | `on`  | Yes                                                                                                                                          |
-| `page.about`        | `/about` and its nav item                           | `on`  | Yes                                                                                                                                          |
-| `case.hbk-aiana`    | The HBK Aiana case study                            | `off` | No: the case study page does not exist yet (#11)                                                                                             |
-| `case.optty`        | The Optty case study                                | `off` | No: not built yet (#12)                                                                                                                      |
-| `case.access-bank`  | The Access Bank case study                          | `off` | No: not built yet (#12)                                                                                                                      |
-| `case.foresight`    | The Foresight case study                            | `off` | No: not built yet (#12)                                                                                                                      |
-| `feature.assistant` | The Ask Sunkanmi launcher and panel                 | `off` | No: not built yet (#18, #19)                                                                                                                 |
-| `feature.passport`  | Passport stamps and the footer indicator            | `off` | No: not built yet (#21)                                                                                                                      |
-| `feature.cmdk`      | The ⌘K palette and its hint on the 404              | `off` | No: not built yet (#20)                                                                                                                      |
-| `feature.globe3d`   | The 3D travel globe (off: the 2D map and list only) | `off` | No: not built yet (#17)                                                                                                                      |
+| Flag                | Controls                                            | State | In effect now?                                                                                                                       |
+| ------------------- | --------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `page.home`         | The home page `/`                                   | `on`  | Locked on: the database refuses any other state or a delete                                                                          |
+| `page.work`         | `/work` and its nav item                            | `on`  | Yes: Work is a real page now (#10), left On while only staging (not indexed) is live, so each Work pull request can be checked there |
+| `page.lab`          | `/lab` and its nav item                             | `on`  | Yes                                                                                                                                  |
+| `page.writing`      | `/writing` and its nav item                         | `on`  | Yes                                                                                                                                  |
+| `page.travel`       | `/travel` and its nav item                          | `on`  | Yes                                                                                                                                  |
+| `page.about`        | `/about` and its nav item                           | `on`  | Yes                                                                                                                                  |
+| `case.hbk-aiana`    | The HBK Aiana case study                            | `off` | No: the case study page does not exist yet (#11)                                                                                     |
+| `case.optty`        | The Optty case study                                | `off` | No: not built yet (#12)                                                                                                              |
+| `case.access-bank`  | The Access Bank case study                          | `off` | No: not built yet (#12)                                                                                                              |
+| `case.foresight`    | The Foresight case study                            | `off` | No: not built yet (#12)                                                                                                              |
+| `feature.assistant` | The Ask Sunkanmi launcher and panel                 | `off` | No: not built yet (#18, #19)                                                                                                         |
+| `feature.passport`  | Passport stamps and the footer indicator            | `off` | No: not built yet (#21)                                                                                                              |
+| `feature.cmdk`      | The ⌘K palette and its hint on the 404              | `off` | No: not built yet (#20)                                                                                                              |
+| `feature.globe3d`   | The 3D travel globe (off: the 2D map and list only) | `off` | No: not built yet (#17)                                                                                                              |
 
-Lab, Writing, Travel and About are `on` so staging looks complete while they show their "Coming soon" screens. Work is a real page but stays Off in the hosted project until the owner switches it On after the last Work pull request (#10, PR 4). Decide at production launch which stay visible.
+Lab, Writing, Travel and About are `on` so staging looks complete while they show their "Coming soon" screens. Work is a real page and stays `on` while it is built across several pull requests (#10): only staging is live, and its `robots.txt` disallows indexing (owner decision, 27 Oct 2026). Decide at production launch which stay visible.
 
 ## How to switch a flag (today)
 

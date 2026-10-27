@@ -5,19 +5,19 @@ import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
-  display: "swap",
+  display: "optional",
 });
 
 const geist = Geist({
   variable: "--font-geist",
   subsets: ["latin"],
-  display: "swap",
+  display: "optional",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap",
+  display: "optional",
 });
 
 export const fontVariables = `${bricolage.variable} ${geist.variable} ${geistMono.variable}`;

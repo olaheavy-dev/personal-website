@@ -47,11 +47,29 @@ function stops(draw: "on-view" | "progressive" | "static" = "on-view") {
   );
 }
 
+// jsdom lays nothing out: put every pin below the fold and make the page tall, so a route is not
+// reached at load and the end of the page is not "scrolled to". Tests change `page` to move.
+const page = { scrollY: 0, innerHeight: 768, scrollHeight: 5000 };
+function stubLayout() {
+  page.scrollY = 0;
+  page.scrollHeight = 5000;
+  Object.defineProperty(window, "scrollY", { configurable: true, get: () => page.scrollY });
+  Object.defineProperty(document.documentElement, "scrollHeight", {
+    configurable: true,
+    get: () => page.scrollHeight,
+  });
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ top: 9999 } as DOMRect);
+}
+
 beforeEach(() => {
   observers = [];
   vi.stubGlobal("IntersectionObserver", FakeObserver);
+  stubLayout();
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("Route", () => {
   it("criterion 1: is decorative, has no text and nothing focusable", () => {
@@ -119,7 +137,7 @@ describe("Route", () => {
     expect(staticRoute.container.querySelector("[data-route]")!.hasAttribute("data-armed")).toBe(false);
   });
 
-  it("progressive: a last pin nearer the page end than 40% of the viewport still completes the route", async () => {
+  it("progressive: a last pin nearer the page end than 40% of the viewport completes the route at the page end", async () => {
     const { container } = render(stops("progressive"));
     const pins = Array.from(container.querySelectorAll<HTMLElement>("[data-route-pin]"));
     const [pinObserver, endObserver] = observers as [FakeObserver, FakeObserver];
@@ -134,8 +152,12 @@ describe("Route", () => {
       },
     ]);
     expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, false, false]);
-    // The last pin is visible, just never above the line: everything is reached.
+    // The last pin is visible but the page can still scroll: the pins between are not skipped.
     await fire(endObserver, [{ isIntersecting: true }]);
+    expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, false, false]);
+    // Scrolled to the very end of the page, the last pin can never pass the line: all reached.
+    page.scrollY = page.scrollHeight - page.innerHeight;
+    await act(async () => window.dispatchEvent(new Event("scroll")));
     expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, true, true]);
     expect(pinObserver.disconnected && endObserver.disconnected).toBe(true);
   });
@@ -229,5 +251,25 @@ describe("Route", () => {
     expect(route.getAttribute("data-variant")).toBe("vertical");
     expect(route.getAttribute("data-md-variant")).toBe("horizontal");
     expect(route.getAttribute("data-draw")).toBe("on-view");
+  });
+});
+
+describe("Route at load", () => {
+  it("counts the pins already on screen as reached, and no more", () => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const id = this.getAttribute("data-route-pin");
+      return { top: id === "a" ? 100 : id === "b" ? 500 : 2000 } as DOMRect;
+    });
+    const { container } = render(stops("progressive"));
+    const pins = Array.from(container.querySelectorAll<HTMLElement>("[data-route-pin]"));
+    expect(pins.map((p) => p.hasAttribute("data-reached"))).toEqual([true, true, false]);
+  });
+
+  it("completes a page that cannot scroll as soon as the last pin shows", async () => {
+    page.scrollHeight = page.innerHeight;
+    const { container } = render(stops("progressive"));
+    const pins = Array.from(container.querySelectorAll<HTMLElement>("[data-route-pin]"));
+    await fire(observers[1]!, [{ isIntersecting: true }]);
+    expect(pins.every((p) => p.hasAttribute("data-reached"))).toBe(true);
   });
 });

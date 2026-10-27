@@ -15,7 +15,7 @@ export function WorkPageView({ model }: { model: WorkRouteModel }) {
         <WorkUnavailable />
       ) : (
         <>
-          <WorkRoute entries={model.entries} />
+          <WorkRoute entries={model.entries} handover={model.handover} />
           <Toolkit />
         </>
       )}

@@ -4,6 +4,7 @@ import { PlaneVehicle } from "@/components/route/PaperPlane";
 import { Route } from "@/components/route/Route";
 import { RoutePin } from "@/components/route/RoutePin";
 import { wayBackLinks, type NavItem } from "@/lib/nav";
+import { ArrowRight } from "@/components/site/ArrowRight";
 
 // The 404's way back: a Route that starts with the lost avatar as the "You are
 // here" stop, then Home and, when it is in the navigation, Work. The paper plane
@@ -55,7 +56,7 @@ export function WayBack({ items }: { items: readonly NavItem[] }) {
                   aria-hidden="true"
                   className="ml-1.5 inline-block no-underline motion-safe:transition-transform motion-safe:duration-150 motion-safe:group-hover:translate-x-1"
                 >
-                  →
+                  <ArrowRight />
                 </span>
               </span>
               <span className="mt-1 block max-w-(--max-width-caption) text-sm text-text-secondary">

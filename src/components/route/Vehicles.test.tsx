@@ -32,6 +32,7 @@ const stop = (slug: string, number: number, more: Partial<Stop> = {}): Stop => (
   role: "Engineer",
   summary: null,
   details: [],
+  detailSources: [],
   stack: [],
   outcomes: [],
   ...more,

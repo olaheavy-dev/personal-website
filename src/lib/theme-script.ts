@@ -9,13 +9,17 @@ const ROUTE_FALLBACK_MS = 3000;
 
 /**
  * A deep link to a ticket (/work#galooli) lands on it open from the first layout. The :target
- * rule in globals.css cannot do that alone: on a slow device the browser paints the page before
- * it has read to the end and resolved the fragment, so the ticket would open after that paint
- * and push everything below it down (a layout shift). Runs in <head>, before the body exists,
+ * rule in globals.css cannot do that alone: a browser may paint before it resolves the fragment
+ * (the HTML Standard leaves that timing to the browser, and Chrome on a slow CPU does), so the
+ * ticket would open after that paint and push everything below it down (a layout shift). Runs in <head>, before the body exists,
  * and adds one rule for the stop the hash names. Only a slug is accepted (lowercase letters,
  * digits, single hyphens), so the hash cannot inject CSS. The rule ends at hydration, as the
- * :target one does, or at the first hash change. Written as a function so it can be tested;
- * the script is its source text.
+ * :target one does, or at the first hash change. After a client navigation without a hash
+ * change the style stays in <head>, inert, because every hydrated expander carries
+ * data-hydrated. Written as a function so it can be tested; the script is its source text, so
+ * the server and client copies may be minified differently (React does not compare them).
+ * A future strict style-src (the admin policy in src/lib/security/headers.ts) would need the
+ * script's nonce copied onto this style.
  */
 export function openDeepLinkedTicket(): void {
   const match = /^#([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(window.location.hash);

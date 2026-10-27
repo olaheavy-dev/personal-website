@@ -200,7 +200,8 @@ test.describe("work page", () => {
   test("before hydration only the ticket the URL points at is open, and /work#main opens none", async ({
     page,
   }) => {
-    // Block the scripts: the page never hydrates, so only the CSS (the :target rule) decides.
+    // Block the bundles: the page never hydrates, so only the head script's deep link rule and
+    // the :target rule decide (the inline head script still runs).
     await page.route("**/_next/static/**/*.js", (route) => route.abort());
     const open = (text: string) => revealed(text, page);
     await page.goto("/work#galooli");
@@ -209,6 +210,8 @@ test.describe("work page", () => {
     );
     expect(await open("Mentored junior engineers on the team.")).toBe(false);
     await page.goto("/work#main");
+    // The hash change removed the head script's rule, so :target alone decides now.
+    await expect(page.locator("style[data-deep-link]")).toHaveCount(0);
     // The closing transition (a grid row from 1fr to 0fr) takes a moment.
     await expect
       .poll(() => open("Deployed IoT energy management for telecom tower operators across Nigeria."))
@@ -232,6 +235,37 @@ test.describe("work page", () => {
     await page.goto("/work#galooli");
     await page.evaluate(() => document.fonts.ready);
     await expect(page.getByRole("button", { name: "Show less about Galooli" })).toBeVisible();
+    await page.waitForTimeout(800);
+    expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBeLessThan(0.05);
+  });
+
+  // On a slow device the browser paints the page before it resolves the fragment, so only the
+  // script that runs before first paint can open the ticket in the first layout (theme-script.ts).
+  test("a deep link on a slow device opens the ticket in the first layout (CLS under 0.05)", async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "CPU throttling needs the Chrome DevTools Protocol");
+    // Phones and tablets, where a slow CPU is likely: a throttled run is slow, so not every project.
+    test.skip(!["mobile", "tablet"].includes(test.info().project.name), "phones and tablets only");
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 8 });
+    await page.addInitScript(() => {
+      const w = window as unknown as { __cls: number };
+      w.__cls = 0;
+      new PerformanceObserver((entries) => {
+        for (const entry of entries.getEntries() as (PerformanceEntry & {
+          value: number;
+          hadRecentInput: boolean;
+        })[]) {
+          if (!entry.hadRecentInput) w.__cls += entry.value;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await page.goto("/work#galooli");
+    await expect(page.getByRole("button", { name: "Show less about Galooli" })).toBeVisible({
+      timeout: 15_000,
+    });
     await page.waitForTimeout(800);
     expect(await page.evaluate(() => (window as unknown as { __cls: number }).__cls)).toBeLessThan(0.05);
   });

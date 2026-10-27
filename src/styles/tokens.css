@@ -113,6 +113,10 @@
   --color-route-pin: var(--teal-500);
   --color-route-pin-ring: var(--ink-900);
   --color-plane-paper: var(--paper-50); /* hero paper plane wings: white paper in both themes */
+  --color-plate: var(
+    --paper-50
+  ); /* round plate behind a tool logo: paper in both themes, so black marks stay visible */
+  --color-plate-ring: var(--ink-300); /* inner ring of a logo plate: reads on the paper plate in light */
   /* Work route vehicles (issue #66): the same colour in both themes. Each outer outline is
      --color-border-strong; stripes, wheels and bumpers are --ink-900. Windows use the teal accent. */
   --color-danfo: #f5c518; /* Lagos danfo yellow */
@@ -194,6 +198,9 @@
   --color-border-secondary: #24222b;
   --color-border-strong: var(--ink-200);
   --color-border-focus: var(--lilac-200);
+  --color-plate-ring: var(
+    --color-border-primary
+  ); /* the plate is bright on dark, so a quiet ring is enough */
 
   --color-accent-primary: var(--lilac-200); /* CTA becomes lilac pill w/ ink text */
   --color-accent-primary-hover: var(--lilac-300);
@@ -266,6 +273,9 @@
     --color-border-secondary: #24222b;
     --color-border-strong: var(--ink-200);
     --color-border-focus: var(--lilac-200);
+    --color-plate-ring: var(
+      --color-border-primary
+    ); /* the plate is bright on dark, so a quiet ring is enough */
     --color-accent-primary: var(--lilac-200);
     --color-accent-primary-hover: var(--lilac-300);
     --color-accent-primary-active: var(--lilac-100);
@@ -436,6 +446,16 @@
   --ticket-tear-width: 2px; /* dashed tear line on tickets */
   --ticket-seam-overlap: 1px; /* body runs this far under the stub so no hairline shows */
   --ticket-tear-angle: 0.6deg; /* how far the stub lifts when Email me is hovered or focused */
+  /* Toolkit (Work page, #10): one big ticket of grouped tool chips */
+  --toolkit-border: 2px; /* outline of the ticket and its notches */
+  --toolkit-label-width: 12.5rem; /* 200: group name column from lg */
+  --toolkit-group-size: 1.375rem; /* 22: group name */
+  --toolkit-plate: 1.75rem; /* 28: round plate in a chip */
+  --toolkit-logo: 1.125rem; /* 18: logo inside the plate */
+  --toolkit-chip-lift: 2px; /* a chip lifts up and left by this much on hover and focus */
+  --shadow-chip: 3px 3px 0 0 var(--color-border-strong); /* hard offset, as the ticket's */
+  --shadow-chip-hover: 5px 5px 0 0 var(--color-border-strong);
+  --shadow-plate-ring: inset 0 0 0 1px var(--color-plate-ring); /* the thin inner ring of a logo plate */
   --z-skip-link: 100;
 
   /* Motion */

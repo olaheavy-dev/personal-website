@@ -4,8 +4,10 @@ import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from
 
 // "Read more" / "Show less" for a ticket's details (every Work ticket that has some). The height animates by growing a
 // grid row from 0fr to 1fr (see ".ticket-expander" in globals.css), so nothing is
-// measured. Without JavaScript the content is open and the button is hidden; a :target
-// pre-opens it before hydration with no layout shift (see globals.css). A URL hash matching `anchorId` (for example /work#mukuru) opens it, on
+// measured. Without JavaScript the content is open and the button is hidden; before hydration
+// the head script's deep link rule (openDeepLinkedTicket in src/lib/theme-script.ts) and a
+// :target rule (globals.css) pre-open it with no layout shift. A URL hash matching `anchorId`
+// (for example /work#mukuru) opens it, on
 // first load and on later same-page navigation (hashchange, back and forward through
 // popstate, and the Navigation API where it exists, which also covers clicking a link
 // to the hash that is already in the URL).
@@ -82,9 +84,10 @@ export function TicketExpander({
   const label = open ? lessLabel : moreLabel;
   return (
     <div>
-      {/* Before hydration the CSS alone decides: a ticket the URL points at is open (the :target
-          rule in globals.css), and without JavaScript the root layout's noscript style opens
-          them all. data-hydrated ends the :target rule, so from then on the state above decides. */}
+      {/* Before hydration CSS alone decides: a ticket the URL points at is open (the head
+          script's deep link rule from src/lib/theme-script.ts, and the :target rule in
+          globals.css), and without JavaScript the root layout's noscript style opens them all.
+          data-hydrated ends both rules, so from then on the state above decides. */}
       <div
         id={regionId}
         className="ticket-expander"

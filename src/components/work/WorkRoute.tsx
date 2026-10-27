@@ -29,8 +29,8 @@ import { entryKey, planWorkVehicles } from "@/lib/work/vehicles";
 // rail with no layout effect (absolute, transform and opacity only), and without motion or
 // JavaScript the danfo is parked at the Deimos entry with its door open.
 //
-// Later (the Toolkit PR): the Toolkit section sits in the same two column grid after this list,
-// with the rail label "Toolkit".
+// The Toolkit section (Toolkit.tsx) sits in the same two column grid after this list, with
+// the rail label "Toolkit".
 
 const railText = "relative min-w-0 self-start pt-0.5";
 const years = "label-mono text-text-secondary";

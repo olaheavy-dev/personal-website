@@ -1,10 +1,11 @@
 import { PageHeader } from "@/components/site/PageHeader";
+import { Toolkit } from "@/components/work/Toolkit";
 import { WorkRoute } from "@/components/work/WorkRoute";
 import { WorkUnavailable } from "@/components/work/WorkUnavailable";
 import { workCopy } from "@/lib/work/copy";
 import type { WorkRouteModel } from "@/lib/work/route";
 
-// The /work page from its model: header, then the list, or the failure line.
+// The /work page from its model: header, then the list and the toolkit, or the failure line.
 // A plain function of the model, so every state is a component test. Server component.
 export function WorkPageView({ model }: { model: WorkRouteModel }) {
   return (
@@ -13,7 +14,10 @@ export function WorkPageView({ model }: { model: WorkRouteModel }) {
       {model.unavailable ? (
         <WorkUnavailable />
       ) : (
-        <WorkRoute entries={model.entries} handover={model.handover} />
+        <>
+          <WorkRoute entries={model.entries} handover={model.handover} />
+          <Toolkit />
+        </>
       )}
     </main>
   );

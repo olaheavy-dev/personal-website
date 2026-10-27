@@ -2,6 +2,7 @@
 @import "../styles/tokens.css";
 @import "../styles/font-fallbacks.css";
 @import "../styles/logo-rail.css";
+@import "../styles/toolkit.css";
 
 /* Theme-dependent icon swap (no JS needed to show the right icon on first paint) */
 .icon-when-dark {
@@ -250,9 +251,14 @@
   /* A link to /work#mukuru lands on an open ticket before any script runs, so hydration
      changes nothing and the page does not move. Only a stop (an li with an id) opens its
      ticket, so /work#main opens none. data-hydrated ends this rule, and the component's own
-     state decides from then on. */
+     state decides from then on. It opens at once, with no transition: a browser may paint
+     before it resolves the fragment (the HTML Standard leaves that timing to the browser, and
+     Chrome on a slow CPU does), and growing the ticket then would push everything below it
+     down in view. The head script (openDeepLinkedTicket in src/lib/theme-script.ts) opens it
+     in the first layout, so this rule is the fallback. */
   li[id]:target .ticket-expander:not([data-hydrated]) {
     grid-template-rows: 1fr;
+    transition: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .ticket-expander {

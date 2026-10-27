@@ -1,3 +1,4 @@
+import { SectionLabel } from "@/components/home/SectionLabel";
 import {
   toolLogoDir,
   toolkitGroups,
@@ -15,7 +16,8 @@ import {
 // From md it sits in the same two column grid as the timeline, after it: "Toolkit" is the rail
 // label and the ticket is the right column. On phones the label sits above the ticket.
 //
-// Plates and icons are hidden from assistive technology (the chip's name is the text beside
+// A tool whose brand asks for a trademark symbol (Python, Redis) shows it as a small superscript
+// right after the name. Plates and icons are hidden from assistive technology (the chip's name is the text beside
 // them). Each group is a heading and a list named by it. The chips are not links yet.
 
 // Our own line icons, 24 px grid, drawn with a stroke in the plate's text colour.
@@ -53,7 +55,6 @@ function Plate({ tool, group }: { tool: ToolkitTool; group: ToolkitGroup }) {
           alt=""
           width={plate.wide ? 38 : 18}
           height={plate.wide ? 12 : 18}
-          loading="lazy"
           decoding="async"
         />
       </span>
@@ -90,9 +91,9 @@ export function Toolkit() {
       className="mx-auto w-full max-w-wide px-(--gutter)"
     >
       <div className="grid gap-y-4 md:grid-cols-[var(--work-rail-width-md)_minmax(0,var(--work-ticket-max))] md:gap-x-6 lg:grid-cols-[var(--work-rail-width)_minmax(0,var(--work-ticket-max))] lg:gap-x-10">
-        <h2 id="toolkit-heading" className="label-mono text-sm text-text-secondary md:pt-0.5">
+        <SectionLabel id="toolkit-heading" className="md:pt-0.5">
           Toolkit
-        </h2>
+        </SectionLabel>
         <div className="min-w-0">
           <div className="toolkit-ticket">
             {toolkitGroups.map((group, index) => (
@@ -110,14 +111,20 @@ export function Toolkit() {
                   {group.tools.map((tool) => (
                     <li key={tool.name} className="toolkit-chip">
                       <Plate tool={tool} group={group} />
-                      <span className="toolkit-chip-name">{breakable(tool.name)}</span>
+                      <span className="toolkit-chip-text">
+                        <span className="toolkit-chip-name">{breakable(tool.name)}</span>
+                        {tool.mark ? <sup className="toolkit-mark">{tool.mark}</sup> : null}
+                      </span>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <p className="mt-4 max-w-(--max-width-content) text-xs leading-relaxed text-text-tertiary">
+          <p
+            data-toolkit-notice=""
+            className="mt-4 max-w-(--max-width-content) text-xs leading-relaxed text-text-tertiary"
+          >
             {toolkitNotices.join(" ")}
           </p>
         </div>

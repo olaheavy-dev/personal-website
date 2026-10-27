@@ -119,6 +119,7 @@
 
   /* Status */
   --color-status-success: var(--green-600);
+  --color-plate-ring: var(--ink-300); /* inner ring of a logo plate: reads on the paper plate in light */
   --color-status-warning: var(--amber-700);
   --color-status-error: var(--red-700);
   --color-status-info: var(--lilac-600);
@@ -189,6 +190,9 @@
   --color-border-secondary: #24222b;
   --color-border-strong: var(--ink-200);
   --color-border-focus: var(--lilac-200);
+  --color-plate-ring: var(
+    --color-border-primary
+  ); /* the plate is bright on dark, so a quiet ring is enough */
 
   --color-accent-primary: var(--lilac-200); /* CTA becomes lilac pill w/ ink text */
   --color-accent-primary-hover: var(--lilac-300);
@@ -258,6 +262,9 @@
     --color-border-secondary: #24222b;
     --color-border-strong: var(--ink-200);
     --color-border-focus: var(--lilac-200);
+    --color-plate-ring: var(
+      --color-border-primary
+    ); /* the plate is bright on dark, so a quiet ring is enough */
     --color-accent-primary: var(--lilac-200);
     --color-accent-primary-hover: var(--lilac-300);
     --color-accent-primary-active: var(--lilac-100);
@@ -416,7 +423,6 @@
   /* Toolkit (Work page, #10): one big ticket of grouped tool chips */
   --toolkit-border: 2px; /* outline of the ticket and its notches */
   --toolkit-label-width: 12.5rem; /* 200: group name column from lg */
-  --toolkit-label-width-md: 9.375rem; /* 150: the same at tablet width */
   --toolkit-group-size: 1.375rem; /* 22: group name */
   --toolkit-plate: 1.75rem; /* 28: round plate in a chip */
   --toolkit-logo: 1.125rem; /* 18: logo inside the plate */

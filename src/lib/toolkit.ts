@@ -17,6 +17,8 @@ export type ToolPlate =
 export interface ToolkitTool {
   /** The owner's official spelling of the tool, shown in the chip. */
   name: string;
+  /** A trademark symbol shown after the name where the owner of the brand asks for one. */
+  mark?: "™" | "®";
   plate: ToolPlate;
 }
 
@@ -46,7 +48,7 @@ export const toolkitGroups: readonly ToolkitGroup[] = [
     tools: [
       logo("C#", "csharp.svg"),
       icon(".NET"), // its style guide sets a 50 px minimum for the square logo, larger than a chip plate
-      logo("Python", "python.svg"),
+      { ...logo("Python", "python.svg"), mark: "™" },
       logo("TypeScript", "typescript.svg"),
       logo("FastAPI", "fastapi.svg"),
       logo("React", "react.svg"),
@@ -60,7 +62,7 @@ export const toolkitGroups: readonly ToolkitGroup[] = [
     icon: "ai",
     tools: [
       icon("Microsoft Foundry"),
-      logo("Microsoft Agent Framework", "microsoft-agent-framework.svg"),
+      icon("Microsoft Agent Framework"),
       icon("Amazon Bedrock"),
       icon("Claude API"),
       icon("Claude Agent SDK"),
@@ -79,7 +81,7 @@ export const toolkitGroups: readonly ToolkitGroup[] = [
       icon("PostgreSQL"),
       icon("Microsoft SQL Server"),
       icon("MongoDB"),
-      logo("Redis", "redis.svg", true),
+      { ...logo("Redis", "redis.svg", true), mark: "®" },
       logo("Qdrant", "qdrant.svg"),
     ],
   },
@@ -92,7 +94,7 @@ export const toolkitGroups: readonly ToolkitGroup[] = [
       icon("Microsoft Azure"),
       abbr("Amazon Web Services", "AWS"),
       abbr("Google Cloud", "GCP"),
-      logo("Terraform", "terraform.svg"),
+      icon("Terraform"),
       icon("Docker"),
       icon("Cloudflare"),
     ],
@@ -106,7 +108,7 @@ export const toolkitGroups: readonly ToolkitGroup[] = [
       icon("xUnit"),
       icon("Reqnroll"),
       logo("pytest", "pytest.svg"),
-      logo("Playwright", "playwright.svg"),
+      icon("Playwright"),
       icon("Ragas"),
       icon("Microsoft.Extensions.AI.Evaluation"),
     ],
@@ -140,8 +142,8 @@ export const toolkitLogoFiles: string[] = toolkitGroups.flatMap((group) =>
  * about the Python logos (python.org/psf/trademarks).
  */
 export const toolkitNotices = [
-  "Logos are trademarks of their owners and appear here only to name the tools I use.",
+  "Names and logos are trademarks of their owners, appear here only to name the tools I use, and do not imply endorsement.",
   "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
-  "Python and the Python logos are trademarks of the Python Software Foundation.",
+  "Python and the Python logos are trademarks or registered trademarks of the Python Software Foundation.",
   "Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd.",
 ] as const;

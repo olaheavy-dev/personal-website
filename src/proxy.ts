@@ -34,6 +34,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static/|_next/image$|api/revalidate$|api/not-found-unmatched$|healthz$|sitemap\\.xml$|favicon\\.ico$|images/sunkanmi-256\\.jpg$|logos/(?:access-bank|deimos|galooli|hbk|mukuru|optty|stanbic-ibtc-mono|stanbic-ibtc|ulesson-mono|ulesson)\\.svg$|logos/tools/(?:csharp|fastapi|github|microsoft-agent-framework|nextjs|playwright|pytest|python|qdrant|react|redis|terraform|typescript)\\.svg$|not-found-unmatched$|work$|lab$|writing$|travel$|about$|$).*)",
+    "/((?!_next/static/|_next/image$|api/revalidate$|api/not-found-unmatched$|healthz$|sitemap\\.xml$|favicon\\.ico$|images/sunkanmi-256\\.jpg$|logos/(?:access-bank|deimos|galooli|hbk|mukuru|optty|stanbic-ibtc-mono|stanbic-ibtc|ulesson-mono|ulesson)\\.svg$|logos/tools/(?:csharp|fastapi|github|nextjs|pytest|python|qdrant|react|redis|typescript)\\.svg$|not-found-unmatched$|work$|lab$|writing$|travel$|about$|$).*)",
   ],
 };

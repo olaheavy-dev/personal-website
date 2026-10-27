@@ -83,7 +83,7 @@ test.describe("work toolkit", () => {
     const sources = await page
       .locator(".toolkit-plate img")
       .evaluateAll((imgs) => imgs.map((i) => i.getAttribute("src")));
-    expect(sources).toHaveLength(13);
+    expect(sources).toHaveLength(10);
     for (const src of sources) {
       const response = await page.request.get(src!);
       expect(response.status(), src!).toBe(200);
@@ -91,13 +91,17 @@ test.describe("work toolkit", () => {
     }
   });
 
-  test("shows Vercel's trademark sentence for the Next.js logo", async ({ page }) => {
+  test("shows every trademark sentence, and the Python and Redis symbols", async ({ page }) => {
     await page.goto("/work");
-    await expect(
-      toolkit(page).getByText(
-        "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
-      ),
-    ).toBeVisible();
+    for (const sentence of [
+      "Names and logos are trademarks of their owners, appear here only to name the tools I use, and do not imply endorsement.",
+      "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
+      "Python and the Python logos are trademarks or registered trademarks of the Python Software Foundation.",
+      "Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd.",
+    ])
+      await expect(toolkit(page).getByText(sentence)).toBeVisible();
+    await expect(chip(page, "Python")).toContainText("Python™");
+    await expect(chip(page, "Redis")).toContainText("Redis®");
   });
 
   for (const width of [320, 360, 375]) {

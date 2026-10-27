@@ -56,12 +56,9 @@ describe("toolkit model", () => {
       "FastAPI",
       "React",
       "Next.js",
-      "Microsoft Agent Framework",
       "Redis",
       "Qdrant",
-      "Terraform",
       "pytest",
-      "Playwright",
       "GitHub",
     ]);
     const abbreviations = tools.flatMap((tool) =>
@@ -85,16 +82,26 @@ describe("toolkit model", () => {
 
   it("points every logo at a file that exists, and the proxy matcher lets each one through", () => {
     const pattern = new RegExp(`^${config.matcher[0]}$`);
-    expect(toolkitLogoFiles).toHaveLength(13);
+    expect(toolkitLogoFiles).toHaveLength(10);
     for (const file of toolkitLogoFiles) {
       expect(existsSync(join(process.cwd(), "public", toolLogoDir, file)), file).toBe(true);
       expect(pattern.test(`${toolLogoDir}${file}`), file).toBe(false);
     }
   });
 
-  it("carries Vercel's trademark sentence word for word", () => {
-    expect(toolkitNotices).toContain(
+  it("carries every trademark sentence word for word", () => {
+    expect(toolkitNotices).toEqual([
+      "Names and logos are trademarks of their owners, appear here only to name the tools I use, and do not imply endorsement.",
       "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
-    );
+      "Python and the Python logos are trademarks or registered trademarks of the Python Software Foundation.",
+      "Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd.",
+    ]);
+  });
+
+  it("marks Python with a trademark symbol and Redis with a registered one, and no other tool", () => {
+    expect(tools.flatMap((tool) => (tool.mark ? [[tool.name, tool.mark]] : []))).toEqual([
+      ["Python", "™"],
+      ["Redis", "®"],
+    ]);
   });
 });

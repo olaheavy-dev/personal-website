@@ -55,20 +55,17 @@ const toolsDir = join(dir, "tools");
 const toolFiles = readdirSync(toolsDir).filter((name) => name.endsWith(".svg"));
 
 describe("tool logos", () => {
-  it("ships exactly the thirteen logos the brands allow, and nothing else", () => {
+  it("ships exactly the ten logos the brands allow, and nothing else", () => {
     expect([...toolFiles].sort()).toEqual([
       "csharp.svg",
       "fastapi.svg",
       "github.svg",
-      "microsoft-agent-framework.svg",
       "nextjs.svg",
-      "playwright.svg",
       "pytest.svg",
       "python.svg",
       "qdrant.svg",
       "react.svg",
       "redis.svg",
-      "terraform.svg",
       "typescript.svg",
     ]);
     expect(readdirSync(toolsDir)).toHaveLength(toolFiles.length);

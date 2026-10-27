@@ -68,16 +68,17 @@
     list-style: none;
   }
 
+  /* Wider padding from md; the side label column only from lg, so a tablet keeps the phone's
+     stacked layout and the chips have the full width. */
   @media (min-width: 48rem) {
     .toolkit-group {
-      grid-template-columns: var(--toolkit-label-width-md) minmax(0, 1fr);
-      column-gap: var(--space-5);
       padding-inline: var(--space-5);
     }
   }
   @media (min-width: 64rem) {
     .toolkit-group {
       grid-template-columns: var(--toolkit-label-width) minmax(0, 1fr);
+      column-gap: var(--space-5);
     }
   }
 
@@ -105,6 +106,16 @@
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-snug);
     overflow-wrap: anywhere;
+  }
+
+  .toolkit-chip-text {
+    min-width: 0;
+  }
+  /* The trademark symbol: small, raised, in the secondary text colour, never wider than the name. */
+  .toolkit-mark {
+    font-size: var(--font-size-xs);
+    line-height: 0;
+    color: var(--color-text-secondary);
   }
 
   /* Lift up and left onto the deeper shadow. Hover only where a pointer can hover; focus covers
@@ -140,7 +151,7 @@
   }
   .toolkit-plate[data-plate="logo"] {
     background: var(--color-plate);
-    box-shadow: inset 0 0 0 1px var(--color-border-primary);
+    box-shadow: inset 0 0 0 1px var(--color-plate-ring);
   }
   .toolkit-plate[data-plate="logo"] img {
     width: var(--toolkit-logo);

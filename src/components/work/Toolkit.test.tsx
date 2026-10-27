@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import { toolkitGroups } from "@/lib/toolkit";
+import { toolkitGroups, toolkitNotices } from "@/lib/toolkit";
 import { Toolkit } from "./Toolkit";
 
 describe("Toolkit", () => {
@@ -32,7 +32,7 @@ describe("Toolkit", () => {
     expect(plates).toHaveLength(37);
     plates.forEach((plate) => expect(plate).toHaveAttribute("aria-hidden", "true"));
     const logos = container.querySelectorAll("img");
-    expect(logos).toHaveLength(13);
+    expect(logos).toHaveLength(10);
     logos.forEach((img) => expect(img).toHaveAttribute("alt", ""));
     expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
@@ -55,12 +55,23 @@ describe("Toolkit", () => {
     expect(within(item).getByText("AWS")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("carries Vercel's trademark sentence under the ticket", () => {
-    render(<Toolkit />);
-    expect(
-      screen.getByText(
-        /Vercel, the Vercel design, Next\.js and related marks, designs and logos are trademarks/,
-      ),
-    ).toBeVisible();
+  it("carries every trademark sentence under the ticket", () => {
+    const { container } = render(<Toolkit />);
+    const notice = container.querySelector("[data-toolkit-notice]")!;
+    expect(notice).toBeVisible();
+    for (const sentence of toolkitNotices) expect(notice.textContent).toContain(sentence);
+  });
+
+  it("shows a small trademark symbol right after Python and Redis", () => {
+    const { container } = render(<Toolkit />);
+    const marks = [...container.querySelectorAll("sup.toolkit-mark")];
+    expect(marks.map((m) => m.textContent)).toEqual(["™", "®"]);
+    expect(screen.getByText("Python").closest("li")).toHaveTextContent("Python™");
+    expect(screen.getByText("Redis").closest("li")).toHaveTextContent("Redis®");
+  });
+
+  it("does not lazy load the logos", () => {
+    const { container } = render(<Toolkit />);
+    container.querySelectorAll("img").forEach((img) => expect(img).not.toHaveAttribute("loading"));
   });
 });

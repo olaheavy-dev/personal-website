@@ -4,6 +4,7 @@ import { getFlags } from "@/lib/db/queries/flags";
 import { getLabProjects } from "@/lib/db/queries/lab";
 import { getViewer } from "@/lib/flags/visibility";
 import { buildHomeTwoUp, type HomeTwoUpModel } from "@/lib/home/two-up";
+import { ArrowRight } from "@/components/site/ArrowRight";
 
 // Home section 5: the Lab strip and Latest writing side by side (issue #9). Each half sits
 // behind its own page flag. One half hidden means the other spans the full width, both hidden
@@ -17,7 +18,7 @@ function MoreLink({ href, children }: { href: string; children: React.ReactNode 
     <p className="mt-4">
       <a href={href} className={link}>
         <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">{children}</span>
-        <span aria-hidden="true">&rarr;</span>
+        <ArrowRight />
       </a>
     </p>
   );

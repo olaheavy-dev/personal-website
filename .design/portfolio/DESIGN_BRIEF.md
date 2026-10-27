@@ -103,7 +103,7 @@ Each page is wrapped in a feature flag (on / off / owner-preview). Detailed stru
 | Ask Sunkanmi panel + avatar launcher | New | Suggested prompts, streaming, citations deep-linking to sections, "How this works" trace, refusal state |
 | ⌘K route palette | New | Navigate, theme, ask assistant, copy email; one hidden "secret station" |
 | Passport (stamps) | New | Stamp on visiting stops/pages; small dismissible toast; passport view in ⌘K/footer; reset; no sound by default |
-| Email CTA / "Next stop" contact band | New | Copy-email button + mailto |
+| Email CTA / "What's next" contact band | New | Copy-email button + mailto |
 | Footer with colophon | New | Built-with, Lighthouse badges, socials, résumé |
 | 404 "Wrong turn" page | New | Avatar pose + route back home |
 | Admin shell + forms, image uploader, flags table | New | Supabase Auth (owner only), MFA |

@@ -20,7 +20,8 @@ type TicketBaseProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> &
   /** Wrapper element; headings keep the page outline through `headingLevel`. */
   as?: "article" | "div";
   headingLevel?: 2 | 3 | 4;
-  /** Mono station label, for example "Stop 07 · Now". */
+  /** Mono station label, for example "Backend Software Engineer · 2024 to now". */
+  /** A string is split at " · ": each part stays on one line, so a wrap never splits "via Deimos" or "2018 to 2021". */
   eyebrow?: ReactNode;
   /** Company pill, shown opposite the eyebrow. */
   badge?: ReactNode;
@@ -73,6 +74,14 @@ const titleStyle: Record<TicketLayout, Record<TicketSize, string>> = {
   },
 };
 
+// Non-breaking spaces inside each part, and the dot stays with the part before it, so a long
+// eyebrow wraps only between parts and never starts a line with a dot.
+const keepPhrases = (text: string) =>
+  text
+    .split(" · ")
+    .map((part) => part.replaceAll(" ", "\u00a0"))
+    .join("\u00a0· ");
+
 export function Ticket({
   layout = "stacked",
   size = "large",
@@ -118,7 +127,9 @@ export function Ticket({
         {eyebrow != null || badge != null ? (
           <div className="flex items-center justify-between gap-3">
             {eyebrow != null ? (
-              <p className={`label-mono ${tone === "paper" ? "text-text-tertiary" : ""}`.trim()}>{eyebrow}</p>
+              <p className={`label-mono ${tone === "paper" ? "text-text-tertiary" : ""}`.trim()}>
+                {typeof eyebrow === "string" ? keepPhrases(eyebrow) : eyebrow}
+              </p>
             ) : (
               <span />
             )}

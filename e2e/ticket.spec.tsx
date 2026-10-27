@@ -17,7 +17,7 @@ const markup = renderToStaticMarkup(
     <Ticket
       title="Optty"
       href="#ticket-link"
-      eyebrow="Stop 04"
+      eyebrow="2022 to 2024"
       chips={
         <MetricChip
           value="90+"

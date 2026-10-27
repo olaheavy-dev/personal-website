@@ -31,16 +31,24 @@ const stop = (slug: string, number: number, more: Partial<Stop>): Stop => ({
   startYear: 2020,
   endYear: 2022,
   via: null,
+  role: "Senior Software Engineer",
   summary: `Summary of ${slug}.`,
   stack: [],
   outcomes: [],
   ...more,
 });
 
-const accessRow = stop("access-bank", 2, { name: "Access Bank", outcomes: [outcome({})] });
+const accessRow = stop("access-bank", 2, {
+  name: "Access Bank",
+  startYear: 2018,
+  endYear: 2021,
+  outcomes: [outcome({})],
+});
 const opttyRow = stop("optty", 4, {
   name: "Optty",
   via: "Deimos",
+  startYear: 2022,
+  endYear: 2024,
   outcomes: [
     outcome({
       figure: "90+",
@@ -53,6 +61,8 @@ const opttyRow = stop("optty", 4, {
 const mukuruRow = stop("mukuru", 6, {
   name: "Mukuru",
   via: "Deimos",
+  startYear: 2022,
+  endYear: 2024,
   outcomes: [
     outcome({
       figure: "17M+",
@@ -69,7 +79,7 @@ const rows = [mukuruRow, opttyRow, accessRow];
 function view(stops = rows, flags = {}) {
   const model = buildSelectedStops(success(stops), flags, "public");
   render(<SelectedStopsView model={model!} />);
-  return screen.getByRole("region", { name: "Selected stops" });
+  return screen.getByRole("region", { name: "Selected work" });
 }
 
 describe("SelectedStopsView", () => {
@@ -84,11 +94,12 @@ describe("SelectedStopsView", () => {
     expect(section.querySelectorAll("h1")).toHaveLength(0);
   });
 
-  it("labels each ticket with its stop, as the information architecture names them", () => {
+  it("labels each ticket with the role and years from the CV", () => {
     const section = view();
-    expect(within(section).getByText("Stop 06 · via Deimos")).toBeInTheDocument();
-    expect(within(section).getByText("Stop 04 · via Deimos")).toBeInTheDocument();
-    expect(within(section).getByText("Stop 02")).toBeInTheDocument();
+    expect(within(section).getAllByText("Senior Software Engineer · via Deimos · 2022 to 2024")).toHaveLength(
+      2,
+    );
+    expect(within(section).getByText("Senior Software Engineer · 2018 to 2021")).toBeInTheDocument();
   });
 
   it("shows each summary and one chip with its attribution, no year, and the figure as the source link", () => {
@@ -132,9 +143,9 @@ describe("SelectedStopsView", () => {
     for (const link of links) expect(link).toHaveAttribute("target", "_blank");
   });
 
-  it("links 'See the whole route' to /work only while Work is visible", () => {
+  it("links 'See all work' to /work only while Work is visible", () => {
     const section = view(rows, { "page.work": "on" });
-    const link = within(section).getByRole("link", { name: /See the whole route/ });
+    const link = within(section).getByRole("link", { name: /See all work/ });
     expect(link).toHaveAttribute("href", "/work");
     expect(within(section).getAllByRole("link")).toHaveLength(4);
   });
@@ -148,7 +159,7 @@ describe("SelectedStops", () => {
   it("renders the section from the cached reads", async () => {
     vi.mocked(getStops).mockResolvedValue(success(rows));
     render(await SelectedStops());
-    expect(screen.getByRole("region", { name: "Selected stops" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Selected work" })).toBeInTheDocument();
   });
 
   it("renders nothing when the read failed or came back empty", async () => {

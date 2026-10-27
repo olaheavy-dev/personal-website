@@ -32,6 +32,7 @@ const stopRow = (index, fields, outcomes = []) => {
     updated_at: stamp,
     status: "published",
     summary: null,
+    role: null,
     stack: [],
     end_year: null,
     via: null,
@@ -61,6 +62,7 @@ export const stops = [
     1,
     {
       slug: "galooli",
+      role: "Technical Support Engineer",
       number: 1,
       name: "Galooli",
       kind: "compact",
@@ -87,6 +89,7 @@ export const stops = [
     2,
     {
       slug: "access-bank",
+      role: "Senior Software Engineer",
       number: 2,
       name: "Access Bank",
       kind: "flagship",
@@ -113,6 +116,7 @@ export const stops = [
   ),
   stopRow(3, {
     slug: "stanbic-ibtc",
+    role: "Senior Solutions Developer",
     number: 3,
     name: "Stanbic IBTC",
     kind: "compact",
@@ -124,6 +128,7 @@ export const stops = [
     4,
     {
       slug: "optty",
+      role: "Senior Software Engineer",
       number: 4,
       name: "Optty",
       kind: "flagship",
@@ -152,6 +157,7 @@ export const stops = [
   ),
   stopRow(5, {
     slug: "ulesson",
+    role: "Senior Software Engineer",
     number: 5,
     name: "uLesson",
     kind: "compact",
@@ -164,6 +170,7 @@ export const stops = [
     6,
     {
       slug: "mukuru",
+      role: "Senior Software Engineer",
       number: 6,
       name: "Mukuru",
       kind: "compact",
@@ -193,6 +200,7 @@ export const stops = [
     7,
     {
       slug: "hbk",
+      role: "Backend Software Engineer",
       number: 7,
       name: "HBK",
       kind: "flagship",

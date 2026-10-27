@@ -144,6 +144,25 @@ describe("supabase/seed.sql", () => {
     );
   });
 
+  it("holds the seven CV roles word for word, and the roles migration matches", () => {
+    const roles = {
+      galooli: "Technical Support Engineer",
+      "access-bank": "Senior Software Engineer",
+      "stanbic-ibtc": "Senior Solutions Developer",
+      optty: "Senior Software Engineer",
+      ulesson: "Senior Software Engineer",
+      mukuru: "Senior Software Engineer",
+      hbk: "Backend Software Engineer",
+    };
+    const migration = readFileSync("supabase/migrations/20261027115039_stops_role_content.sql", "utf8");
+    for (const [slug, text] of Object.entries(roles)) {
+      const statement = `update public.stops set role = '${text}' where slug = '${slug}';`;
+      expect(code, `${slug} in the seed`).toContain(statement);
+      expect(migration, `${slug} in the migration`).toContain(statement);
+    }
+    expect([...migration.matchAll(/^update public\.stops set role = /gm)]).toHaveLength(7);
+  });
+
   it("starts with only the home flag on", () => {
     const flags = code.slice(
       code.indexOf("insert into public.feature_flags"),

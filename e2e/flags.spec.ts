@@ -533,7 +533,7 @@ test("@flags the Lab strip on Home follows page.lab: Off removes the whole secti
   const html = await (await request.get("/")).text();
   expect(html).not.toContain("In the lab");
   expect(html).not.toContain("foresight.olaheavy.dev");
-  // Nothing is left between Selected stops and the footer but the one section gap.
+  // Nothing is left between Selected work and the footer but the one section gap.
   const [closed] = await gaps();
   await applyFlags(request, defaultFlags, "203.0.113.31");
   await page.goto("/");

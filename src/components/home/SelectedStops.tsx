@@ -18,7 +18,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
       aria-labelledby="selected-stops-title"
       className="mx-auto w-full max-w-wide px-(--gutter)"
     >
-      <SectionLabel id="selected-stops-title">Selected stops</SectionLabel>
+      <SectionLabel id="selected-stops-title">Selected work</SectionLabel>
       <ul role="list" className="mt-6 grid gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         {model.tickets.map((ticket, index) => (
           <li key={ticket.slug} className={`flex ${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`.trim()}>
@@ -54,7 +54,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
             className="group inline-flex min-h-11 items-center gap-1.5 font-medium text-lilac-text"
           >
             <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
-              See the whole route
+              See all work
             </span>
             <span aria-hidden="true">&rarr;</span>
           </a>

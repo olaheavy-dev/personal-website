@@ -41,6 +41,7 @@ const stopRow = (over: Partial<StopRow> = {}): StopRow => ({
   start_year: 2024,
   end_year: null,
   via: null,
+  role: "Backend Software Engineer",
   summary: null,
   stack: [],
   status: "published",

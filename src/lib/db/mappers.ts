@@ -69,6 +69,7 @@ export function mapStop(row: Row<"stops"> & { outcomes: Row<"outcomes">[] }): Re
     startYear: row.start_year,
     endYear: row.end_year,
     via: row.via,
+    role: row.role,
     summary: row.summary,
     stack: row.stack,
     outcomes: outcomes.data,

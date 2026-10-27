@@ -539,6 +539,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["stop_kind"];
           name: string;
           number: number;
+          role: string | null;
           slug: string;
           stack: string[];
           start_year: number;
@@ -556,6 +557,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["stop_kind"];
           name: string;
           number: number;
+          role?: string | null;
           slug: string;
           stack?: string[];
           start_year: number;
@@ -572,6 +574,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["stop_kind"];
           name?: string;
           number?: number;
+          role?: string | null;
           slug?: string;
           stack?: string[];
           start_year?: number;

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-// Home, Selected stops (#9, PR 2). The rows come from the fake Supabase server
+// Home, Selected work (#9, PR 2). The rows come from the fake Supabase server
 // (e2e/fixtures/fake-content.mjs), which copies the seed.
 
 const tags = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -14,11 +14,10 @@ test.describe("selected stops", () => {
   }) => {
     await page.goto("/");
     const stops = section(page);
-    await expect(stops.getByRole("heading", { level: 2, name: "Selected stops" })).toBeVisible();
+    await expect(stops.getByRole("heading", { level: 2, name: "Selected work" })).toBeVisible();
     await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["Mukuru", "Optty", "Access Bank"]);
-    await expect(stops.getByText("Stop 06 · via Deimos")).toBeVisible();
-    await expect(stops.getByText("Stop 04 · via Deimos")).toBeVisible();
-    await expect(stops.getByText("Stop 02", { exact: true })).toBeVisible();
+    await expect(stops.getByText("Senior Software Engineer · via Deimos · 2022 to 2024")).toHaveCount(2);
+    await expect(stops.getByText("Senior Software Engineer · 2018 to 2021", { exact: true })).toBeVisible();
     await expect(stops.getByText(/^Integrations that land Mukuru's cross-border transfers/)).toBeVisible();
     await expect(stops.getByText(/^Design and delivery of the integrations behind Optty's/)).toBeVisible();
     await expect(stops.getByText(/^Built and shipped QuickBucks and Instant Account/)).toBeVisible();
@@ -51,10 +50,10 @@ test.describe("selected stops", () => {
       .locator("a:not([target=_blank])")
       .evaluateAll((links) => links.map((l) => l.getAttribute("href")));
     expect(hrefs).toEqual(["/work"]);
-    await expect(section(page).getByRole("link", { name: /See the whole route/ })).toBeVisible();
+    await expect(section(page).getByRole("link", { name: /See all work/ })).toBeVisible();
   });
 
-  test("the hero HBK ticket shows the approved copy, and the peeking ticket reads Stop 01 Galooli", async ({
+  test("the hero HBK ticket shows the approved copy, and the peeking ticket reads the Galooli role", async ({
     page,
   }) => {
     await page.goto("/");
@@ -64,7 +63,7 @@ test.describe("selected stops", () => {
         "Designing and building HBK\u2019s sensor-data analytics platform for test, durability and fatigue engineers, and the AI inside it: from Aiana, the docs assistant, to AI agents for features like Python code suggestions and file data analysis.",
       ),
     ).toBeVisible();
-    await expect(hero.getByText("Stop 01 · Galooli", { exact: true })).toHaveCount(1);
+    await expect(hero.getByText("Technical Support Engineer · 2016 to 2018", { exact: true })).toHaveCount(1);
   });
 
   test("the three stubs line up in the 3-up grid, and each credit follows its figure on the same line", async ({

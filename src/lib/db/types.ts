@@ -40,6 +40,8 @@ export type Stop = {
   endYear: number | null;
   /** The consultancy it was through, for example "Deimos". */
   via: string | null;
+  /** The owner's role at the stop, for example "Senior Software Engineer". Null shows years only. */
+  role: string | null;
   summary: string | null;
   stack: string[];
   outcomes: Outcome[];

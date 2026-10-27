@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
+@import "../styles/font-fallbacks.css";
 @import "../styles/logo-rail.css";
 
 /* Theme-dependent icon swap (no JS needed to show the right icon on first paint) */

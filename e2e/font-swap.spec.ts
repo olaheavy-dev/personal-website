@@ -11,6 +11,11 @@ import { expect, test } from "@playwright/test";
 // so fast that the swap happens before the first paint and hides the problem, so this test holds
 // every font file back for longer than the first paint takes, then adds up the layout shifts.
 
+// Text is positioned to a fraction of a pixel on macOS, Windows and Android, which is where the fallback
+// sizes in src/styles/font-fallbacks.css are measured. Chromium on Linux at 1x rounds every glyph advance
+// to a whole pixel, and no single size-adjust can follow that, so the test turns subpixel positioning on.
+test.use({ launchOptions: { args: ["--font-render-hinting=none", "--enable-font-subpixel-positioning"] } });
+
 const fontDelayMs = 1500;
 const maxShift = 0.01;
 
@@ -24,11 +29,24 @@ test("a late web font swap does not shift the layout (cumulative layout shift un
     await route.continue();
   });
   await page.addInitScript(() => {
-    const w = window as unknown as { __cls: number };
+    const w = window as unknown as { __shifts: string[]; __cls: number };
     w.__cls = 0;
+    w.__shifts = [];
     new PerformanceObserver((list) => {
-      for (const entry of list.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) {
-        if (!entry.hadRecentInput) w.__cls += entry.value;
+      for (const entry of list.getEntries() as unknown as {
+        value: number;
+        hadRecentInput: boolean;
+        sources: { node: Element | null; previousRect: DOMRect; currentRect: DOMRect }[];
+      }[]) {
+        if (entry.hadRecentInput) continue;
+        w.__cls += entry.value;
+        // What moved, for the failure message.
+        const moved = entry.sources.map((source) => {
+          const box = (r: DOMRect) =>
+            `${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}`;
+          return `${source.node?.nodeName ?? "?"} ${box(source.previousRect)} to ${box(source.currentRect)}`;
+        });
+        w.__shifts.push(`${entry.value.toFixed(4)}: ${moved.join("; ")}`);
       }
     }).observe({ type: "layout-shift", buffered: true });
   });
@@ -46,8 +64,11 @@ test("a late web font swap does not shift the layout (cumulative layout shift un
   await page.waitForTimeout(300);
 
   expect(delayed, "the page asked for web font files").toBeGreaterThan(0);
-  const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
-  expect(cls).toBeLessThan(maxShift);
+  const { cls, shifts } = await page.evaluate(() => {
+    const w = window as unknown as { __cls: number; __shifts: string[] };
+    return { cls: w.__cls, shifts: w.__shifts };
+  });
+  expect(cls, `layout shifts:\n${shifts.join("\n")}`).toBeLessThan(maxShift);
 });
 
 // The fix for the test above uses `font-display: optional`, which drops a font that is late. This

@@ -307,9 +307,17 @@
    -------------------------------------------------------------------------- */
 :root {
   /* Typography: families (loaded via next/font: Bricolage Grotesque, Geist, Geist Mono) */
-  --font-family-display: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-family-body: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  /* After each web font come its size matched fallbacks (src/styles/font-fallbacks.css). The web fonts are
+     named, not taken from next/font's --font-* variables, which also list next/font's own fallback. */
+  --font-family-display:
+    "Bricolage Grotesque", "Bricolage Fallback Arial", "Bricolage Fallback Roboto",
+    "Bricolage Fallback DejaVu Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body:
+    "Geist", "Geist Fallback Arial", "Geist Fallback Roboto", "Geist Fallback DejaVu Sans", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-family-mono:
+    "Geist Mono", "Geist Mono Fallback Menlo", "Geist Mono Fallback Courier", ui-monospace, SFMono-Regular,
+    monospace;
 
   /* Type ramp: body is 17px; display scales fluidly between 375px and 1440px
      (brief: tracking −0.03 to −0.05em at ≥64px). */

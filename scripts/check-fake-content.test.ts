@@ -99,6 +99,11 @@ describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
         String.raw`update public\.stops set summary = (${quoted}) where slug = '${stop.slug}';`,
       ).exec(code);
       expect(summary ? text(summary[1]!) : null, `${stop.slug} summary`).toEqual(stop.summary);
+      const details = new RegExp(
+        String.raw`update public\.stops set details = array\[(.*)\] where slug = '${stop.slug}';`,
+      ).exec(code);
+      const lines = details ? [...details[1]!.matchAll(new RegExp(quoted, "g"))].map((m) => text(m[0])) : [];
+      expect(lines, `${stop.slug} details`).toEqual(stop.details);
     }
   });
 

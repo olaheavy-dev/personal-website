@@ -65,6 +65,16 @@ update public.stops set role = 'Senior Software Engineer' where slug = 'ulesson'
 update public.stops set role = 'Senior Software Engineer' where slug = 'mukuru';
 update public.stops set role = 'Backend Software Engineer' where slug = 'hbk';
 
+-- Work page copy, approved by the owner on 27 Oct 2026 (issue #10). The same statements are in
+-- supabase/migrations/20261027130738_work_copy_content.sql for the hosted project.
+update public.stops set summary = 'Field deployment and support of Galooli''s IoT energy management for telecom tower sites across Nigeria.' where slug = 'galooli';
+update public.stops set summary = 'Digital banking products in Stanbic IBTC''s Innovation Lab, built on open banking APIs with fintech partners.' where slug = 'stanbic-ibtc';
+update public.stops set summary = 'Web platform work for uLesson''s learning app: a redesign, faster pages and better observability.' where slug = 'ulesson';
+update public.stops set details = array['Deployed IoT energy management for telecom tower operators across Nigeria.', 'Delivered the analytics dashboards clients used to track energy use and running costs.'] where slug = 'galooli';
+update public.stops set details = array['Redesigned the Personal Finance Manager across web and mobile, with better accessibility and deeper links to digital banking APIs.', 'Added retries and background processing to EZ Cash so fewer transactions failed.', 'Turned business ideas into secure digital products alongside product and business teams.', 'Mentored junior engineers on the team.'] where slug = 'stanbic-ibtc';
+update public.stops set details = array['Redesigned the uLesson web platform so pages load faster and learning flows read more clearly.', 'Built observability and logging that made production problems quicker to find and fix.', 'Improved the front end and back end across learning workflows and platform reliability.'] where slug = 'ulesson';
+update public.stops set details = array['Integrated mobile wallet providers and Malawi''s national payment switch so remittances reach wallets.', 'Built USSD flows that handle errors and retry, for customers on basic phones.', 'Added value-added services for remittance customers alongside transfers.'] where slug = 'mukuru';
+
 -- Four case studies as drafts, section titles only. Flags decide visibility later.
 insert into public.case_studies (slug, stop_id, title, status) values
   ('hbk-aiana', (select id from public.stops where slug = 'hbk'), 'HBK Advantage Aiana', 'draft'),
@@ -136,7 +146,7 @@ values
     'link', 'Optty and Triple-A announcement, 2023', 'https://triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies', date '2026-10-25',
     'company', 'Optty', 2023),
   ((select id from public.stops where slug = 'galooli'), null, 1,
-    '~11%', 'fuel saving across several hundred sites in Nigeria, reported by Galooli',
+    '~11%', 'fuel saving across several hundred sites in Nigeria',
     'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',
     'company', 'Galooli', 2021),
   ((select id from public.stops where slug = 'mukuru'), null, 1,

@@ -34,6 +34,7 @@ const stopRow = (index, fields, outcomes = []) => {
     summary: null,
     role: null,
     stack: [],
+    details: [],
     end_year: null,
     via: null,
     ...fields,
@@ -62,6 +63,12 @@ export const stops = [
     1,
     {
       slug: "galooli",
+      summary:
+        "Field deployment and support of Galooli's IoT energy management for telecom tower sites across Nigeria.",
+      details: [
+        "Deployed IoT energy management for telecom tower operators across Nigeria.",
+        "Delivered the analytics dashboards clients used to track energy use and running costs.",
+      ],
       role: "Technical Support Engineer",
       number: 1,
       name: "Galooli",
@@ -74,7 +81,7 @@ export const stops = [
       {
         position: 1,
         figure: "~11%",
-        description: "fuel saving across several hundred sites in Nigeria, reported by Galooli",
+        description: "fuel saving across several hundred sites in Nigeria",
         source_kind: "link",
         source_label: "Galooli Nigeria case study",
         source_url: "https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/",
@@ -116,6 +123,14 @@ export const stops = [
   ),
   stopRow(3, {
     slug: "stanbic-ibtc",
+    summary:
+      "Digital banking products in Stanbic IBTC's Innovation Lab, built on open banking APIs with fintech partners.",
+    details: [
+      "Redesigned the Personal Finance Manager across web and mobile, with better accessibility and deeper links to digital banking APIs.",
+      "Added retries and background processing to EZ Cash so fewer transactions failed.",
+      "Turned business ideas into secure digital products alongside product and business teams.",
+      "Mentored junior engineers on the team.",
+    ],
     role: "Senior Solutions Developer",
     number: 3,
     name: "Stanbic IBTC",
@@ -157,6 +172,13 @@ export const stops = [
   ),
   stopRow(5, {
     slug: "ulesson",
+    summary:
+      "Web platform work for uLesson's learning app: a redesign, faster pages and better observability.",
+    details: [
+      "Redesigned the uLesson web platform so pages load faster and learning flows read more clearly.",
+      "Built observability and logging that made production problems quicker to find and fix.",
+      "Improved the front end and back end across learning workflows and platform reliability.",
+    ],
     role: "Senior Software Engineer",
     number: 5,
     name: "uLesson",
@@ -170,6 +192,11 @@ export const stops = [
     6,
     {
       slug: "mukuru",
+      details: [
+        "Integrated mobile wallet providers and Malawi's national payment switch so remittances reach wallets.",
+        "Built USSD flows that handle errors and retry, for customers on basic phones.",
+        "Added value-added services for remittance customers alongside transfers.",
+      ],
       role: "Senior Software Engineer",
       number: 6,
       name: "Mukuru",

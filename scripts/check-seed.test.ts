@@ -165,6 +165,66 @@ describe("supabase/seed.sql", () => {
     expect([...migration.matchAll(/^update public\.stops set role = /gm)]).toHaveLength(7);
   });
 
+  it("holds the 27 Oct Work copy word for word, and the Work copy migration matches", () => {
+    const summaries = {
+      galooli:
+        "Field deployment and support of Galooli's IoT energy management for telecom tower sites across Nigeria.",
+      "stanbic-ibtc":
+        "Digital banking products in Stanbic IBTC's Innovation Lab, built on open banking APIs with fintech partners.",
+      ulesson:
+        "Web platform work for uLesson's learning app: a redesign, faster pages and better observability.",
+    };
+    const details = {
+      galooli: [
+        "Deployed IoT energy management for telecom tower operators across Nigeria.",
+        "Delivered the analytics dashboards clients used to track energy use and running costs.",
+      ],
+      "stanbic-ibtc": [
+        "Redesigned the Personal Finance Manager across web and mobile, with better accessibility and deeper links to digital banking APIs.",
+        "Added retries and background processing to EZ Cash so fewer transactions failed.",
+        "Turned business ideas into secure digital products alongside product and business teams.",
+        "Mentored junior engineers on the team.",
+      ],
+      ulesson: [
+        "Redesigned the uLesson web platform so pages load faster and learning flows read more clearly.",
+        "Built observability and logging that made production problems quicker to find and fix.",
+        "Improved the front end and back end across learning workflows and platform reliability.",
+      ],
+      mukuru: [
+        "Integrated mobile wallet providers and Malawi's national payment switch so remittances reach wallets.",
+        "Built USSD flows that handle errors and retry, for customers on basic phones.",
+        "Added value-added services for remittance customers alongside transfers.",
+      ],
+    };
+    const migrationFile = "supabase/migrations/20261027130738_work_copy_content.sql";
+    expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
+    const migration = readFileSync(migrationFile, "utf8");
+    const sql = (text: string) => `'${text.replaceAll("'", "''")}'`;
+    const statements: string[] = [];
+    for (const [slug, text] of Object.entries(summaries)) {
+      statements.push(`update public.stops set summary = ${sql(text)} where slug = '${slug}';`);
+    }
+    for (const [slug, lines] of Object.entries(details)) {
+      expect(lines.length).toBeLessThanOrEqual(4);
+      statements.push(
+        `update public.stops set details = array[${lines.map(sql).join(", ")}] where slug = '${slug}';`,
+      );
+    }
+    for (const statement of statements) {
+      expect(code, statement).toContain(statement);
+      expect(migration, statement).toContain(statement);
+    }
+    expect([...migration.matchAll(/^update public\.stops set (?:summary|details) = /gm)]).toHaveLength(7);
+
+    // Galooli's figure keeps its source and credit, and no longer says "reported by Galooli".
+    const outcome = `update public.outcomes set description = 'fuel saving across several hundred sites in Nigeria' where position = 1 and stop_id = (select id from public.stops where slug = 'galooli');`;
+    expect(migration).toContain(outcome);
+    expect(code).toContain(
+      "'~11%', 'fuel saving across several hundred sites in Nigeria',\n    'link', 'Galooli Nigeria case study', 'https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/', date '2026-10-25',\n    'company', 'Galooli', 2021)",
+    );
+    expect(code).not.toContain("reported by Galooli");
+  });
+
   it("starts with only the home flag on", () => {
     const flags = code.slice(
       code.indexOf("insert into public.feature_flags"),

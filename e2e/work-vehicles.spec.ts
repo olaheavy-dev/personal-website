@@ -53,7 +53,7 @@ const box = (page: Page, selector: string) =>
     });
 
 test.describe("work vehicles", () => {
-  test("after scrolling, one danfo shows at the latest reached Lagos pin with its door open", async ({
+  test("after scrolling down, one danfo shows at the latest reached Lagos pin with its door open", async ({
     page,
   }) => {
     await page.goto("/work");
@@ -66,6 +66,51 @@ test.describe("work vehicles", () => {
     const [danfo] = await visibleDanfos(page);
     expect(danfo).toMatchObject({ at: "galooli", door: "open" });
     await expect(page.locator("[data-vehicle='danfo'][data-latest]")).toHaveCount(1);
+  });
+
+  test("scrolling back up, the danfo drives back up with the reader, and the bus stays at HBK", async ({
+    page,
+  }) => {
+    await page.goto("/work");
+    await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+    await scrollToEnd(page);
+    await settle(page);
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["galooli"]);
+    // Stanbic IBTC just above the reading line (60% down the screen), Access Bank below it.
+    await page
+      .locator("[data-route-pin='stanbic-ibtc']")
+      .evaluate((pin) =>
+        window.scrollTo(
+          0,
+          pin.getBoundingClientRect().top + window.scrollY - (window.innerHeight * 0.6 - 20),
+        ),
+      );
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["stanbic-ibtc"]);
+    // Back at the top, above every Lagos pin: the danfo waits at the first one, the Deimos entry.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["Deimos"]);
+    await expect(page.locator("[data-vehicle='bus'][data-latest]")).toHaveCount(1);
+    await expect
+      .poll(() => page.locator("[data-vehicle='bus']").evaluate((el) => getComputedStyle(el).opacity))
+      .toBe("1");
+  });
+
+  test("a jump that carries pins straight past the screen, a scrollbar drag, still moves the danfo", async ({
+    page,
+  }) => {
+    // A short window, so a pin can go from below the reading line to above the screen in one jump.
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await page.goto("/work");
+    await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+    await scrollToEnd(page);
+    await settle(page);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["Deimos"]);
+    // One jump: Access Bank lands just above the screen and Galooli stays below the line.
+    await page
+      .locator("[data-route-pin='access-bank']")
+      .evaluate((pin) => window.scrollTo(0, pin.getBoundingClientRect().top + window.scrollY + 20));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["access-bank"]);
   });
 
   test("the danfo is only ever at a Lagos entry, never at HBK", async ({ page }) => {

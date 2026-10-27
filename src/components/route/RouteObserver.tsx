@@ -1,10 +1,11 @@
 "use client";
 
 // The only client code of the route. It arms the route (data-armed, which is
-// what makes the undrawn state apply) and starts the drawing, nothing else: no
-// scroll listeners, no layout reads outside observer callbacks, and the drawing
-// never goes backwards. It marks the DOM (data-drawn on the route, data-reached
-// on pins) and CSS does the animating. If this code never runs, the route is
+// what makes the undrawn state apply), starts the drawing and parks the vehicles,
+// nothing else. Layout is read only at load, in observer callbacks and in the page
+// end check. The drawing never goes backwards; a parked vehicle follows the reader
+// both ways. It marks the DOM (data-drawn on the route, data-reached on pins and
+// data-latest on vehicles) and CSS does the animating. If this code never runs, the route is
 // simply shown finished.
 import { useEffect, useRef } from "react";
 import type { RouteDraw } from "./Route";
@@ -48,9 +49,12 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
     }
 
     // Parked vehicles (the Lagos danfo, the London bus): pins that share a data-route-park group
-    // are visited by one vehicle, which shows at the most recently reached pin of its group
-    // (data-latest, and data-door open on a vehicle that has a door). With reduced motion the
-    // vehicles stay where the markup parks them (data-home), so nothing is marked at all.
+    // are visited by one vehicle (data-latest, and data-door open on a vehicle that has a door).
+    // It parks at the reader's place in its group: the last reached pin above the reading line
+    // (40% up from the bottom of the viewport, the same line that reaches pins), so it drives
+    // back up when the reader scrolls back up. Above all of them it waits at the first reached
+    // one, and at the very end of the page at the last. With reduced motion the vehicles stay
+    // where the markup parks them (data-home), so nothing is marked at all.
     const slots = new Map<string, HTMLElement>();
     for (const slot of root.querySelectorAll<HTMLElement>("[data-parked-at]")) {
       slots.set(slot.dataset.parkedAt ?? "", slot);
@@ -61,16 +65,30 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       if (group) groups.set(group, [...(groups.get(group) ?? []), pin]);
     }
     const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    // With reduced motion nothing parks, so nothing needs watching for it.
+    const parkPins = reduced ? [] : pins.filter((pin) => pin.dataset.routePark);
+    const atPageEnd = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+    // The reading line, in pixels from the top of the viewport: 40% up from the bottom, rounded
+    // the same way as the observers' root margin, so both agree on which side a pin is.
+    const lineMargin = () => Math.round(window.innerHeight * 0.4);
     const park = () => {
       if (reduced) return;
+      const line = window.innerHeight - lineMargin();
+      const atEnd = atPageEnd();
       for (const members of groups.values()) {
-        const latest = members.findLast((pin) => pin.hasAttribute("data-reached"));
+        const reached = members.filter((pin) => pin.hasAttribute("data-reached"));
+        const latest = atEnd
+          ? reached.at(-1)
+          : (reached.findLast((pin) => pin.getBoundingClientRect().top <= line) ?? reached[0]);
         for (const pin of members) {
           const slot = slots.get(pin.dataset.routePin ?? "");
           if (!slot) continue;
           const here = pin === latest;
           slot.toggleAttribute("data-latest", here);
-          if (slot.hasAttribute("data-door")) slot.setAttribute("data-door", here ? "open" : "closed");
+          const door = here ? "open" : "closed";
+          if (slot.hasAttribute("data-door") && slot.getAttribute("data-door") !== door) {
+            slot.setAttribute("data-door", door);
+          }
         }
       }
     };
@@ -128,11 +146,15 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       }
       reachedCount = Math.max(reachedCount, upTo + 1);
       park();
+      // Once every pin is reached the drawing is done. A route with parked vehicles keeps its
+      // parking observers (they follow the reader both ways); one without stops watching.
       if (reachedCount >= pins.length) {
-        window.removeEventListener("resize", onResize);
-        window.removeEventListener("scroll", checkEnd);
         pinObserver.disconnect();
-        endObserver.disconnect();
+        if (parkPins.length === 0) {
+          window.removeEventListener("resize", onResize);
+          window.removeEventListener("scroll", checkEnd);
+          endObserver.disconnect();
+        }
       }
     };
     // The spec text on percentage root margins is read differently by engines (some
@@ -150,10 +172,25 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
           }
           if (highest >= reachedCount) reach(highest);
         },
-        { rootMargin: `0px 0px -${Math.round(window.innerHeight * 0.4)}px 0px` },
+        { rootMargin: `0px 0px -${lineMargin()}px 0px` },
       );
     let pinObserver = observePins();
+    // Parking: any group pin crossing the reading line, either way, moves its vehicle. The area
+    // reaches far above the screen (the whole page height), so it is everything above the line:
+    // a jump that carries a pin from below the line straight past the top of the screen (a
+    // scrollbar drag) still changes its state, and so still re-parks.
+    const observeParking = () =>
+      new IntersectionObserver(() => park(), {
+        rootMargin: `${Math.max(document.documentElement.scrollHeight, window.innerHeight) * 2}px 0px -${lineMargin()}px 0px`,
+      });
+    // Only a route with parked vehicles watches for parking (Home's route has none).
+    let parkObserver = parkPins.length > 0 ? observeParking() : undefined;
     const onResize = () => {
+      if (parkObserver) {
+        parkObserver.disconnect();
+        parkObserver = observeParking();
+        for (const pin of parkPins) parkObserver.observe(pin);
+      }
       if (reachedCount >= pins.length) return;
       pinObserver.disconnect();
       pinObserver = observePins();
@@ -165,9 +202,11 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
     // screen at all, a scroll to the very end of the page (or a page that cannot scroll
     // further) counts every remaining pin as reached. Merely seeing the last pin is not
     // enough: that would skip the pins between, and a vehicle that visits them.
-    const atPageEnd = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+    // Also parks: reaching the page end, or leaving it, moves a vehicle to or from the last pin.
     const checkEnd = () => {
-      if (atPageEnd()) reach(pins.length - 1);
+      if (!atPageEnd()) return park();
+      if (reachedCount < pins.length) reach(pins.length - 1);
+      else park();
     };
     let watchingEnd = false;
     const endObserver = new IntersectionObserver((entries) => {
@@ -182,6 +221,7 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       }
     });
     for (const pin of pins) pinObserver.observe(pin);
+    for (const pin of parkPins) parkObserver?.observe(pin);
     const last = pins.at(-1);
     if (last) endObserver.observe(last);
     // Every pin already on screen at load counts as reached, so a short desktop shows the
@@ -195,6 +235,7 @@ export function RouteObserver({ draw }: { draw: RouteDraw }) {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", checkEnd);
       pinObserver.disconnect();
+      parkObserver?.disconnect();
       endObserver.disconnect();
     };
   }, [draw]);

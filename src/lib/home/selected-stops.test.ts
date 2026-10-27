@@ -27,6 +27,7 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
     via: null,
     role: "Senior Software Engineer",
     summary: `About ${slug}.`,
+    details: [],
     stack: [],
     outcomes: [chip],
     ...more,
@@ -53,17 +54,23 @@ const caseLive: CaseStudyEntry[] = [
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
 
 describe("stopEyebrow", () => {
-  it("is role, via and years, from the owner's CV", () => {
+  it("is role over years, from the owner's CV", () => {
     expect(stopEyebrow(hbk)).toEqual({ role: "Backend Software Engineer", meta: "2024 to now" });
-    expect(stopEyebrow(optty)).toEqual({
-      role: "Senior Software Engineer",
-      meta: "via Deimos · 2022 to 2024",
-    });
     expect(stopEyebrow(access)).toEqual({ role: "Senior Software Engineer", meta: "2020 to 2022" });
   });
 
+  it("shows only 'via Deimos' for a Deimos client: no role and no years", () => {
+    expect(stopEyebrow(optty)).toEqual({ role: null, meta: "via Deimos" });
+    expect(stopEyebrow(mukuru)).toEqual({ role: null, meta: "via Deimos" });
+  });
+
+  it("keeps the role and years on the Deimos rows' data, only the label changes", () => {
+    expect(optty.role).toBe("Senior Software Engineer");
+    expect(optty.startYear).toBe(2022);
+  });
+
   it("shows the years only when the stop has no role", () => {
-    expect(stopEyebrow({ ...optty, role: null })).toEqual({ role: null, meta: "2022 to 2024" });
+    expect(stopEyebrow({ ...access, role: null })).toEqual({ role: null, meta: "2020 to 2022" });
   });
 });
 
@@ -72,7 +79,7 @@ describe("buildSelectedStops", () => {
     const model = buildSelectedStops(success(all), {}, "public");
     expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["mukuru", "optty", "access-bank"]);
     expect(model?.tickets.at(0)).toMatchObject({
-      eyebrow: { role: "Senior Software Engineer", meta: "via Deimos · 2022 to 2024" },
+      eyebrow: { role: null, meta: "via Deimos" },
       summary: "About mukuru.",
       outcome: chip,
     });

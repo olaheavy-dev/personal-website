@@ -16,8 +16,9 @@ test.describe("selected stops", () => {
     const stops = section(page);
     await expect(stops.getByRole("heading", { level: 2, name: "Selected work" })).toBeVisible();
     await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["Mukuru", "Optty", "Access Bank"]);
-    await expect(stops.getByText("Senior Software Engineer", { exact: true })).toHaveCount(3);
-    await expect(stops.getByText("via Deimos · 2022 to 2024", { exact: true })).toHaveCount(2);
+    await expect(stops.getByText("Senior Software Engineer", { exact: true })).toHaveCount(1);
+    await expect(stops.getByText("via Deimos", { exact: true })).toHaveCount(2);
+    await expect(stops.getByText("2022 to 2024")).toHaveCount(0);
     await expect(stops.getByText("2018 to 2021", { exact: true })).toBeVisible();
     await expect(stops.getByText(/^Integrations that land Mukuru's cross-border transfers/)).toBeVisible();
     await expect(stops.getByText(/^Design and delivery of the integrations behind Optty's/)).toBeVisible();

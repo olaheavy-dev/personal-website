@@ -18,7 +18,7 @@ export const selectedStopSlugs = ["mukuru", "optty", "access-bank"] as const;
 
 export type SelectedTicket = {
   slug: string;
-  /** Role over meta, for example "Senior Software Engineer" over "via Deimos · 2022 to 2024". */
+  /** Role over meta, for example "Backend Software Engineer" over "2024 to now", or just "via Deimos". */
   eyebrow: StopEyebrow;
   title: string;
   /** Null when the stop has no summary: the ticket then shows no paragraph. */
@@ -39,15 +39,16 @@ export type SelectedStopsModel = {
 export type StopEyebrow = { role: string | null; meta: string };
 
 /**
- * The ticket's mono eyebrow, from the owner's CV: role "Senior Software Engineer" over meta
- * "via Deimos · 2022 to 2024" for a client stop of a consultancy, role "Technical Support
- * Engineer" over "2016 to 2018" otherwise, and "2024 to now" while the stop is current. A stop
- * with no role shows the years only (and no "via").
+ * The ticket's mono eyebrow, from the owner's CV: role "Technical Support Engineer" over
+ * "2016 to 2018", and "2024 to now" while the stop is current. A stop with no role shows the
+ * years only. A client stop of a consultancy (owner decision, 27 Oct 2026) shows only "via
+ * Deimos": no role and no years, because those describe the Deimos job and appear once, in the
+ * Deimos group heading on /work (see `deimosGroupHeading`).
  */
 export function stopEyebrow(stop: Pick<Stop, "role" | "via" | "startYear" | "endYear">): StopEyebrow {
+  if (stop.via) return { role: null, meta: `via ${stop.via}` };
   const years = `${stop.startYear} to ${stop.endYear ?? "now"}`;
-  if (!stop.role) return { role: null, meta: years };
-  return { role: stop.role, meta: stop.via ? `via ${stop.via} · ${years}` : years };
+  return { role: stop.role || null, meta: years };
 }
 
 type Registries = {

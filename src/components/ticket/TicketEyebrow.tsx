@@ -1,8 +1,8 @@
 import type { StopEyebrow } from "@/lib/home/selected-stops";
 
 // The two lines of a work ticket's eyebrow: the role (wraps between words) over its meta line
-// ("via Deimos · 2022 to 2024", kept on one line). Real spaces only, so copying the text is
-// honest. A screen reader gets one phrase: "Senior Software Engineer, via Deimos · 2022 to 2024".
+// ("2024 to now" or "via Deimos", kept on one line). Real spaces only, so copying the text is
+// honest. A screen reader gets one phrase: "Backend Software Engineer, 2024 to now".
 export function TicketEyebrow({ role, meta }: StopEyebrow) {
   return (
     <>

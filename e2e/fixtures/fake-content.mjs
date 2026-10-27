@@ -105,8 +105,8 @@ export const stops = [
       ],
       detail_sources: [
         {
-          label: "Device Finance FAQ",
-          url: "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx",
+          label: "Device Finance launch (BusinessPost)",
+          url: "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
         },
         {
           label: "Konga partnership",

@@ -120,11 +120,13 @@ test.describe("work page", () => {
     ).toBeVisible();
     const sources = ticket.getByRole("list", { name: "Sources" });
     await expect(sources.getByRole("link")).toHaveCount(2);
-    const device = sources.getByRole("link", { name: "Device Finance FAQ (opens in a new tab)" });
+    const device = sources.getByRole("link", {
+      name: "Device Finance launch (BusinessPost) (opens in a new tab)",
+    });
     const konga = sources.getByRole("link", { name: "Konga partnership (opens in a new tab)" });
     await expect(device).toHaveAttribute(
       "href",
-      "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx",
+      "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
     );
     await expect(konga).toHaveAttribute(
       "href",

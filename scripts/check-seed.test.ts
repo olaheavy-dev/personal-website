@@ -22,7 +22,7 @@ const allowedLinks = new Set([
   "https://techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey",
   "https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/",
   "https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",
-  "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx",
+  "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
   "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
 ]);
 
@@ -244,7 +244,7 @@ describe("supabase/seed.sql", () => {
       ],
     };
     const sources =
-      '[{"label": "Device Finance FAQ", "url": "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]';
+      '[{"label": "Device Finance launch (BusinessPost)", "url": "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]';
     const migrationFile = "supabase/migrations/20261027163838_ticket_details_content.sql";
     expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
     const migration = readFileSync(migrationFile, "utf8");

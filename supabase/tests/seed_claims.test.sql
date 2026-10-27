@@ -86,11 +86,11 @@ select is(
 select results_eq(
   $$select slug, jsonb_array_length(detail_sources) from public.stops order by number$$,
   $$values ('galooli', 0), ('access-bank', 2), ('stanbic-ibtc', 0), ('optty', 0), ('ulesson', 0), ('mukuru', 0), ('hbk', 0)$$,
-  'only Access Bank has detail sources: the Device Finance FAQ and the Konga partnership'
+  'only Access Bank has detail sources: the Device Finance launch (BusinessPost) and the Konga partnership'
 );
 select is(
   (select detail_sources from public.stops where slug = 'access-bank'),
-  '[{"label": "Device Finance FAQ", "url": "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]'::jsonb,
+  '[{"label": "Device Finance launch (BusinessPost)", "url": "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]'::jsonb,
   'Access Bank''s sources are the approved labels and links'
 );
 

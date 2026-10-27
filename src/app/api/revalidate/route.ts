@@ -1,4 +1,4 @@
-// Called by the Supabase Database Webhook when a row of `feature_flags` changes, so a flag
+// Called by the Supabase Database Webhook when a row of `feature_flags` (or `stops`) changes, so a flag
 // switch reaches every page on the next request (decision 0018, docs/flags.md), and a page
 // that was in the middle of a rebuild at that moment within 5 seconds.
 // POST only. The caller proves itself with `Authorization: Bearer <REVALIDATE_SECRET>`.
@@ -8,7 +8,7 @@ import { createRateLimiter } from "@/lib/security/rate-limit";
 
 // Only these tags can be refreshed from outside. Each maps a Supabase table name (what the
 // webhook sends) to the cache tag, so a caller can never name an arbitrary tag.
-const tableToTag: Record<string, string> = { feature_flags: "flags" };
+const tableToTag: Record<string, string> = { feature_flags: "flags", stops: "stops" };
 const allowedTags = new Set(Object.values(tableToTag));
 
 // Counts failed attempts only, per address. A caller with the right secret is never limited,

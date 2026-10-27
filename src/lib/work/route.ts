@@ -1,16 +1,9 @@
 import type { Result } from "@/lib/db/result";
-import type { FeatureFlags, LabProject, Outcome, Stop, WorkFilter } from "@/lib/db/types";
-import { buildHomeTwoUp, type LabMiniCardModel } from "@/lib/home/two-up";
+import type { FeatureFlags, Outcome, Stop, WorkFilter } from "@/lib/db/types";
 import { stopEyebrow, type StopEyebrow } from "@/lib/stops/eyebrow";
-import {
-  caseStudyHref,
-  caseStudyRegistry,
-  pageRegistry,
-  type CaseStudyEntry,
-  type PageEntry,
-} from "@/lib/flags/registry";
+import { caseStudyHref, caseStudyRegistry, type CaseStudyEntry } from "@/lib/flags/registry";
 import type { Viewer } from "@/lib/flags/visibility";
-import { deimosGroupHeading } from "./deimos";
+import { deimosGroupHeading, deimosGroupParts } from "./deimos";
 
 // What the /work page shows, worked out from the database rows and the flags. Pure: no reading,
 // no rendering, so every rule and edge state is a plain unit test (issue #10, PR 1).
@@ -54,6 +47,8 @@ export type WorkTicketModel = {
   /** The case study when it is live and visible, else null (no link). */
   href: `/work/${string}` | null;
   era: WorkEra;
+  /** True while the stop is current (no end year). */
+  current: boolean;
 };
 
 export type WorkRouteEntry =
@@ -63,6 +58,9 @@ export type WorkRouteEntry =
       type: "group";
       via: string;
       heading: string;
+      /** The Deimos job's role and years for the rail; null when the rows disagree. */
+      role: string | null;
+      years: string | null;
       tickets: WorkTicketModel[];
       /** The union of its tickets' areas: a filter hides the heading when none of them match. */
       filters: WorkFilter[];
@@ -88,27 +86,22 @@ export type WorkRouteModel =
       handover: { fromSlug: string; toSlug: string } | null;
       /** "All" plus an area only when at least one stop has it. */
       chips: WorkChip[];
-      /** The Foresight card for the Lab band; null while the Lab page is hidden or unread. */
-      lab: { card: LabMiniCardModel; moreLink: "/lab" | null } | null;
     };
 
 type Registries = {
-  pages?: readonly PageEntry[];
   caseStudies?: readonly CaseStudyEntry[];
 };
 
 /**
  * A failed or empty read of the stops gives `unavailable`. Otherwise the stops come newest first
  * (stop number, highest first, whatever order they were read in). Stops that came through the
- * same consultancy (`via`) are one group entry, placed where its newest client would be. The Lab
- * band needs the Lab page visible and the Foresight project read.
+ * same consultancy (`via`) are one group entry, placed where its newest client would be.
  */
 export function buildWorkRoute(
   stops: Result<Stop[]>,
-  labProjects: Result<LabProject[]>,
   flags: FeatureFlags,
   viewer: Viewer,
-  { pages = pageRegistry, caseStudies = caseStudyRegistry }: Registries = {},
+  { caseStudies = caseStudyRegistry }: Registries = {},
 ): WorkRouteModel {
   if (!stops.ok || stops.data.length === 0) return { unavailable: true };
 
@@ -133,6 +126,7 @@ export function buildWorkRoute(
       viewer,
     ),
     era: stop.number >= ukFromStopNumber ? "uk" : "lagos",
+    current: stop.endYear === null,
   });
 
   const entries: WorkRouteEntry[] = [];
@@ -148,14 +142,24 @@ export function buildWorkRoute(
     rowsByVia.set(stop.via, rows);
     let group = groups.get(stop.via);
     if (!group) {
-      group = { type: "group", via: stop.via, heading: "", tickets: [], filters: [] };
+      group = {
+        type: "group",
+        via: stop.via,
+        heading: "",
+        role: null,
+        years: null,
+        tickets: [],
+        filters: [],
+      };
       groups.set(stop.via, group);
       entries.push(group);
     }
     group.tickets.push(ticket(stop));
   }
   for (const [via, group] of groups) {
-    group.heading = deimosGroupHeading(rowsByVia.get(via)!);
+    const rows = rowsByVia.get(via)!;
+    group.heading = deimosGroupHeading(rows);
+    ({ role: group.role, years: group.years } = deimosGroupParts(rows));
     group.filters = workFilterOptions
       .map((option) => option.param)
       .filter((param) => group.tickets.some((ticket) => ticket.filters.includes(param)));
@@ -178,14 +182,10 @@ export function buildWorkRoute(
       })),
   ];
 
-  const homeLab = buildHomeTwoUp(labProjects, flags, viewer, { pages }).lab;
-  const card = homeLab?.cards.find((candidate) => candidate.slug === "foresight");
-
   return {
     unavailable: false,
     entries,
     handover,
     chips,
-    lab: homeLab && card ? { card, moreLink: homeLab.moreLink } : null,
   };
 }

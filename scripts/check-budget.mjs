@@ -14,6 +14,7 @@ const KB = 1024;
 // shares home's ceiling until the Performance pass tightens both.
 const budgets = [
   { route: "/", file: ".next/server/app/index.html", maxBytes: 600 * KB },
+  { route: "/work", file: ".next/server/app/work.html", maxBytes: 600 * KB },
   { route: "/_not-found", file: ".next/server/app/_not-found.html", maxBytes: 600 * KB },
 ];
 

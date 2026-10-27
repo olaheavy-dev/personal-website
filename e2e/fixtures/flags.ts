@@ -15,7 +15,13 @@ export function flagsWithout(...off: string[]): Record<string, "on"> {
 
 export async function control(
   request: APIRequestContext,
-  body: { flags?: Record<string, string>; status?: number | null; reset?: boolean; delay?: number },
+  body: {
+    flags?: Record<string, string>;
+    status?: number | null;
+    content?: "ok" | "empty" | "error";
+    reset?: boolean;
+    delay?: number;
+  },
 ) {
   const response = await request.post(`${fakeUrl}/__control`, { data: body });
   expect(response.ok()).toBe(true);
@@ -32,6 +38,14 @@ export function revalidate(request: APIRequestContext, address = "203.0.113.1") 
   return request.post("/api/revalidate", {
     headers: { authorization: `Bearer ${revalidateSecret}`, "x-forwarded-for": address },
     data: { type: "UPDATE", table: "feature_flags", schema: "public" },
+  });
+}
+
+/** Asks the site to refresh its cached reads of the stops, as the Supabase webhook for `stops` would. */
+export function revalidateStops(request: APIRequestContext, address = "203.0.113.1") {
+  return request.post("/api/revalidate", {
+    headers: { authorization: `Bearer ${revalidateSecret}`, "x-forwarded-for": address },
+    data: { type: "UPDATE", table: "stops", schema: "public" },
   });
 }
 

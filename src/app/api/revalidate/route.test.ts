@@ -1,6 +1,8 @@
 import { revalidateTag } from "next/cache";
+import { after } from "next/server";
 
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
 
 const secret = "test-secret-value";
 
@@ -24,6 +26,7 @@ function post(init: { auth?: string | null; body?: unknown; ip?: string } = {}) 
 describe("POST /api/revalidate", () => {
   beforeEach(() => {
     vi.mocked(revalidateTag).mockClear();
+    vi.mocked(after).mockClear();
     vi.stubEnv("REVALIDATE_SECRET", secret);
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -35,6 +38,20 @@ describe("POST /api/revalidate", () => {
     expect(await response.json()).toEqual({ revalidated: "flags" });
     expect(revalidateTag).toHaveBeenCalledWith("flags", { expire: 0 });
     expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("expires the tag again a few seconds later, through the shared helper", async () => {
+    const { POST } = await load();
+    await POST(post());
+    expect(revalidateTag).toHaveBeenCalledTimes(1);
+    expect(after).toHaveBeenCalledTimes(1);
+  });
+
+  it("schedules nothing for a refused call", async () => {
+    const { POST } = await load();
+    await POST(post({ auth: "Bearer nope" }));
+    await POST(post({ body: { table: "settings" } }));
+    expect(after).not.toHaveBeenCalled();
   });
 
   it("also accepts a direct call naming the tag", async () => {

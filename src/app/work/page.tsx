@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { WorkPageView } from "@/components/work/WorkPage";
 import { getFlags } from "@/lib/db/queries/flags";
-import { getLabProjects } from "@/lib/db/queries/lab";
 import { getStops } from "@/lib/db/queries/stops";
 import { gatePage } from "@/lib/flags/gate";
 import { getViewer } from "@/lib/flags/visibility";
@@ -21,11 +20,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function WorkPage() {
   await gatePage("page.work");
-  const [stops, labProjects, flags, viewer] = await Promise.all([
-    getStops(),
-    getLabProjects(),
-    getFlags(),
-    getViewer(),
-  ]);
-  return <WorkPageView model={buildWorkRoute(stops, labProjects, flags, viewer)} />;
+  const [stops, flags, viewer] = await Promise.all([getStops(), getFlags(), getViewer()]);
+  return <WorkPageView model={buildWorkRoute(stops, flags, viewer)} />;
 }

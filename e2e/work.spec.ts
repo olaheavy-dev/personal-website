@@ -40,18 +40,25 @@ test.describe("work page", () => {
     const stops = list(page);
     await expect(stops.getByRole("heading", { level: 2 })).toHaveText([
       "HBK",
-      "Deimos · Senior Software Engineer · 2022 to 2024",
+      "Deimos, Senior Software Engineer, 2022 to 2024",
       "Stanbic IBTC",
       "Access Bank",
       "Galooli",
     ]);
     await expect(stops.getByRole("heading", { level: 3 })).toHaveText(["Mukuru", "uLesson", "Optty"]);
     await expect(stops.getByText("via Deimos", { exact: true })).toHaveCount(3);
-    await expect(stops.getByText("Backend Software Engineer", { exact: true })).toBeVisible();
-    await expect(stops.getByText("2024 to now", { exact: true })).toBeVisible();
-    await expect(stops.getByText("2016 to 2018", { exact: true })).toBeVisible();
-    // The Deimos years appear once, in the group heading, not on the client tickets.
-    await expect(stops.getByText("2022 to 2024")).toHaveCount(1);
+    // The rail carries each stop's years and role; the Deimos years appear once, in its rail entry.
+    const rail = (key: string) => page.locator(`[data-work-entry="${key}"] [data-rail]`);
+    await expect(rail("hbk")).toHaveText("2024 to nowBackend Software Engineer");
+    await expect(rail("galooli")).toHaveText("2016 to 2018Technical Support Engineer");
+    await expect(rail("Deimos")).toHaveText("2022 to 2024Senior Software EngineerDeimos · 3 clients");
+    await expect(stops.getByText("2022 to 2024", { exact: true })).toHaveCount(1);
+    // No role or years eyebrow repeats on a ticket: only the Deimos clients have one.
+    await expect(stops.locator(".ticket p.label-mono")).toHaveText([
+      "via Deimos",
+      "via Deimos",
+      "via Deimos",
+    ]);
     await expect(stops.locator("li[id]")).toHaveCount(7);
   });
 
@@ -162,17 +169,74 @@ test.describe("work page", () => {
     });
   }
 
-  test("the Lab band follows the list and links to /lab", async ({ page }) => {
-    test.skip(remote, "the flags of a live site decide the Lab link");
+  test("has no Lab band and no link to /lab", async ({ page }) => {
     await page.goto("/work");
-    const band = page.getByRole("region", { name: "In the lab" });
-    await expect(
-      band.getByText("Personal projects built end to end, from idea to production."),
-    ).toBeVisible();
-    await expect(band.getByRole("heading", { level: 3, name: "Foresight" })).toBeVisible();
-    await expect(band.getByRole("link", { name: /17 evaluation suites/ })).toBeVisible();
-    await expect(band.getByRole("link", { name: /See the whole lab/ })).toHaveAttribute("href", "/lab");
-    await expect(page.getByText("Building on my own time")).toHaveCount(0);
+    await expect(page.getByText("In the lab")).toHaveCount(0);
+    await expect(page.getByText("Foresight")).toHaveCount(0);
+    await expect(page.locator('main a[href="/lab"]')).toHaveCount(0);
+  });
+
+  test("lays out a rail and tickets in two columns from md, one title size, tickets at most 760 px", async ({
+    page,
+  }, testInfo) => {
+    test.skip(
+      (testInfo.project.use.viewport?.width ?? 0) < 1100,
+      "the 300 and 760 px columns need a wide screen",
+    );
+    await page.goto("/work");
+    const stops = page.locator("[data-work-entry]");
+    for (const entry of await stops.all()) {
+      const [rail, ticket] = await Promise.all([
+        entry.boundingBox(),
+        entry.locator(".ticket").first().boundingBox(),
+      ]);
+      // The ticket starts after the 300 px rail column and the 40 px gap.
+      expect(ticket!.x - rail!.x).toBeCloseTo(340, 0);
+      expect(ticket!.width).toBeLessThanOrEqual(760);
+    }
+    const sizes = await page
+      .locator("[data-work-entry] .ticket h2, [data-work-entry] .ticket h3")
+      .evaluateAll((titles) => titles.map((title) => getComputedStyle(title).fontSize));
+    expect(sizes).toHaveLength(7);
+    expect(new Set(sizes).size).toBe(1);
+    const weights = await page
+      .locator("[data-work-entry] .ticket h2, [data-work-entry] .ticket h3")
+      .evaluateAll((titles) => titles.map((title) => getComputedStyle(title).fontWeight));
+    expect(new Set(weights).size).toBe(1);
+  });
+
+  test("keeps the rail above the ticket on phones, with the dotted line down the left edge", async ({
+    page,
+  }, testInfo) => {
+    test.skip((testInfo.project.use.viewport?.width ?? 0) >= 768, "phones only");
+    await page.goto("/work");
+    const entry = page.locator('[data-work-entry="stanbic-ibtc"]');
+    const [rail, ticket, pin] = await Promise.all([
+      entry.locator("[data-rail]").boundingBox(),
+      entry.locator(".ticket").boundingBox(),
+      entry.locator("[data-route-pin]").boundingBox(),
+    ]);
+    expect(rail!.y + rail!.height).toBeLessThanOrEqual(ticket!.y);
+    expect(pin!.x).toBeLessThan(ticket!.x);
+    // The leg of the route (the dotted line) is the pin's, running down the entry.
+    await expect(entry.locator("[data-route-leg]")).toHaveCount(1);
+  });
+
+  test("the pins: teal for the current stop, lilac for the first, paper for the others", async ({ page }) => {
+    await page.goto("/work");
+    const colour = (key: string) =>
+      page
+        .locator(`[data-work-entry="${key}"] [data-route-pin]`)
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const [hbk, galooli, stanbic] = await Promise.all([
+      colour("hbk"),
+      colour("galooli"),
+      colour("stanbic-ibtc"),
+    ]);
+    expect(new Set([hbk, galooli, stanbic]).size).toBe(3);
+    // The oldest stop ends the line: no leg after it.
+    await expect(page.locator('[data-work-entry="galooli"] [data-route-leg]')).toHaveCount(0);
+    await expect(page.locator("[data-route-leg]")).toHaveCount(4);
   });
 
   test("Home's tickets link to their place on /work", async ({ page }) => {

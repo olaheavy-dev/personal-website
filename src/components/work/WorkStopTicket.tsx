@@ -22,11 +22,24 @@ function Figure({ ticket }: { ticket: WorkTicketModel }) {
   );
 }
 
-export function WorkStopTicket({ ticket, headingLevel }: { ticket: WorkTicketModel; headingLevel: 2 | 3 }) {
+// Every company name uses this one size, flagship or compact (owner decision, 27 Oct 2026).
+const titleSize = "font-display text-display-sm leading-snug tracking-tight";
+
+export function WorkStopTicket({
+  ticket,
+  headingLevel,
+  showEyebrow = false,
+}: {
+  ticket: WorkTicketModel;
+  headingLevel: 2 | 3;
+  /** Only a consultancy's client ("via Deimos") has an eyebrow: the rail shows every other stop's role and years. */
+  showEyebrow?: boolean;
+}) {
   const summary = ticket.summary ? (
-    <p className="mt-2 text-sm leading-relaxed text-text-secondary">{ticket.summary}</p>
+    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-text-secondary">{ticket.summary}</p>
   ) : null;
-  const eyebrow = <TicketEyebrow {...ticket.eyebrow} />;
+  const eyebrow = showEyebrow ? <TicketEyebrow {...ticket.eyebrow} /> : undefined;
+  const titleClassName = `${eyebrow ? "mt-3 " : ""}${titleSize}`;
   const link = ticket.href ? { href: ticket.href } : {};
 
   if (ticket.kind === "flagship") {
@@ -36,6 +49,7 @@ export function WorkStopTicket({ ticket, headingLevel }: { ticket: WorkTicketMod
         title={ticket.title}
         headingLevel={headingLevel}
         eyebrow={eyebrow}
+        titleClassName={titleClassName}
         bodyPadding="flex-1 px-6 pt-5 pb-5"
         stub={ticket.outcome ? <Figure ticket={ticket} /> : undefined}
       >
@@ -46,7 +60,15 @@ export function WorkStopTicket({ ticket, headingLevel }: { ticket: WorkTicketMod
 
   const hasMore = ticket.details.length > 0 || ticket.outcome != null;
   return (
-    <Ticket {...link} size="compact" title={ticket.title} headingLevel={headingLevel} eyebrow={eyebrow}>
+    <Ticket
+      {...link}
+      size="compact"
+      title={ticket.title}
+      headingLevel={headingLevel}
+      eyebrow={eyebrow}
+      titleClassName={titleClassName}
+      bodyPadding="px-6 pt-5 pb-5"
+    >
       {summary}
       {hasMore ? (
         <TicketExpander anchorId={ticket.slug} subject={ticket.title}>

@@ -26,6 +26,11 @@ export interface RoutePinProps {
    * stays on the single leg that follows its pin.
    */
   vehicle?: ReactNode;
+  /**
+   * Draws (true) or leaves out (false) the leg after the pin, whatever the tone. A route listed
+   * newest first has its teal "end" pin at the top, with a leg below it.
+   */
+  leg?: boolean;
   /** The last stop has no leg after it. Implied by tone "end"; use it for a last stop that is also the current one. */
   last?: boolean;
   /**
@@ -36,7 +41,15 @@ export interface RoutePinProps {
   marker?: ReactNode;
 }
 
-export function RoutePin({ id, tone = "default", index = 0, vehicle, last = false, marker }: RoutePinProps) {
+export function RoutePin({
+  id,
+  tone = "default",
+  index = 0,
+  vehicle,
+  leg,
+  last = false,
+  marker,
+}: RoutePinProps) {
   const style = { "--route-i": index } as React.CSSProperties;
   return (
     <>
@@ -51,7 +64,7 @@ export function RoutePin({ id, tone = "default", index = 0, vehicle, last = fals
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{marker}</span>
         )}
       </span>
-      {tone !== "end" && !last && <RouteLeg style={style}>{vehicle}</RouteLeg>}
+      {(leg ?? (tone !== "end" && !last)) && !last && <RouteLeg style={style}>{vehicle}</RouteLeg>}
     </>
   );
 }

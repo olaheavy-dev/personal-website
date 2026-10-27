@@ -15,8 +15,4 @@ export const workCopy = {
     after: ".",
     href: "/",
   },
-  lab: {
-    heading: "In the lab",
-    line: "Personal projects built end to end, from idea to production.",
-  },
 } as const;

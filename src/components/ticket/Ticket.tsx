@@ -34,6 +34,8 @@ type TicketBaseProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> &
   chips?: ReactNode;
   /** Tear-off stub content. Ignored for the mini size. */
   stub?: ReactNode;
+  /** Replaces the title's size and spacing classes, for a list whose tickets share one title size. */
+  titleClassName?: string;
   /** Replaces the body's padding classes, for example on a ticket that only peeks out. */
   bodyPadding?: string;
 };
@@ -90,6 +92,7 @@ export function Ticket({
   chips,
   stub,
   bodyPadding: bodyPaddingOverride,
+  titleClassName,
   className = "",
   ...rest
 }: TicketProps) {
@@ -128,7 +131,7 @@ export function Ticket({
           </div>
         ) : null}
         {title != null ? (
-          <Heading id={headingId} className={titleStyle[layout][size]}>
+          <Heading id={headingId} className={titleClassName ?? titleStyle[layout][size]}>
             {href ? (
               <a href={href} className="ticket-link">
                 {title}

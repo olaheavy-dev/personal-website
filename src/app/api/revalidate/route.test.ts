@@ -1,6 +1,8 @@
 import { revalidateTag } from "next/cache";
+import { after } from "next/server";
 
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
 
 const secret = "test-secret-value";
 
@@ -24,6 +26,7 @@ function post(init: { auth?: string | null; body?: unknown; ip?: string } = {}) 
 describe("POST /api/revalidate", () => {
   beforeEach(() => {
     vi.mocked(revalidateTag).mockClear();
+    vi.mocked(after).mockClear();
     vi.stubEnv("REVALIDATE_SECRET", secret);
   });
   afterEach(() => vi.unstubAllEnvs());
@@ -35,6 +38,36 @@ describe("POST /api/revalidate", () => {
     expect(await response.json()).toEqual({ revalidated: "flags" });
     expect(revalidateTag).toHaveBeenCalledWith("flags", { expire: 0 });
     expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("expires the tag again a few seconds later, for a page whose render straddled the change", async () => {
+    // Next.js stamps a rebuilt page with the time it finished, so a render that began before the
+    // change and ended after the first revalidation would otherwise be served as fresh with the
+    // old flags until the next revalidation (see the comment in route.ts).
+    vi.useFakeTimers();
+    try {
+      const { POST } = await load();
+      await POST(post());
+      expect(revalidateTag).toHaveBeenCalledTimes(1);
+      expect(after).toHaveBeenCalledTimes(1);
+      const later = vi.mocked(after).mock.calls[0]![0] as () => Promise<void>;
+      const done = later();
+      await vi.advanceTimersByTimeAsync(4_999);
+      expect(revalidateTag).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await done;
+      expect(revalidateTag).toHaveBeenCalledTimes(2);
+      expect(revalidateTag).toHaveBeenLastCalledWith("flags", { expire: 0 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("schedules nothing for a refused call", async () => {
+    const { POST } = await load();
+    await POST(post({ auth: "Bearer nope" }));
+    await POST(post({ body: { table: "settings" } }));
+    expect(after).not.toHaveBeenCalled();
   });
 
   it("also accepts a direct call naming the tag", async () => {

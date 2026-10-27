@@ -3,26 +3,13 @@
 // that was in the middle of a rebuild at that moment within 5 seconds.
 // POST only. The caller proves itself with `Authorization: Bearer <REVALIDATE_SECRET>`.
 import { createHash, timingSafeEqual } from "node:crypto";
-import { revalidateTag } from "next/cache";
-import { after } from "next/server";
+import { expireTag } from "@/lib/db/expire-tag";
 import { createRateLimiter } from "@/lib/security/rate-limit";
 
 // Only these tags can be refreshed from outside. Each maps a Supabase table name (what the
 // webhook sends) to the cache tag, so a caller can never name an arbitrary tag.
 const tableToTag: Record<string, string> = { feature_flags: "flags" };
 const allowedTags = new Set(Object.values(tableToTag));
-
-// Next.js stamps a rebuilt page with the time it was finished, not the time it began. A page
-// whose render started before a flag changed and finished after the webhook therefore counts
-// as newer than the revalidation and is served as fresh, with the old flags, until the tag is
-// revalidated again (measured on Next.js 16.4.3: a switched off page kept answering 200 for
-// 40 s of looking, while the flag read itself was already correct). So the tag is expired a
-// second time after this pause, which rebuilds any page that finished in between. Renders take
-// milliseconds, so a straddling page is wrong for at most this long. Next.js runs the
-// revalidations made in `after` together when the last callback ends, so one pass, not
-// several. It stays under the 10 to 30 s that a stopping self-hosted server waits for pending
-// `after` work (node_modules/next/dist/docs/01-app/02-guides/self-hosting.md, "after").
-const recheckAfterMs = 5000;
 
 // Counts failed attempts only, per address. A caller with the right secret is never limited,
 // so a flood of wrong guesses from a shared address cannot starve the real webhook.
@@ -70,11 +57,7 @@ export async function POST(request: Request) {
     return reply(400, { error: "Unknown tag" });
   }
 
-  // { expire: 0 }: stale pages are never served after this, so the next request rebuilds.
-  revalidateTag(named, { expire: 0 });
-  after(async () => {
-    await new Promise((resolve) => setTimeout(resolve, recheckAfterMs));
-    revalidateTag(named, { expire: 0 });
-  });
+  // Expires the tag now and again 5 s later, for a page that was mid rebuild (src/lib/db/expire-tag.ts).
+  expireTag(named);
   return reply(200, { revalidated: named });
 }

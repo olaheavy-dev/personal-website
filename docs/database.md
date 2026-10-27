@@ -149,7 +149,7 @@ Pages call the cached readers, never the database directly:
 - Each reader except `getFlags()` uses `'use cache'` and `cacheTag`. It keeps a good result for days (`cacheLife('days')`) and a failure for minutes (`cacheLife('minutes')`), so an outage heals quickly. `getFlags()` follows its own rules (below). The `seconds` profile is never used (it is never prerendered). Next.js docs: `node_modules/next/dist/docs/01-app/03-api-reference/01-directives/use-cache.md` and `.../04-functions/cacheLife.md`.
 - A reader, except `getFlags()`, never throws. It returns `{ ok: true, data }` or `{ ok: false, reason }` (`unconfigured`, `invalid_config`, `query_failed`, `invalid_data`). Show the empty state on `ok: false`.
 - Each reader creates its client inside the cached function, so no client is shared across requests.
-- After an edit, call `revalidateTag` with the matching tag from `src/lib/db/tags.ts`.
+- After an edit, call `expireTag(tag)` from `src/lib/db/expire-tag.ts` with the matching tag from `src/lib/db/tags.ts`, not a bare `revalidateTag`. It expires the tag now and again 5 seconds later, because Next.js keeps a page that was mid rebuild at the moment of the change (see [flags.md](flags.md#a-page-that-was-mid-rebuild)).
 
 ## Feature flags
 

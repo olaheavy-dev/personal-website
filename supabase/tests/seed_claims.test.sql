@@ -74,8 +74,8 @@ select results_eq(
 -- The approved Work details (issue #10, 27 Oct 2026): four stops, in order, none for the others.
 select results_eq(
   $$select slug, cardinality(details) from public.stops order by number$$,
-  $$values ('galooli', 2), ('access-bank', 0), ('stanbic-ibtc', 4), ('optty', 0), ('ulesson', 3), ('mukuru', 3), ('hbk', 0)$$,
-  'the approved Work details are seeded: Galooli 2, Stanbic IBTC 4, uLesson 3, Mukuru 3, the rest none'
+  $$values ('galooli', 2), ('access-bank', 0), ('stanbic-ibtc', 4), ('optty', 0), ('ulesson', 3), ('mukuru', 2), ('hbk', 0)$$,
+  'the approved Work details are seeded: Galooli 2, Stanbic IBTC 4, uLesson 3, Mukuru 2, the rest none'
 );
 select is(
   (select details[1] from public.stops where slug = 'mukuru'),

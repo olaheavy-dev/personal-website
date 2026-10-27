@@ -1,7 +1,7 @@
 import type { Result } from "@/lib/db/result";
 import type { FeatureFlags, LabProject, Outcome, Stop, WorkFilter } from "@/lib/db/types";
 import { buildHomeTwoUp, type LabMiniCardModel } from "@/lib/home/two-up";
-import { stopEyebrow, type StopEyebrow } from "@/lib/home/selected-stops";
+import { stopEyebrow, type StopEyebrow } from "@/lib/stops/eyebrow";
 import {
   caseStudyHref,
   caseStudyRegistry,
@@ -59,7 +59,14 @@ export type WorkTicketModel = {
 export type WorkRouteEntry =
   | { type: "stop"; ticket: WorkTicketModel }
   /** A consultancy and its client stops, newest first. The heading comes from the rows. */
-  | { type: "group"; via: string; heading: string; tickets: WorkTicketModel[] };
+  | {
+      type: "group";
+      via: string;
+      heading: string;
+      tickets: WorkTicketModel[];
+      /** The union of its tickets' areas: a filter hides the heading when none of them match. */
+      filters: WorkFilter[];
+    };
 
 export type WorkChip = {
   /** Null is "All". */
@@ -74,6 +81,11 @@ export type WorkRouteModel =
       unavailable: false;
       /** Newest first. */
       entries: WorkRouteEntry[];
+      /**
+       * The move from the newest Lagos stop to the oldest UK stop (today Mukuru to HBK), for the
+       * route's last leg. Null when either side was not read.
+       */
+      handover: { fromSlug: string; toSlug: string } | null;
       /** "All" plus an area only when at least one stop has it. */
       chips: WorkChip[];
       /** The Foresight card for the Lab band; null while the Lab page is hidden or unread. */
@@ -136,13 +148,23 @@ export function buildWorkRoute(
     rowsByVia.set(stop.via, rows);
     let group = groups.get(stop.via);
     if (!group) {
-      group = { type: "group", via: stop.via, heading: "", tickets: [] };
+      group = { type: "group", via: stop.via, heading: "", tickets: [], filters: [] };
       groups.set(stop.via, group);
       entries.push(group);
     }
     group.tickets.push(ticket(stop));
   }
-  for (const [via, group] of groups) group.heading = deimosGroupHeading(rowsByVia.get(via)!);
+  for (const [via, group] of groups) {
+    group.heading = deimosGroupHeading(rowsByVia.get(via)!);
+    group.filters = workFilterOptions
+      .map((option) => option.param)
+      .filter((param) => group.tickets.some((ticket) => ticket.filters.includes(param)));
+  }
+
+  const tickets = entries.flatMap((entry) => (entry.type === "stop" ? [entry.ticket] : entry.tickets));
+  const lastLagos = tickets.find((candidate) => candidate.era === "lagos");
+  const firstUk = [...tickets].reverse().find((candidate) => candidate.era === "uk");
+  const handover = lastLagos && firstUk ? { fromSlug: lastLagos.slug, toSlug: firstUk.slug } : null;
 
   const present = new Set(ordered.flatMap((stop) => stop.filters));
   const chips: WorkChip[] = [
@@ -162,6 +184,7 @@ export function buildWorkRoute(
   return {
     unavailable: false,
     entries,
+    handover,
     chips,
     lab: homeLab && card ? { card, moreLink: homeLab.moreLink } : null,
   };

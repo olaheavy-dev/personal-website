@@ -3,15 +3,16 @@
 // database content (supabase/migrations/20261027130738_work_copy_content.sql), not here.
 
 export const workCopy = {
-  eyebrow: "Work",
   h1: "Work",
   intro: "Seven roles across IoT, banking, cross-border payments, edtech and AI, newest first.",
   metaDescription:
     "Seven roles of production software across banking, cross-border payments, edtech, IoT and AI, from Galooli to HBK.",
-  /** Shown with a link home when the stops could not be read. */
+  /** Shown when the stops could not be read: before + link + after is the approved sentence. */
   failure: {
-    line: "The work list isn't loading right now. The highlights are on the home page.",
-    linkLabel: "Back to the home page",
+    /** The words "the home page" are the link, so the sentence reads the same with or without it. */
+    before: "The work list isn't loading right now. The highlights are on ",
+    link: "the home page",
+    after: ".",
     href: "/",
   },
   lab: {

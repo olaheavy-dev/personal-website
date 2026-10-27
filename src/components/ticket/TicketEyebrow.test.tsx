@@ -24,9 +24,12 @@ describe("TicketEyebrow", () => {
     expect(container.textContent).toBe("via Deimos");
   });
 
-  it("can reserve two lines of height from 768 px so neighbouring titles line up", () => {
-    const { container } = render(<TicketEyebrow role={null} meta="via Deimos" reserveLines />);
-    expect(container.firstElementChild).toHaveClass("md:min-h-[2lh]");
-    expect(container.textContent).toBe("via Deimos");
+  it("can reserve two lines of height from a breakpoint so neighbouring titles line up", () => {
+    const md = render(<TicketEyebrow role={null} meta="via Deimos" reserveFrom="md" />);
+    expect(md.container.firstElementChild).toHaveClass("md:min-h-[2lh]");
+    const lg = render(<TicketEyebrow role={null} meta="via Deimos" reserveFrom="lg" />);
+    expect(lg.container.firstElementChild).toHaveClass("lg:min-h-[2lh]");
+    expect(lg.container.firstElementChild).not.toHaveClass("md:min-h-[2lh]");
+    expect(lg.container.textContent).toBe("via Deimos");
   });
 });

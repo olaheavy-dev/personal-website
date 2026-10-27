@@ -18,7 +18,11 @@ export type WayBackLink = { href: "/" | "/work"; label: string; note: string };
 export function wayBackLinks(items: readonly NavItem[]): WayBackLink[] {
   const links: WayBackLink[] = [{ href: "/", label: "Home", note: "Who I am and how I work" }];
   if (items.some((item) => item.href === "/work")) {
-    links.push({ href: "/work", label: "Work", note: "The full route, stop by stop" });
+    links.push({
+      href: "/work",
+      label: "Work",
+      note: "Seven roles across IoT, banking, cross-border payments, edtech and AI, newest first.",
+    });
   }
   return links;
 }

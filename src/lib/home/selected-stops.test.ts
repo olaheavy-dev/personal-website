@@ -1,7 +1,7 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, Outcome, Stop } from "@/lib/db/types";
 import type { CaseStudyEntry, PageEntry } from "@/lib/flags/registry";
-import { buildSelectedStops, stopEyebrow } from "./selected-stops";
+import { buildSelectedStops } from "./selected-stops";
 
 const chip: Outcome = {
   id: "o1",
@@ -52,27 +52,6 @@ const caseLive: CaseStudyEntry[] = [
   { slug: "optty", flag: "case.optty", stopSlug: "optty", status: "planned" },
 ];
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
-
-describe("stopEyebrow", () => {
-  it("is role over years, from the owner's CV", () => {
-    expect(stopEyebrow(hbk)).toEqual({ role: "Backend Software Engineer", meta: "2024 to now" });
-    expect(stopEyebrow(access)).toEqual({ role: "Senior Software Engineer", meta: "2020 to 2022" });
-  });
-
-  it("shows only 'via Deimos' for a Deimos client: no role and no years", () => {
-    expect(stopEyebrow(optty)).toEqual({ role: null, meta: "via Deimos" });
-    expect(stopEyebrow(mukuru)).toEqual({ role: null, meta: "via Deimos" });
-  });
-
-  it("keeps the role and years on the Deimos rows' data, only the label changes", () => {
-    expect(optty.role).toBe("Senior Software Engineer");
-    expect(optty.startYear).toBe(2022);
-  });
-
-  it("shows the years only when the stop has no role", () => {
-    expect(stopEyebrow({ ...access, role: null })).toEqual({ role: null, meta: "2020 to 2022" });
-  });
-});
 
 describe("buildSelectedStops", () => {
   it("shows Mukuru, Optty and Access Bank, and never HBK, newest first, whatever order they were read in", () => {

@@ -27,7 +27,7 @@ export function SelectedStopsView({ model }: { model: SelectedStopsModel }) {
               {...(ticket.href ? { href: ticket.href } : {})}
               title={ticket.title}
               headingLevel={3}
-              eyebrow={<TicketEyebrow {...ticket.eyebrow} reserveLines />}
+              eyebrow={<TicketEyebrow {...ticket.eyebrow} reserveFrom={index === 0 ? "lg" : "md"} />}
               className="w-full"
               bodyPadding="flex-1 px-6 pt-5 pb-5"
               stub={

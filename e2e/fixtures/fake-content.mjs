@@ -194,7 +194,6 @@ export const stops = [
       slug: "mukuru",
       details: [
         "Integrated mobile wallet providers and Malawi's national payment switch so remittances reach wallets.",
-        "Built USSD flows that handle errors and retry, for customers on basic phones.",
         "Added value-added services for remittance customers alongside transfers.",
       ],
       role: "Senior Software Engineer",

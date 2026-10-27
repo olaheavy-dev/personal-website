@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { contentAnswer, labProjects, stops } from "../e2e/fixtures/fake-content.mjs";
 import { heroFrontEyebrow, heroPeekEyebrow } from "../src/lib/home/hero-tickets";
-import { stopEyebrow } from "../src/lib/home/selected-stops";
+import { stopEyebrow } from "../src/lib/stops/eyebrow";
 
 // The e2e fake serves content rows. This proves none of them can carry a claim the seed does
 // not: the seed's stops, lab projects and outcomes are parsed into records, and every fixture

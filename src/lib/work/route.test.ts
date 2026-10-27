@@ -131,6 +131,28 @@ describe("buildWorkRoute", () => {
     });
   });
 
+  it("gives the Deimos group the union of its tickets' areas, in chip order", () => {
+    const group = route(success(all), labs, {}, "public").entries[1]!;
+    expect(group.type === "group" && group.filters).toEqual(["payments", "edtech"]);
+    const mixed = route(
+      success([hbk, { ...mukuru, filters: ["data-iot"] }, { ...optty, filters: ["ai", "data-iot"] }]),
+      labs,
+      {},
+      "public",
+    ).entries[1]!;
+    expect(mixed.type === "group" && mixed.filters).toEqual(["ai", "data-iot"]);
+  });
+
+  it("names the handover leg: the newest Lagos stop to HBK, or none when a side was not read", () => {
+    expect(route(success(all), labs, {}, "public").handover).toEqual({ fromSlug: "mukuru", toSlug: "hbk" });
+    expect(route(success([hbk, galooli]), labs, {}, "public").handover).toEqual({
+      fromSlug: "galooli",
+      toSlug: "hbk",
+    });
+    expect(route(success([galooli, stanbic]), labs, {}, "public").handover).toBeNull();
+    expect(route(success([hbk]), labs, {}, "public").handover).toBeNull();
+  });
+
   it("marks HBK as the UK and every earlier stop as Lagos, from one constant", () => {
     const model = route(success(all), labs, {}, "public");
     const tickets = model.entries.flatMap((entry) =>

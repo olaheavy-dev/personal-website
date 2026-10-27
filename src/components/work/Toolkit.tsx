@@ -17,8 +17,9 @@ import {
 // label and the ticket is the right column. On phones the label sits above the ticket.
 //
 // A tool whose brand asks for a trademark symbol (Python, Redis) shows it as a small superscript
-// right after the name. Plates and icons are hidden from assistive technology (the chip's name is the text beside
-// them), except a wordmark: a logo that is the name itself stands alone, and its alt text is the name. Each group is a heading and a list named by it. The chips are not links yet.
+// right after the name. Plates and icons are hidden from assistive technology (the chip's name is
+// the text beside them), except a wordmark: a logo that is the name itself stands alone, and its
+// alt text is the name. Each group is a heading and a list named by it. The chips are not links yet.
 
 // Our own line icons, 24 px grid, drawn with a stroke in the plate's text colour.
 const iconPaths: Record<ToolkitIcon, string> = {

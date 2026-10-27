@@ -163,7 +163,7 @@
     gap: var(--space-1);
     padding-inline-end: var(--space-2);
   }
-  /* A wordmark stands in for the name, so it is drawn larger than the 12 px it had beside text. */
+  /* A wordmark stands in for the name, so it is drawn at 16 px, close to the text height of the other chips. */
   .toolkit-plate[data-plate="logo"][data-wordmark] {
     padding-inline: var(--space-2);
   }

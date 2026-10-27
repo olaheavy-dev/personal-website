@@ -116,10 +116,10 @@
   --color-plate: var(
     --paper-50
   ); /* round plate behind a tool logo: paper in both themes, so black marks stay visible */
+  --color-plate-ring: var(--ink-300); /* inner ring of a logo plate: reads on the paper plate in light */
 
   /* Status */
   --color-status-success: var(--green-600);
-  --color-plate-ring: var(--ink-300); /* inner ring of a logo plate: reads on the paper plate in light */
   --color-status-warning: var(--amber-700);
   --color-status-error: var(--red-700);
   --color-status-info: var(--lilac-600);

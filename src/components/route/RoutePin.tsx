@@ -27,11 +27,11 @@ export interface RoutePinProps {
    */
   vehicle?: ReactNode;
   /**
-   * Draws (true) or leaves out (false) the leg after the pin, whatever the tone. A route listed
-   * newest first has its teal "end" pin at the top, with a leg below it.
+   * Draws (true) or leaves out (false) the leg after the pin, whatever the tone or `last`. A
+   * route listed newest first has its teal "end" pin at the top, with a leg below it.
    */
   leg?: boolean;
-  /** The last stop has no leg after it. Implied by tone "end"; use it for a last stop that is also the current one. */
+  /** The last stop has no leg after it. Implied by tone "end"; use it for a last stop that is also the current one. Ignored when `leg` is set. */
   last?: boolean;
   /**
    * Something larger drawn over the pin, centred on it (the 404 uses the avatar). The pin
@@ -64,7 +64,7 @@ export function RoutePin({
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{marker}</span>
         )}
       </span>
-      {(leg ?? (tone !== "end" && !last)) && !last && <RouteLeg style={style}>{vehicle}</RouteLeg>}
+      {(leg ?? (tone !== "end" && !last)) && <RouteLeg style={style}>{vehicle}</RouteLeg>}
     </>
   );
 }

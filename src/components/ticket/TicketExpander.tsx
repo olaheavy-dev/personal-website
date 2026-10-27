@@ -82,8 +82,9 @@ export function TicketExpander({
   const label = open ? lessLabel : moreLabel;
   return (
     <div>
-      {/* data-hydrated ends the CSS only states (open for a visitor without JavaScript, and for
-          a :target before this runs) so the state above decides from then on. */}
+      {/* Before hydration the CSS alone decides: a ticket the URL points at is open (the :target
+          rule in globals.css), and without JavaScript the root layout's noscript style opens
+          them all. data-hydrated ends the :target rule, so from then on the state above decides. */}
       <div
         id={regionId}
         className="ticket-expander"
@@ -92,12 +93,6 @@ export function TicketExpander({
       >
         <div inert={hydrated && !open}>{children}</div>
       </div>
-      {/* Without JavaScript the content is open and there is nothing to press. (A noscript
-          style, not "@media (scripting: none)": it also holds in the browsers and test harness
-          where that feature is not reported.) */}
-      <noscript>
-        <style>{".ticket-expander{grid-template-rows:1fr}.ticket-expander-toggle{display:none}"}</style>
-      </noscript>
       <button
         type="button"
         aria-expanded={open}

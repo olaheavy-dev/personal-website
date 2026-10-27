@@ -10,6 +10,7 @@ import {
   resetFlags,
   revalidate,
   revalidateSecret,
+  revalidateStops,
 } from "./fixtures/flags";
 
 // Feature flags end to end (issue #6). These change the answer of the fake Supabase server and
@@ -576,4 +577,40 @@ test("@flags with Work Off, Home's tickets are not linked and /work is the Wrong
   await applyFlags(request, defaultFlags, "203.0.113.34");
   await page.goto("/");
   await expect(page.locator('#selected-stops h3 a[href^="/work#"]')).toHaveCount(3);
+});
+
+test("@flags /work with the stops unreadable or empty shows the header and the calm sentence, with status 200", async ({
+  page,
+  request,
+}) => {
+  await resetFlags(request, "203.0.113.35");
+  try {
+    for (const mode of ["error", "empty"] as const) {
+      await control(request, { content: mode });
+      expect((await revalidateStops(request, "203.0.113.35")).status()).toBe(200);
+      await expect
+        .poll(async () => (await (await request.get("/work")).text()).includes("isn&#x27;t loading"), {
+          message: `/work should show the failure sentence (${mode})`,
+          timeout: 15_000,
+        })
+        .toBe(true);
+      const response = await page.goto("/work");
+      expect(response?.status()).toBe(200);
+      await expect(page.getByRole("heading", { level: 1, name: "Work" })).toBeVisible();
+      await expect(
+        page.getByText("The work list isn't loading right now. The highlights are on the home page."),
+      ).toBeVisible();
+      await expect(page.getByRole("link", { name: "the home page" })).toHaveAttribute("href", "/");
+      await expect(page.getByRole("region", { name: /Work, newest first/ })).toHaveCount(0);
+      await expect(page.locator("[data-work-entry]")).toHaveCount(0);
+    }
+  } finally {
+    await control(request, { reset: true });
+    await revalidateStops(request, "203.0.113.35");
+    await expect
+      .poll(async () => (await (await request.get("/work")).text()).includes("data-work-entry"), {
+        timeout: 15_000,
+      })
+      .toBe(true);
+  }
 });

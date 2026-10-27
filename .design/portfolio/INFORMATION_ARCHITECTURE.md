@@ -72,10 +72,9 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 
 ### Work `/work`
 1. Title "Work" + one-line intro ("Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.", approved 27 Oct 2026) + filter chips.
-2. Vertical route, newest first: HBK (2024 to now) → one Deimos group with its clients Mukuru, uLesson, Optty (heading "Deimos · Senior Software Engineer · 2022 to 2024", each ticket "via Deimos") → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
+2. Timeline, newest first, in two columns from md (owner decision, 27 Oct 2026). Left, a rail: the dotted route line, one pin per entry (teal for the current stop, lilac for the first, paper with an ink ring for the rest), then the years in mono and the role. Right, the tickets (at most 760 px; the rail is 200 px at md and 300 px from lg), every company name in one title size, no role or years eyebrow on a ticket (the rail shows them). Below md the rail collapses: pin, years and role above each ticket, the dotted line down the left edge. Order: HBK (2024 to now) → one Deimos entry (rail "2022 to 2024 · Senior Software Engineer · Deimos, 3 clients") with its clients Mukuru, uLesson, Optty stacked beside it, each ticket "via Deimos" → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18). The Toolkit section will sit in the same two columns after the timeline, with the rail label "Toolkit".
 3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy). Per stop stacks are dropped; one Toolkit section covers tools.
-4. Cross-link band: "In the lab" → Lab (Foresight).
-5. What's next contact band.
+4. What's next contact band. (No Lab cross-link on Work: owner decision, 27 Oct 2026.)
 
 ### Case study `/work/[slug]`
 1. Title (outcome-led) + meta grid (Company · Role · When · Stack · Team) + hero visual.

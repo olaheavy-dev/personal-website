@@ -10,11 +10,15 @@ import type { WorkRouteEntry } from "@/lib/work/route";
 // geometry does the line (pin to pin, whatever the row heights), so nothing is measured.
 //
 // A consultancy's client stops (Deimos) are one rail entry with their tickets stacked beside it,
-// each eyebrowed "via Deimos". The group's accessible name is a screen reader only h2, because
-// the rail text beside it is decoration for the same words.
+// each eyebrowed "via Deimos". The whole rail is hidden from assistive technology, because its
+// words would read as the end of the previous section: a stop's ticket says its own years and
+// role in screen reader only text right after its heading, and the Deimos group's accessible
+// name is a screen reader only h2 (the heading says the same words).
 //
 // Each stop is an `<li id={slug}>`, the anchor home's tickets link to (/work#mukuru); inside the
 // Deimos group each client ticket has its own `li`.
+//
+// The Deimos entry's pin id is the consultancy's name, "Deimos", not a slug (it has no anchor).
 //
 // Later (the Toolkit PR): the Toolkit section sits in the same two column grid after this list,
 // with the rail label "Toolkit".
@@ -47,10 +51,13 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
                 key={key}
                 id={entry.type === "stop" ? entry.ticket.slug : undefined}
                 data-work-entry={key}
-                className="relative grid gap-y-4 md:grid-cols-[300px_minmax(0,760px)] md:gap-x-10"
+                className="relative grid gap-y-4 md:grid-cols-[var(--work-rail-width-md)_minmax(0,var(--work-ticket-max))] md:gap-x-6 lg:grid-cols-[var(--work-rail-width)_minmax(0,var(--work-ticket-max))] lg:gap-x-10"
               >
-                <div className="grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3">
-                  <RoutePin id={key} index={index} tone={pinTone(last, current)} leg={!last} last={last} />
+                <div
+                  className="grid grid-cols-[var(--route-pin-size)_minmax(0,1fr)] gap-x-3"
+                  aria-hidden="true"
+                >
+                  <RoutePin id={key} index={index} tone={pinTone(last, current)} leg={!last} />
                   {entry.type === "stop" ? (
                     <div className={railText} data-rail="">
                       <p className={years}>{entry.ticket.eyebrow.meta}</p>
@@ -59,7 +66,7 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
                       ) : null}
                     </div>
                   ) : (
-                    <div className={railText} data-rail="" aria-hidden="true">
+                    <div className={railText} data-rail="">
                       {entry.years ? <p className={years}>{entry.years}</p> : null}
                       {entry.role ? <p className={roleLine}>{entry.role}</p> : null}
                       <p className="label-mono mt-1 text-lilac-text">
@@ -70,7 +77,7 @@ export function WorkRoute({ entries }: { entries: WorkRouteEntry[] }) {
                 </div>
                 {entry.type === "stop" ? (
                   <div className="pl-7 md:pl-0" data-work-stop={entry.ticket.slug}>
-                    <WorkStopTicket ticket={entry.ticket} headingLevel={2} />
+                    <WorkStopTicket ticket={entry.ticket} headingLevel={2} spoken />
                   </div>
                 ) : (
                   <>

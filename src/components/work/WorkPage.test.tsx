@@ -96,11 +96,17 @@ describe("WorkPageView", () => {
     expect(rail("hbk")).toBe("2024 to nowSenior Software Engineer");
     expect(rail("galooli")).toBe("2020 to 2022Senior Software Engineer");
     expect(rail("Deimos")).toBe("2022 to 2024Senior Software EngineerDeimos · 2 clients");
-    // The rail text of the group is decoration: the sr-only heading is its name.
-    expect(document.querySelector('[data-work-entry="Deimos"] [data-rail]')).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
+    // The whole rail is decoration for assistive technology: a stop says its own years and role
+    // right after its heading, and the Deimos entry's sr-only heading is its name.
+    for (const key of ["hbk", "Deimos", "galooli"]) {
+      expect(
+        document.querySelector(`[data-work-entry="${key}"] [data-rail]`)!.closest("[aria-hidden=true]"),
+      ).not.toBeNull();
+    }
+    const hbk = document.querySelector("#hbk .ticket")!;
+    const title = hbk.querySelector("h2")!;
+    expect(title.nextElementSibling).toHaveTextContent("2024 to now, Senior Software Engineer");
+    expect(title.nextElementSibling).toHaveClass("sr-only");
   });
 
   it("uses one title size for every company, flagship or compact, and an eyebrow only on Deimos clients", () => {

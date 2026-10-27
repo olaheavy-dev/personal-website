@@ -29,14 +29,22 @@ export function WorkStopTicket({
   ticket,
   headingLevel,
   showEyebrow = false,
+  spoken = false,
 }: {
   ticket: WorkTicketModel;
   headingLevel: 2 | 3;
   /** Only a consultancy's client ("via Deimos") has an eyebrow: the rail shows every other stop's role and years. */
   showEyebrow?: boolean;
+  /** Say the stop's years and role to a screen reader, right after the title: the visible rail beside the ticket is hidden from it. */
+  spoken?: boolean;
 }) {
+  const said = spoken ? (
+    <p className="sr-only">{[ticket.eyebrow.meta, ticket.eyebrow.role].filter(Boolean).join(", ")}</p>
+  ) : null;
   const summary = ticket.summary ? (
-    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-text-secondary">{ticket.summary}</p>
+    <p className="mt-2 max-w-(--max-width-content) text-sm leading-relaxed text-pretty text-text-secondary">
+      {ticket.summary}
+    </p>
   ) : null;
   const eyebrow = showEyebrow ? <TicketEyebrow {...ticket.eyebrow} /> : undefined;
   const titleClassName = `${eyebrow ? "mt-3 " : ""}${titleSize}`;
@@ -53,6 +61,7 @@ export function WorkStopTicket({
         bodyPadding="flex-1 px-6 pt-5 pb-5"
         stub={ticket.outcome ? <Figure ticket={ticket} /> : undefined}
       >
+        {said}
         {summary}
       </Ticket>
     );
@@ -69,6 +78,7 @@ export function WorkStopTicket({
       titleClassName={titleClassName}
       bodyPadding="px-6 pt-5 pb-5"
     >
+      {said}
       {summary}
       {hasMore ? (
         <TicketExpander anchorId={ticket.slug} subject={ticket.title}>
@@ -76,7 +86,7 @@ export function WorkStopTicket({
             <ul role="list" className="mt-3 grid gap-2 text-sm leading-relaxed text-text-secondary">
               {ticket.details.map((line) => (
                 <li key={line} className="flex gap-2.5">
-                  <span aria-hidden="true" className="mt-[0.6em] size-1.5 shrink-0 rounded-full bg-lilac" />
+                  <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-lilac" />
                   <span>{line}</span>
                 </li>
               ))}

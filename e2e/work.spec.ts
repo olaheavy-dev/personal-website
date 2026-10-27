@@ -140,6 +140,24 @@ test.describe("work page", () => {
     await expect(page.getByRole("button", { name: /^Show less/ })).toHaveCount(0);
   });
 
+  test("before hydration only the ticket the URL points at is open, and /work#main opens none", async ({
+    page,
+  }) => {
+    // Block the scripts: the page never hydrates, so only the CSS (the :target rule) decides.
+    await page.route("**/_next/static/**/*.js", (route) => route.abort());
+    const open = (text: string) => revealed(text, page);
+    await page.goto("/work#galooli");
+    expect(await open("Deployed IoT energy management for telecom tower operators across Nigeria.")).toBe(
+      true,
+    );
+    expect(await open("Mentored junior engineers on the team.")).toBe(false);
+    await page.goto("/work#main");
+    expect(await open("Deployed IoT energy management for telecom tower operators across Nigeria.")).toBe(
+      false,
+    );
+    expect(await open("Mentored junior engineers on the team.")).toBe(false);
+  });
+
   test("a deep link causes no layout shift (CLS under 0.05 on /work#galooli)", async ({ page }) => {
     await page.addInitScript(() => {
       const w = window as unknown as { __cls: number };

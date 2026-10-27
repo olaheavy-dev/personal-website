@@ -54,6 +54,14 @@ describe("POST /api/revalidate", () => {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("revalidates the stops tag for the webhook of the stops table (the Work page reads it)", async () => {
+    const { POST } = await load();
+    const response = await POST(post({ body: { type: "UPDATE", table: "stops", schema: "public" } }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ revalidated: "stops" });
+    expect(revalidateTag).toHaveBeenCalledWith("stops", { expire: 0 });
+  });
+
   it("also accepts a direct call naming the tag", async () => {
     const { POST } = await load();
     expect((await POST(post({ body: { tag: "flags" } }))).status).toBe(200);

@@ -36,6 +36,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en-GB" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Without JavaScript an expanding ticket (TicketExpander) shows its content and has no
+            button to press. A noscript style rather than "@media (scripting: none)": it holds
+            in every browser and in the test harness, which does not report that feature. */}
+        <noscript>
+          <style>{".ticket-expander{grid-template-rows:1fr}.ticket-expander-toggle{display:none}"}</style>
+        </noscript>
       </head>
       <body>
         <a

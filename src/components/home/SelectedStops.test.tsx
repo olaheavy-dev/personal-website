@@ -148,7 +148,14 @@ describe("SelectedStopsView", () => {
     const section = view(rows, { "page.work": "on" });
     const link = within(section).getByRole("link", { name: /See all work/ });
     expect(link).toHaveAttribute("href", "/work");
-    expect(within(section).getAllByRole("link")).toHaveLength(4);
+    // Work is live now, so each ticket title also links to its place on /work.
+    const titles = within(section).getAllByRole("heading", { level: 3 });
+    expect(titles.map((h) => h.querySelector("a")?.getAttribute("href"))).toEqual([
+      "/work#mukuru",
+      "/work#optty",
+      "/work#access-bank",
+    ]);
+    expect(within(section).getAllByRole("link")).toHaveLength(7);
   });
 });
 

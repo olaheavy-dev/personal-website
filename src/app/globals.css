@@ -247,6 +247,13 @@
     margin: calc(-1 * var(--space-1));
     padding: var(--space-1);
   }
+  /* A link to /work#mukuru lands on an open ticket before any script runs, so hydration
+     changes nothing and the page does not move. Only a stop (an li with an id) opens its
+     ticket, so /work#main opens none. data-hydrated ends this rule, and the component's own
+     state decides from then on. */
+  li[id]:target .ticket-expander:not([data-hydrated]) {
+    grid-template-rows: 1fr;
+  }
   @media (prefers-reduced-motion: reduce) {
     .ticket-expander {
       transition: none;

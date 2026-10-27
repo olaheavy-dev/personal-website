@@ -17,7 +17,7 @@ export type PageEntry = {
 
 /** In navigation order (information architecture). */
 export const pageRegistry: readonly PageEntry[] = [
-  { flag: "page.work", href: "/work", label: "Work", status: "coming-soon" },
+  { flag: "page.work", href: "/work", label: "Work", status: "live" },
   { flag: "page.lab", href: "/lab", label: "Lab", status: "coming-soon" },
   { flag: "page.writing", href: "/writing", label: "Writing", status: "coming-soon" },
   { flag: "page.travel", href: "/travel", label: "Travel", status: "coming-soon" },

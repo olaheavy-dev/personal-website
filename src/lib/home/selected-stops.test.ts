@@ -127,9 +127,11 @@ describe("buildSelectedStops", () => {
       ]);
     });
 
-    it("links today's real registries to nothing, because no case study and no Work page is live", () => {
+    it("links today's real registries to /work#slug, because Work is live and no case study is", () => {
       const model = buildSelectedStops(success(all), on("page.work", "case.mukuru-case"), "public");
-      expect(model?.tickets.map((t) => t.href)).toEqual([null, null, null]);
+      expect(model?.tickets.map((t) => t.href)).toEqual(["/work#mukuru", "/work#optty", "/work#access-bank"]);
+      const off = buildSelectedStops(success(all), on("case.mukuru-case"), "public");
+      expect(off?.tickets.map((t) => t.href)).toEqual([null, null, null]);
     });
   });
 

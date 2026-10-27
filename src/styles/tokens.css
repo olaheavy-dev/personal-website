@@ -407,6 +407,9 @@
   --line-height-display-sub: 1.05; /* hero's second, smaller display line */
   --max-width-lead: 56ch; /* lead paragraph measure */
   --max-width-caption: 32ch; /* short notes under labels */
+  --work-rail-width: 18.75rem; /* 300: the Work timeline's rail from lg */
+  --work-rail-width-md: 12.5rem; /* 200: the rail at tablet width, so tickets keep their room */
+  --work-ticket-max: 47.5rem; /* 760: widest Work ticket */
   --ticket-tilt: 2deg;
   --ticket-tilt-back: -5deg;
   --ticket-max-width: 22rem;

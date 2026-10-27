@@ -74,13 +74,15 @@ test.describe("selected stops", () => {
     await expect(stops.locator("span.text-text-secondary").filter({ hasText: /\d{4}/ })).toHaveCount(0);
   });
 
-  test("links only to /work: no case study is live and the Work page is not either", async ({ page }) => {
+  test("links each ticket to its place on /work, and nothing to a case study, because none is live", async ({
+    page,
+  }) => {
     test.skip(remote, "the flags of a live site decide this");
     await page.goto("/");
     const hrefs = await section(page)
       .locator("a:not([target=_blank])")
       .evaluateAll((links) => links.map((l) => l.getAttribute("href")));
-    expect(hrefs).toEqual(["/work"]);
+    expect(hrefs).toEqual(["/work#mukuru", "/work#optty", "/work#access-bank", "/work"]);
     await expect(section(page).getByRole("link", { name: /See all work/ })).toBeVisible();
   });
 
@@ -122,8 +124,8 @@ test.describe("selected stops", () => {
       found = ((await focusedHref()) ?? "").includes("techzim.co.zw");
     }
     expect(found).toBe(true);
-    // A ticket link would come before its figure link when a case study is live; here none is.
-    for (const expected of ["triple-a.io", "play.google.com", "/work"]) {
+    // Each ticket's title link (to its place on /work) comes before its own figure link.
+    for (const expected of ["/work#optty", "triple-a.io", "/work#access-bank", "play.google.com", "/work"]) {
       await page.keyboard.press("Tab");
       expect((await focusedHref()) ?? "").toContain(expected);
     }

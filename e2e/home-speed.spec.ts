@@ -42,54 +42,59 @@ type Entry = { time: number; inHero: boolean; tag: string };
 test.describe("largest contentful paint", () => {
   test.skip(({ browserName }) => browserName !== "chromium", "DevTools protocol throttling");
 
-  test("@speed is at most 1500 ms in the hero, median of 3, on simulated mobile", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile", "one phone run is the measurement");
-    const client = await page.context().newCDPSession(page);
-    await client.send("Network.enable");
-    await client.send("Network.setCacheDisabled", { cacheDisabled: true });
-    await client.send("Network.emulateNetworkConditions", {
-      offline: false,
-      latency,
-      downloadThroughput: download,
-      uploadThroughput: upload,
-    });
-    await client.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-    await page.addInitScript(() => {
-      const entries: Entry[] = [];
-      (window as unknown as { __lcp: Entry[] }).__lcp = entries;
-      new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as (PerformanceEntry & { element?: Element | null })[]) {
-          entries.push({
-            time: entry.startTime,
-            inHero: Boolean(entry.element?.closest("main > section:first-child")),
-            tag: entry.element?.tagName ?? "none",
-          });
-        }
-      }).observe({ type: "largest-contentful-paint", buffered: true });
-    });
+  for (const { path, title } of [
+    { path: "/", title: "@speed is at most 1500 ms in the hero, median of 3, on simulated mobile" },
+    { path: "/work", title: "@speed /work is at most 1500 ms, median of 3, on simulated mobile" },
+  ]) {
+    test(title, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile", "one phone run is the measurement");
+      const client = await page.context().newCDPSession(page);
+      await client.send("Network.enable");
+      await client.send("Network.setCacheDisabled", { cacheDisabled: true });
+      await client.send("Network.emulateNetworkConditions", {
+        offline: false,
+        latency,
+        downloadThroughput: download,
+        uploadThroughput: upload,
+      });
+      await client.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+      await page.addInitScript(() => {
+        const entries: Entry[] = [];
+        (window as unknown as { __lcp: Entry[] }).__lcp = entries;
+        new PerformanceObserver((list) => {
+          for (const entry of list.getEntries() as (PerformanceEntry & { element?: Element | null })[]) {
+            entries.push({
+              time: entry.startTime,
+              inHero: Boolean(entry.element?.closest("main > section:first-child")),
+              tag: entry.element?.tagName ?? "none",
+            });
+          }
+        }).observe({ type: "largest-contentful-paint", buffered: true });
+      });
 
-    const runs: Entry[] = [];
-    for (let run = 0; run < 3; run += 1) {
-      await page.goto("/", { waitUntil: "load" });
-      // Wait for an entry, then for one second with no new one (the last entry is the LCP).
-      await page.waitForFunction(() => (window as unknown as { __lcp: Entry[] }).__lcp.length > 0);
-      let count = -1;
-      for (;;) {
-        const now = await page.evaluate(() => (window as unknown as { __lcp: Entry[] }).__lcp.length);
-        if (now === count) break;
-        count = now;
-        await page.waitForTimeout(1000);
+      const runs: Entry[] = [];
+      for (let run = 0; run < 3; run += 1) {
+        await page.goto(path, { waitUntil: "load" });
+        // Wait for an entry, then for one second with no new one (the last entry is the LCP).
+        await page.waitForFunction(() => (window as unknown as { __lcp: Entry[] }).__lcp.length > 0);
+        let count = -1;
+        for (;;) {
+          const now = await page.evaluate(() => (window as unknown as { __lcp: Entry[] }).__lcp.length);
+          if (now === count) break;
+          count = now;
+          await page.waitForTimeout(1000);
+        }
+        const last = await page.evaluate(() => (window as unknown as { __lcp: Entry[] }).__lcp.at(-1));
+        expect(last, "an LCP entry was recorded").toBeDefined();
+        runs.push(last!);
       }
-      const last = await page.evaluate(() => (window as unknown as { __lcp: Entry[] }).__lcp.at(-1));
-      expect(last, "an LCP entry was recorded").toBeDefined();
-      runs.push(last!);
-    }
-    const times = runs.map((r) => r.time).sort((a, b) => a - b);
-    const median = times[1]!;
-    testInfo.annotations.push({ type: "lcp", description: `${times.map(Math.round).join(", ")} ms` });
-    for (const r of runs) expect(r.inHero, `LCP element ${r.tag} is in the hero`).toBe(true);
-    expect(median, `LCP runs ${times.map(Math.round).join(", ")} ms`).toBeLessThanOrEqual(1500);
-  });
+      const times = runs.map((r) => r.time).sort((a, b) => a - b);
+      const median = times[1]!;
+      testInfo.annotations.push({ type: "lcp", description: `${times.map(Math.round).join(", ")} ms` });
+      // Home's LCP must be in the hero; /work has no hero, so only the time counts there.
+      if (path === "/")
+        for (const r of runs) expect(r.inHero, `LCP element ${r.tag} is in the hero`).toBe(true);
+      expect(median, `LCP runs ${times.map(Math.round).join(", ")} ms`).toBeLessThanOrEqual(1500);
+    });
+  }
 });

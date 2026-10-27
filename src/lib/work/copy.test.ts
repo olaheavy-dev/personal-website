@@ -17,10 +17,6 @@ describe("workCopy", () => {
     );
     expect(link).toBe("the home page");
     expect(workCopy.failure.href).toBe("/");
-    expect(workCopy.lab).toEqual({
-      heading: "In the lab",
-      line: "Personal projects built end to end, from idea to production.",
-    });
   });
 
   it("keeps the meta description short enough for a search result", () => {

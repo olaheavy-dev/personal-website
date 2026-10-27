@@ -152,9 +152,10 @@ test.describe("work page", () => {
     );
     expect(await open("Mentored junior engineers on the team.")).toBe(false);
     await page.goto("/work#main");
-    expect(await open("Deployed IoT energy management for telecom tower operators across Nigeria.")).toBe(
-      false,
-    );
+    // The closing transition (a grid row from 1fr to 0fr) takes a moment.
+    await expect
+      .poll(() => open("Deployed IoT energy management for telecom tower operators across Nigeria."))
+      .toBe(false);
     expect(await open("Mentored junior engineers on the team.")).toBe(false);
   });
 

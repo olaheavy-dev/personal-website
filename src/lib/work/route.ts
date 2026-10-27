@@ -1,5 +1,5 @@
 import type { Result } from "@/lib/db/result";
-import type { FeatureFlags, Outcome, Stop, WorkFilter } from "@/lib/db/types";
+import type { DetailSource, FeatureFlags, Outcome, Stop, WorkFilter } from "@/lib/db/types";
 import { stopEyebrow, type StopEyebrow } from "@/lib/stops/eyebrow";
 import { caseStudyHref, caseStudyRegistry, type CaseStudyEntry } from "@/lib/flags/registry";
 import type { Viewer } from "@/lib/flags/visibility";
@@ -40,6 +40,8 @@ export type WorkTicketModel = {
   summary: string | null;
   /** At most four lines, trimmed, empty ones dropped. */
   details: string[];
+  /** Public pages behind the detail lines, in order. Empty when there are none. */
+  sources: DetailSource[];
   /** The stop's first outcome. Null when it has none: the ticket then shows no chip. */
   outcome: Outcome | null;
   /** The stop's areas, for the filter chips. */
@@ -118,6 +120,7 @@ export function buildWorkRoute(
       .map((line) => line.trim())
       .filter(Boolean)
       .slice(0, 4),
+    sources: stop.detailSources.map(({ label, url }) => ({ label, url })),
     outcome: stop.outcomes[0] ?? null,
     filters: [...stop.filters],
     href: caseStudyHref(

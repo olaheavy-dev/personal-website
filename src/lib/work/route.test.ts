@@ -28,6 +28,7 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
     role: "Senior Software Engineer",
     summary: `About ${slug}.`,
     details: [],
+    detailSources: [],
     stack: [],
     outcomes: [],
     ...more,
@@ -183,6 +184,23 @@ describe("buildWorkRoute", () => {
     });
     const bare = route(success([hbk, stop("galooli", 1)]), {}, "public").entries[1]!;
     expect(bare.type === "stop" && bare.ticket).toMatchObject({ details: [], outcome: null });
+  });
+
+  it("carries the detail sources in order, and none for a stop without", () => {
+    const sources = [
+      { label: "Device Finance FAQ", url: "https://example.com/faq" },
+      { label: "Konga partnership", url: "https://example.com/konga" },
+    ];
+    const withSources = stop("access-bank", 2, {
+      kind: "flagship",
+      details: ["One."],
+      detailSources: sources,
+    });
+    const built = route(success([hbk, withSources]), {}, "public");
+    const flagship = built.entries[1]!;
+    expect(flagship.type === "stop" && flagship.ticket).toMatchObject({ details: ["One."], sources });
+    const first = built.entries[0]!;
+    expect(first.type === "stop" && first.ticket.sources).toEqual([]);
   });
 
   it("offers All plus only the areas that have a stop, in the fixed order", () => {

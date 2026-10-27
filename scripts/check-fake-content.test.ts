@@ -68,7 +68,7 @@ describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
     expect(seededOutcomes().size).toBe(9);
   });
 
-  it("equals the seed record for every stop: slug, name, kind, filters, years, via, role and summary", () => {
+  it("equals the seed record for every stop: slug, name, kind, filters, years, via, role, summary, details and detail sources", () => {
     for (const stop of stops) {
       const row = new RegExp(
         String.raw`\('${stop.slug}', (\d+), '([^']+)', '(\w+)', '\{([\w,]+)\}', (\d+), (\d+|null), (${orNull}), 'published'\)`,
@@ -104,6 +104,12 @@ describe("the fake content in e2e/fixtures/fake-content.mjs", () => {
       ).exec(code);
       const lines = details ? [...details[1]!.matchAll(new RegExp(quoted, "g"))].map((m) => text(m[0])) : [];
       expect(lines, `${stop.slug} details`).toEqual(stop.details);
+      const sources = new RegExp(
+        String.raw`update public\.stops set detail_sources = '(.*)'::jsonb where slug = '${stop.slug}';`,
+      ).exec(code);
+      expect(sources ? JSON.parse(sources[1]!) : [], `${stop.slug} detail sources`).toEqual(
+        stop.detail_sources,
+      );
     }
   });
 

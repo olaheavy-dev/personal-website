@@ -34,6 +34,7 @@ const stop = (slug: string, number: number, more: Partial<Stop>): Stop => ({
   role: "Senior Software Engineer",
   summary: `Summary of ${slug}.`,
   details: [],
+  detailSources: [],
   stack: [],
   outcomes: [],
   ...more,

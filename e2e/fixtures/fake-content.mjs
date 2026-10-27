@@ -35,6 +35,7 @@ const stopRow = (index, fields, outcomes = []) => {
     role: null,
     stack: [],
     details: [],
+    detail_sources: [],
     end_year: null,
     via: null,
     ...fields,
@@ -96,6 +97,22 @@ export const stops = [
     2,
     {
       slug: "access-bank",
+      details: [
+        "Built QuickBucks, Access Bank's digital lending app for web and mobile, including Device Finance, which lets salaried customers buy a smartphone over 12 months.",
+        "Built the Device Finance vendor portal, where device partners managed their devices, customers, pickups and integrations.",
+        "Built the Instant Account Opening portal, automating onboarding with the Nigeria Inter-Bank Settlement System, identity verification and KYC checks.",
+        "Access Bank later extended QuickBucks to instalment checkout on Konga (2023).",
+      ],
+      detail_sources: [
+        {
+          label: "Device Finance FAQ",
+          url: "https://investorrelations.accessbankplc.com/Personal-Banking/LOANS/Device-Finance.aspx",
+        },
+        {
+          label: "Konga partnership",
+          url: "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
+        },
+      ],
       role: "Senior Software Engineer",
       number: 2,
       name: "Access Bank",
@@ -143,6 +160,11 @@ export const stops = [
     4,
     {
       slug: "optty",
+      details: [
+        "Built the API integrations that connect Optty's merchants to buy now, pay later providers and alternative payment methods.",
+        "Designed transaction tokenisation to keep payment data secure across multiple gateways.",
+        "Helped build configurable user experiences and reporting tools that gave the team clearer operational visibility.",
+      ],
       role: "Senior Software Engineer",
       number: 4,
       name: "Optty",
@@ -226,6 +248,9 @@ export const stops = [
     7,
     {
       slug: "hbk",
+      details: [
+        "Built an evaluation workflow that turned AI quality questions into evidence-based decisions, and helped other teams set up their own.",
+      ],
       role: "Backend Software Engineer",
       number: 7,
       name: "HBK",

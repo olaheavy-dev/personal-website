@@ -68,6 +68,33 @@ test.describe("work vehicles", () => {
     await expect(page.locator("[data-vehicle='danfo'][data-latest]")).toHaveCount(1);
   });
 
+  test("scrolling back up, the danfo drives back up with the reader, and the bus stays at HBK", async ({
+    page,
+  }) => {
+    await page.goto("/work");
+    await expect(page.locator("[data-route][data-armed]")).toHaveCount(1);
+    await scrollToEnd(page);
+    await settle(page);
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["galooli"]);
+    // Stanbic IBTC just above the reading line (60% down the screen), Access Bank below it.
+    await page
+      .locator("[data-route-pin='stanbic-ibtc']")
+      .evaluate((pin) =>
+        window.scrollTo(
+          0,
+          pin.getBoundingClientRect().top + window.scrollY - (window.innerHeight * 0.6 - 20),
+        ),
+      );
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["stanbic-ibtc"]);
+    // Back at the top, above every Lagos pin: the danfo waits at the first one, the Deimos entry.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(async () => (await visibleDanfos(page)).map((d) => d.at)).toEqual(["Deimos"]);
+    await expect(page.locator("[data-vehicle='bus'][data-latest]")).toHaveCount(1);
+    await expect
+      .poll(() => page.locator("[data-vehicle='bus']").evaluate((el) => getComputedStyle(el).opacity))
+      .toBe("1");
+  });
+
   test("the danfo is only ever at a Lagos entry, never at HBK", async ({ page }) => {
     await page.goto("/work");
     await scrollToEnd(page);

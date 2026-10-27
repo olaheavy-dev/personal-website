@@ -179,7 +179,13 @@ describe("WorkRoute vehicles", () => {
 });
 
 describe("RouteObserver and the parked vehicles", () => {
+  // A pin at `top` in the viewport (the reading line is 60% down the 768 px viewport, at 460.8).
+  const placeAt = (pin: HTMLElement, top: number) => {
+    pin.getBoundingClientRect = () => ({ top }) as DOMRect;
+  };
+  // Scrolling down: the pins up to `upTo` pass the reading line and are reached.
   const reach = async (pins: HTMLElement[], upTo: number) => {
+    for (const pin of pins.slice(0, upTo + 1)) placeAt(pin, 100);
     const io = observers[0]!;
     await act(async () =>
       io.callback(
@@ -211,6 +217,34 @@ describe("RouteObserver and the parked vehicles", () => {
     );
     expect(doors).toEqual(["closed", "open", "closed", "closed"]);
     expect(container.querySelectorAll("[data-vehicle='danfo'][data-latest]")).toHaveLength(1);
+  });
+
+  it("drives the danfo back up when the reader scrolls back up, and to the last pin at the page end", async () => {
+    const { container } = renderWork();
+    const pins = [...container.querySelectorAll<HTMLElement>("[data-route-pin]")];
+    await reach(pins, 3); // HBK, Deimos, Stanbic IBTC, Access Bank
+    expect(latest(container)).toEqual(["hbk", "access-bank"]);
+    // The parking observer is the last one created; any crossing of the line re-parks.
+    const parking = observers.at(-1)!;
+    const repark = () => act(async () => parking.callback([]));
+    // Scrolled back up: Access Bank drops below the reading line, Stanbic IBTC is still above it.
+    placeAt(pins[3]!, 600);
+    await repark();
+    expect(latest(container)).toEqual(["hbk", "stanbic-ibtc"]);
+    // Above every Lagos pin: the danfo waits at the first, the Deimos entry. The bus stays.
+    for (const pin of pins.slice(1, 4)) placeAt(pin, 900);
+    await repark();
+    expect(latest(container)).toEqual(["hbk", "Deimos"]);
+    // At the very end of the page the danfo parks at the last reached pin, wherever the line is.
+    // (The end observer, the second one, reports the last pin on screen; then the page end scroll.)
+    await act(async () => observers[1]!.callback([{ isIntersecting: true }]));
+    page.scrollY = page.scrollHeight - page.innerHeight;
+    await act(async () => window.dispatchEvent(new Event("scroll")));
+    expect(latest(container)).toEqual(["hbk", "galooli"]);
+    const doors = [...container.querySelectorAll("[data-vehicle='danfo']")].map((d) =>
+      d.getAttribute("data-door"),
+    );
+    expect(doors).toEqual(["closed", "closed", "closed", "open"]);
   });
 
   it("leaves the vehicles parked at home with reduced motion", async () => {

@@ -42,38 +42,52 @@ function Sources({ ticket }: { ticket: WorkTicketModel }) {
   if (ticket.sources.length === 0) return null;
   const labelId = `${ticket.slug}-sources`;
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-5">
+    <div className="mt-3 flex flex-wrap items-center gap-x-5">
       <p id={labelId} className="label-mono text-text-tertiary">
         Sources
       </p>
       <ul role="list" aria-labelledby={labelId} className="flex flex-wrap gap-x-5">
-        {ticket.sources.map((source) => (
-          <li key={source.url}>
-            <a
-              href={source.url}
-              target="_blank"
-              rel="noopener"
-              className="group inline-flex min-h-11 items-center gap-1 text-sm font-medium text-lilac-text"
-            >
-              <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
-                {source.label}
-              </span>
-              <svg
-                className="size-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+        {ticket.sources.map((source) => {
+          const lastSpace = source.label.lastIndexOf(" ");
+          const lead = lastSpace === -1 ? "" : source.label.slice(0, lastSpace + 1);
+          const lastWord = source.label.slice(lastSpace + 1);
+          return (
+            <li key={source.url}>
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener"
+                className="group inline-block min-h-11 py-3 text-sm leading-5 font-medium text-lilac-text"
               >
-                <path d="M7 17 17 7M8 7h9v9" />
-              </svg>{" "}
-              <span className="sr-only">(opens in a new tab)</span>
-            </a>
-          </li>
-        ))}
+                {/* The last word, the arrow and the screen reader text never separate, so the arrow
+                  never drifts from its label when the label wraps (same pattern as MetricChip). */}
+                <span className="text-balance">
+                  <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
+                    {lead}
+                  </span>
+                  <span className="whitespace-nowrap">
+                    <span className="underline decoration-1 underline-offset-4 group-hover:no-underline">
+                      {lastWord}
+                    </span>
+                    <svg
+                      className="ml-1 inline size-3.5 align-[-0.1em]"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M7 17 17 7M8 7h9v9" />
+                    </svg>{" "}
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

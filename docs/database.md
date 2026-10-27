@@ -97,7 +97,7 @@ Content changes are migrations too (decision 0019), because the seed does not re
 
 1. Write the migration so it can run twice and on a fresh database: `update ... where slug = '...'`, and for outcomes `delete from public.outcomes where stop_id = (select id from public.stops where slug = '...')` then `insert ... select ... from public.stops where slug = '...'`, which inserts nothing when the stop does not exist yet.
 2. Put the same values in `supabase/seed.sql`, so a local reset gives the same content.
-3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP test `supabase/tests/content_migration.test.sql` replays the 26 Oct content migration on seeded data and checks nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
+3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP tests `supabase/tests/content_migration.test.sql` (26 Oct) and `supabase/tests/stops_role_migration.test.sql` (27 Oct roles) replay a content migration on seeded data and check nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
 
 When the admin (#26, #27) ships, content migrations stop: content is edited in the admin, and migrations are for structure only.
 

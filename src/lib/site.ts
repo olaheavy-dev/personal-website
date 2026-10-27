@@ -11,6 +11,10 @@ export type Profile = {
   url: string | null;
 };
 
+// The two halves of the availability line: the chip shows them with a dot between, the footer
+// stub as two lines, so a dot never starts or ends a line.
+const availabilityParts = ["Open to senior & staff AI roles", "consulting"] as const;
+
 export const site = {
   name: "Sunkanmi Olawuwo",
   firstName: "Sunkanmi",
@@ -18,7 +22,8 @@ export const site = {
   oneLiner: "I take products from idea to production, with AI built in.",
   description:
     "Full-stack & AI engineer based in the UK. Ten years of software across banking, cross-border payments and edtech; today helping build HBK's sensor-data analytics platform and the human-centred AI inside it.",
-  availability: "Open to senior & staff AI roles\u00a0· consulting",
+  availability: `${availabilityParts.join("\u00a0· ")}`,
+  availabilityParts,
   timeZone: "Europe/London",
   timeZoneLabel: "UK",
   email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "sunkanmiolawuwo@gmail.com",

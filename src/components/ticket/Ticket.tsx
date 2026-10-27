@@ -20,7 +20,7 @@ type TicketBaseProps = Omit<HTMLAttributes<HTMLElement>, "title" | "children"> &
   /** Wrapper element; headings keep the page outline through `headingLevel`. */
   as?: "article" | "div";
   headingLevel?: 2 | 3 | 4;
-  /** Mono station label, for example "Stop 07 · Now". */
+  /** Mono label above the title: a string, or a `TicketEyebrow` for a role over its years. */
   eyebrow?: ReactNode;
   /** Company pill, shown opposite the eyebrow. */
   badge?: ReactNode;

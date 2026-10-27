@@ -1,7 +1,7 @@
 import { site } from "@/lib/site";
 import { NextStopBand } from "./NextStopBand";
 
-// The footer is the next stop band (the invitation to start the visitor's own route), then one
+// The footer is the What's next band (the invitation to start the visitor's own route), then one
 // slim line. The header already carries the name and the sections, so the footer doesn't
 // repeat them.
 export function Footer() {

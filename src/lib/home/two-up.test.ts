@@ -144,7 +144,7 @@ describe("buildHomeTwoUp", () => {
     expect(buildHomeTwoUp(success(all), on("page.lab"), "public", { posts: [post] }).writing).toBeNull();
   });
 
-  it("links to a page while its flag is visible, the same rule as 'See the whole route'", () => {
+  it("links to a page while its flag is visible, the same rule as 'See all work'", () => {
     const flags = on("page.lab", "page.writing");
     const model = buildHomeTwoUp(success(all), flags, "public", { posts: [post] });
     expect(model.lab!.moreLink).toBe("/lab");

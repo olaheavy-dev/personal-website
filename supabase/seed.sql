@@ -55,6 +55,16 @@ on conflict (slug) do update set
   filters = excluded.filters, start_year = excluded.start_year,
   end_year = excluded.end_year, via = excluded.via, status = excluded.status;
 
+-- Roles from the owner's CV (27 Oct 2026). The same statements are in
+-- supabase/migrations/20261027115039_stops_role_content.sql for the hosted project.
+update public.stops set role = 'Technical Support Engineer' where slug = 'galooli';
+update public.stops set role = 'Senior Software Engineer' where slug = 'access-bank';
+update public.stops set role = 'Senior Solutions Developer' where slug = 'stanbic-ibtc';
+update public.stops set role = 'Senior Software Engineer' where slug = 'optty';
+update public.stops set role = 'Senior Software Engineer' where slug = 'ulesson';
+update public.stops set role = 'Senior Software Engineer' where slug = 'mukuru';
+update public.stops set role = 'Backend Software Engineer' where slug = 'hbk';
+
 -- Four case studies as drafts, section titles only. Flags decide visibility later.
 insert into public.case_studies (slug, stop_id, title, status) values
   ('hbk-aiana', (select id from public.stops where slug = 'hbk'), 'HBK Advantage Aiana', 'draft'),

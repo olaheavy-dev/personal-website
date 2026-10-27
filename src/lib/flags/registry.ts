@@ -25,7 +25,7 @@ export const pageRegistry: readonly PageEntry[] = [
 ];
 
 /**
- * The link to a flagged page from a section of another page ("See the whole route", "See the
+ * The link to a flagged page from a section of another page ("See all work", "See the
  * whole lab"): the page's href while its flag is visible to this viewer, otherwise nothing, so a
  * flagged-off page is never linked (rule 7). One rule for every such link.
  */

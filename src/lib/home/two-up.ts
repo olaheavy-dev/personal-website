@@ -65,7 +65,7 @@ type Registry = readonly PageEntry[];
  * A failed read, an empty answer or none of the three projects gives no Lab half (null); a
  * partial answer gives only the projects that were read, in the fixed order. The Lab half
  * needs its page flag visible, the Writing half needs its flag visible and at least one post.
- * The "See the whole lab" and "All writing" links follow the same rule as "See the whole route":
+ * The "See the whole lab" and "All writing" links follow the same rule as "See all work":
  * they show while the page is visible.
  */
 export function buildHomeTwoUp(

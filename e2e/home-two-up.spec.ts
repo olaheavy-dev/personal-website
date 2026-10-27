@@ -36,7 +36,7 @@ test.describe("lab strip", () => {
       ),
     ).toBeVisible();
     await expect(page.getByText("SabiTutor")).toHaveCount(0);
-    // Lab is visible, so "See the whole lab" links to it, as "See the whole route" does to Work.
+    // Lab is visible, so "See the whole lab" links to it, as "See all work" does to Work.
     await expect(strip(page).getByRole("link", { name: /See the whole lab/ })).toHaveAttribute(
       "href",
       "/lab",
@@ -97,7 +97,7 @@ test.describe("lab strip", () => {
     await expect(card(page, "HomeScout").getByRole("link", { name: /\(source: / })).toHaveCount(0);
   });
 
-  test("shows no project twice on Home, and one Next stop band only, in the footer", async ({ page }) => {
+  test("shows no project twice on Home, and one What's next band only, in the footer", async ({ page }) => {
     await page.goto("/");
     const names = await page.locator("main h3").allTextContents();
     expect(new Set(names).size).toBe(names.length);
@@ -194,6 +194,22 @@ test.describe("lab strip", () => {
         );
       expect(lines).toEqual([1, 1]);
     }
+  });
+
+  test("fits 320 px without scrolling sideways, with every ticket eyebrow inside its ticket", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto("/");
+    expect(await overflow(page), "320px").toBeLessThanOrEqual(0);
+    const outside = await page.evaluate(
+      () =>
+        [...document.querySelectorAll("p.label-mono span")].filter((el) => {
+          const ticket = el.closest("[data-layout]");
+          return ticket && el.getBoundingClientRect().right > ticket.getBoundingClientRect().right;
+        }).length,
+    );
+    expect(outside).toBe(0);
   });
 
   test("has no accessibility violations", async ({ page }) => {

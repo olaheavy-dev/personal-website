@@ -5,7 +5,7 @@ import { CopyEmailButton } from "./CopyEmailButton";
 import { EmailButton } from "./EmailButton";
 
 // The route ends at Scale; this is the invitation to start the visitor's own: a wide ticket
-// ("Next stop, Yours?") with the contact actions and a tear-off stub holding the availability
+// ("What's next, Yours?") with the contact actions and a tear-off stub holding the availability
 // and profiles. It is the footer's pass, and the only one: Home has no second band of its own.
 export function NextStopBand() {
   const profiles = configuredProfiles();
@@ -15,7 +15,7 @@ export function NextStopBand() {
       <Ticket
         as="div"
         layout="pass"
-        eyebrow="Next stop"
+        eyebrow="What's next"
         title="Yours?"
         titleId="next-stop-title"
         stub={
@@ -24,7 +24,10 @@ export function NextStopBand() {
               <p className="label-mono text-text-tertiary">Availability</p>
               <p className="mt-3 flex max-w-(--max-width-caption) items-start gap-2 text-sm text-text-secondary">
                 <span className="mt-1.5 size-2 shrink-0 rounded-full bg-live" aria-hidden="true" />
-                {site.availability}
+                <span>
+                  <span className="block">{site.availabilityParts[0]}</span>
+                  <span className="block">{site.availabilityParts[1]}</span>
+                </span>
               </p>
             </div>
             {profiles.length || site.resumeUrl ? (

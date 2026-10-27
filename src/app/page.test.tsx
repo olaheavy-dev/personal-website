@@ -1,10 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import Home from "./page";
 
-// Selected stops is an async server component that reads the cached database queries; its own
+// Selected work is an async server component that reads the cached database queries; its own
 // tests are in components/home/SelectedStops.test.tsx. Here it only has to sit in the right place.
 vi.mock("@/components/home/SelectedStops", () => ({
-  SelectedStops: () => <section aria-label="Selected stops" />,
+  SelectedStops: () => <section aria-label="Selected work" />,
 }));
 
 vi.mock("@/components/home/HomeTwoUp", () => ({
@@ -38,7 +38,7 @@ describe("Home", () => {
 
   it("lists the five journey stations in order", () => {
     render(<Home />);
-    const route = screen.getByRole("region", { name: /The route, every time/ });
+    const route = screen.getByRole("region", { name: /How I work/ });
     const names = within(route)
       .getAllByRole("listitem")
       .map((item) => item.textContent?.match(/^[A-Z][a-z]+/)?.[0]);
@@ -47,13 +47,13 @@ describe("Home", () => {
 
   it("does not number the stations", () => {
     render(<Home />);
-    const route = screen.getByRole("region", { name: /The route, every time/ });
+    const route = screen.getByRole("region", { name: /How I work/ });
     expect(route).not.toHaveTextContent(/\d/);
   });
 
   it("describes how each station adds value rather than listing the stack", () => {
     render(<Home />);
-    const route = screen.getByRole("region", { name: /The route, every time/ });
+    const route = screen.getByRole("region", { name: /How I work/ });
     expect(within(route).getByText(/human-centred AI built in/)).toBeInTheDocument();
     expect(within(route).getByText(/usability testing/)).toBeInTheDocument();
     expect(within(route).getByText(/user feedback and continuous evaluation/)).toBeInTheDocument();
@@ -64,21 +64,21 @@ describe("Home", () => {
     render(<Home />);
     const hero = screen.getByRole("region", { name: /Hi, I.m/ });
     const rail = screen.getByRole("region", { name: "Where I've shipped" });
-    const route = screen.getByRole("region", { name: /The route, every time/ });
+    const route = screen.getByRole("region", { name: /How I work/ });
     expect(hero.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(rail.compareDocumentPosition(route) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("puts Selected stops after the journey stations", () => {
+  it("puts Selected work after the journey stations", () => {
     render(<Home />);
-    const route = screen.getByRole("region", { name: /The route, every time/ });
-    const stops = screen.getByRole("region", { name: "Selected stops" });
+    const route = screen.getByRole("region", { name: /How I work/ });
+    const stops = screen.getByRole("region", { name: "Selected work" });
     expect(route.compareDocumentPosition(stops) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("puts the Lab strip after Selected stops, with no Next stop band of its own", () => {
+  it("puts the Lab strip after Selected work, with no What's next band of its own", () => {
     render(<Home />);
-    const stops = screen.getByRole("region", { name: "Selected stops" });
+    const stops = screen.getByRole("region", { name: "Selected work" });
     const lab = screen.getByRole("region", { name: "In the lab" });
     expect(stops.compareDocumentPosition(lab) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByRole("region", { name: "Yours?" })).toBeNull();

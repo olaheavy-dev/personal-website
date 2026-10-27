@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 // The seed is public content, so it follows the claims policy (decision 0005) and the
 // personal data rules. The pgTAP test seed_claims.test.sql checks what the database
@@ -142,6 +142,27 @@ describe("supabase/seed.sql", () => {
     expect(migration).toContain(
       "delete from public.outcomes where stop_id = (select id from public.stops where slug = 'mukuru');",
     );
+  });
+
+  it("holds the seven CV roles word for word, and the roles migration matches", () => {
+    const roles = {
+      galooli: "Technical Support Engineer",
+      "access-bank": "Senior Software Engineer",
+      "stanbic-ibtc": "Senior Solutions Developer",
+      optty: "Senior Software Engineer",
+      ulesson: "Senior Software Engineer",
+      mukuru: "Senior Software Engineer",
+      hbk: "Backend Software Engineer",
+    };
+    const migrationFile = "supabase/migrations/20261027115039_stops_role_content.sql";
+    expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
+    const migration = readFileSync(migrationFile, "utf8");
+    for (const [slug, text] of Object.entries(roles)) {
+      const statement = `update public.stops set role = '${text}' where slug = '${slug}';`;
+      expect(code, `${slug} in the seed`).toContain(statement);
+      expect(migration, `${slug} in the migration`).toContain(statement);
+    }
+    expect([...migration.matchAll(/^update public\.stops set role = /gm)]).toHaveLength(7);
   });
 
   it("starts with only the home flag on", () => {

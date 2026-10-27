@@ -65,17 +65,17 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 ### Home `/` (≤ 5 viewports at 1440×900)
 1. **Hero:** "Hi, I'm [Sunkanmi]" (name as lilac object) + one-liner "I take products from idea to production, with AI built in." + **Email me** + "Ask me anything" (opens assistant) + availability chip (role openness + live UK time) + illustrated avatar (wave). *Answers the 5-second test.*
 2. **Logo rail:** HBK, Mukuru, uLesson, Optty, Stanbic IBTC, Access Bank, Galooli (monochrome; Deimos noted as "via Deimos" on client logos). *Instant credibility.*
-3. **Journey stations:** Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
-4. **Selected stops:** 3 large tickets: Mukuru (cross-border payments), Optty (payments) and Access Bank (regulated mobile banking), each with a sourced chip whose figure links to its source (owner decision, 26 Oct 2026, replacing HBK, which stays in the hero; Foresight stays in the Lab strip). "See the whole route →" `/work`. *Depth on the three strongest proofs.*
+3. **Journey stations** (heading "How I work"): Idea → Design → Build → Ship → Scale; each station has a one-line capability and links to the evidence (a case-study section). The route begins here. *Turns the positioning into proof paths.*
+4. **Selected work:** 3 large tickets: Mukuru (cross-border payments), Optty (payments) and Access Bank (regulated mobile banking), each with a sourced chip whose figure links to its source (owner decision, 26 Oct 2026, replacing HBK, which stays in the hero; Foresight stays in the Lab strip). "See all work →" `/work`. *Depth on the three strongest proofs.*
 5. **Lab & Writing (two-up):** Lab strip: Foresight / FastPilot / HomeScout mini cards; Latest writing: 3 Hashnode posts. Each half collapses if its flag is off. *Shows ongoing craft.*
-6. **Next stop (contact band):** "Next stop: your product." Email (copy + mailto) and résumé. *Closes on the primary CTA.*
+6. **What's next (contact band):** eyebrow "What's next", title "Yours?". Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 
 ### Work `/work`
 1. Title + one-line framing ("Ten years of production, from Lagos to the UK") + filter chips.
 2. Vertical route, newest first: HBK (2024 to now) → Deimos clients: Mukuru, uLesson, Optty (2022–24) → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
 3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy), stack.
 4. Cross-link band: "Building on my own time → Lab" (Foresight).
-5. Next stop contact band.
+5. What's next contact band.
 
 ### Case study `/work/[slug]`
 1. Title (outcome-led) + meta grid (Company · Role · When · Stack · Team) + hero visual.
@@ -129,7 +129,7 @@ Lab cards show evidence, not status badges: GitHub, a demo video or GIF, a write
 ### 1. Hiring manager: 60-second screen
 1. Lands on `/` from a LinkedIn/CV link.
 2. Hero: reads role + one-liner, sees availability chip → understands "production AI engineer who designs".
-3. Scans logo rail and Selected stops.
+3. Scans logo rail and Selected work.
    - If convinced → clicks **Email me** → mailto opens / email copied (toast "Email copied") → done.
    - If wants depth → opens HBK ticket → `/work/hbk-aiana` → reads TL;DR + outcome chips → Email me in contact band.
    - If wants proof of ownership → clicks Foresight → live site / case study.
@@ -190,15 +190,15 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 
 | Concept | Label in UI | Notes |
 |---|---|---|
-| A job / engagement / project on the route | **Stop** (e.g. "Stop 04 · Optty") | Route metaphor; "Project" only in Lab. Stops count up from the first job: Galooli 01, Access Bank 02, Stanbic IBTC 03, Optty 04, uLesson 05, Mukuru 06, HBK 07 ("Stop 07 · Now"). A stop keeps its number everywhere |
+| A job / engagement / project on the route | **Stop** (internal name; the UI does not say "stop") | "Project" only in Lab. Stops are numbered from the first job (Galooli 01 to HBK 07) in the data and the Work list order. A ticket eyebrow is the role and years from the owner's CV (owner decision, 27 Oct 2026): `<Role> · via Deimos · <start> to <end>` for a Deimos client stop, `<Role> · <start> to <end>` otherwise, `<start> to now` when the end year is empty. A stop with no role shows years only. Example: "Backend Software Engineer · 2024 to now" |
 | Card representing a stop | **Ticket** (internal name) | UI shows the stop name, not "ticket" |
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
 | Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |
 | Personal projects section | **Lab** | Not "Playground" or "Side quests" |
 | Project status | **In progress** (tag) | Lab cards carry only a small "In progress" tag while the work is unfinished; no Live or Coming soon badges. "Try it" appears only while a live URL is set |
 | Blog | **Writing** | Posts are "posts", not "articles" |
-| Five capabilities | **Idea · Design · Build · Ship · Scale** | Always in this order |
-| Contact band | **Next stop** | CTA text always "Email me" |
+| Five capabilities | **Idea · Design · Build · Ship · Scale** | Always in this order. The home section is headed "How I work" |
+| Contact band | **What's next** (eyebrow; title "Yours?") | CTA text always "Email me" |
 | Assistant | **Ask Sunkanmi** | Speaks in third person about Sunkanmi ("He built…") to avoid impersonation; avatar is a guide |
 | Assistant source chips | **Sources** | Not "references"/"citations" in UI |
 | Collected stamps | **Passport** / **Stamp** | |
@@ -213,15 +213,15 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 |---|---|---|
 | `SiteShell` (pill nav, footer, assistant launcher, ⌘K, passport provider) | All public pages | Admin uses separate `AdminShell` |
 | `AdminShell` (sidebar, auth guard) | All `/admin/*` | Owner only |
-| `Route` (dotted path + pins) | Home stations, Work list, About career, Travel arcs (3D variant), Next-stop band | Vertical (Work/About; Home stations on phones), horizontal strip (Home stations from md), inline (inside a sentence), 3D arcs (Travel) |
-| `Ticket` | Home selected stops, Work list, About career, Lab (project variant) | Sizes: large / compact / mini; compact expands inline |
+| `Route` (dotted path + pins) | Home stations, Work list, About career, Travel arcs (3D variant), What's next band | Vertical (Work/About; Home stations on phones), horizontal strip (Home stations from md), inline (inside a sentence), 3D arcs (Travel) |
+| `Ticket` | Home selected work, Work list, About career, Lab (project variant) | Sizes: large / compact / mini; compact expands inline |
 | `MetricChip` | Tickets, case-study TL;DR & results, Lab cards | Source shown as tooltip (desktop) / tap sheet (mobile) |
 | `PageHeader` (eyebrow mono label + display title + intro) | Work, Lab, Writing, Travel, About, case studies | Case study adds meta grid |
 | `CaseStudyLayout` (TOC + numbered sections) | `/work/[slug]` | HBK uses conceptual diagram variant |
 | `ContentRenderer` (rich text/MDX-like blocks) | Case studies, compact stops, Writing posts, About | Writing renders Hashnode HTML/markdown |
 | `NextStopBand` | End of every public page | Copy varies by page |
 | `GallerySheet` + `Lightbox` | Travel country/trip; case-study image sets | Travel adds trip filter |
-| `AvatarIllustration` (poses) | Hero, assistant, 404, Travel, Next stop | Pose prop |
+| `AvatarIllustration` (poses) | Hero, assistant, 404, Travel, What's next band | Pose prop |
 | `InProgressTag` | Lab ("In progress" tag) | Small tag only; the admin shows flag states with its own component |
 | `Toast` | Passport stamps, admin saves | Polite live region (Copy email confirms inside its own button instead) |
 | `CommandPalette` | Global | Secret station only for public |

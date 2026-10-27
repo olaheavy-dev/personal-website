@@ -10,7 +10,7 @@ import {
 } from "@/lib/flags/registry";
 import { isFlagVisible, type Viewer } from "@/lib/flags/visibility";
 
-// What the home page's Selected stops section shows, worked out from the database rows and
+// What the home page's Selected work section shows, worked out from the database rows and
 // the flags. Pure: no reading, no rendering, so every state is a plain unit test.
 
 /** The three stops shown, newest first (owner decision, 26 Oct 2026). */
@@ -18,8 +18,8 @@ export const selectedStopSlugs = ["mukuru", "optty", "access-bank"] as const;
 
 export type SelectedTicket = {
   slug: string;
-  /** Mono station label, for example "Stop 04 · Optty · via Deimos". */
-  eyebrow: string;
+  /** Role over meta, for example "Senior Software Engineer" over "via Deimos · 2022 to 2024". */
+  eyebrow: StopEyebrow;
   title: string;
   /** Null when the stop has no summary: the ticket then shows no paragraph. */
   summary: string | null;
@@ -31,25 +31,23 @@ export type SelectedTicket = {
 
 export type SelectedStopsModel = {
   tickets: SelectedTicket[];
-  /** "See the whole route" shows only while /work is visible. */
+  /** "See all work" shows only while /work is visible. */
   routeLink: "/work" | null;
 };
 
+/** A ticket eyebrow in two lines: the role, then the meta line. Role is null when there is none. */
+export type StopEyebrow = { role: string | null; meta: string };
+
 /**
- * "Stop 07 · Now", "Stop 02" or "Stop 04 · via Deimos". A ticket whose title is not the stop's
- * name would pass `withName` to get "Stop 04 · Optty · via Deimos".
+ * The ticket's mono eyebrow, from the owner's CV: role "Senior Software Engineer" over meta
+ * "via Deimos · 2022 to 2024" for a client stop of a consultancy, role "Technical Support
+ * Engineer" over "2016 to 2018" otherwise, and "2024 to now" while the stop is current. A stop
+ * with no role shows the years only (and no "via").
  */
-export function stopEyebrow(
-  stop: Pick<Stop, "number" | "name" | "via" | "endYear">,
-  { withName = false }: { withName?: boolean } = {},
-): string {
-  const parts = [`Stop ${String(stop.number).padStart(2, "0")}`];
-  if (stop.via) {
-    if (withName) parts.push(stop.name);
-    parts.push(`via ${stop.via}`);
-  }
-  if (stop.endYear === null) parts.push("Now");
-  return parts.join(" · ");
+export function stopEyebrow(stop: Pick<Stop, "role" | "via" | "startYear" | "endYear">): StopEyebrow {
+  const years = `${stop.startYear} to ${stop.endYear ?? "now"}`;
+  if (!stop.role) return { role: null, meta: years };
+  return { role: stop.role, meta: stop.via ? `via ${stop.via} · ${years}` : years };
 }
 
 type Registries = {

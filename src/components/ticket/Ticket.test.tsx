@@ -1,11 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import { Ticket } from "./Ticket";
+import { TicketEyebrow } from "./TicketEyebrow";
 
 describe("Ticket", () => {
   it("renders every slot in the large stacked layout", () => {
     render(
       <Ticket
-        eyebrow="Stop 07 · Now"
+        eyebrow={<TicketEyebrow role="Backend Software Engineer" meta="2024 to now" />}
         badge="HBK"
         title="Advantage Insights"
         chips={
@@ -22,7 +23,8 @@ describe("Ticket", () => {
     expect(ticket).toHaveAttribute("data-layout", "stacked");
     expect(ticket).toHaveAttribute("data-size", "large");
     expect(ticket).toHaveAttribute("data-stub");
-    expect(within(ticket).getByText("Stop 07 · Now")).toBeInTheDocument();
+    expect(within(ticket).getByText("Backend Software Engineer")).toBeInTheDocument();
+    expect(within(ticket).getByText("2024 to now")).toBeInTheDocument();
     expect(within(ticket).getByText("HBK")).toBeInTheDocument();
     expect(within(ticket).getByRole("heading", { level: 2 })).toHaveTextContent("Advantage Insights");
     expect(within(ticket).getByText("Body text")).toBeInTheDocument();
@@ -91,7 +93,7 @@ describe("Ticket", () => {
   });
 
   it("records tone and tilt for the styles", () => {
-    render(<Ticket as="div" tone="lilac" tilt="back" aria-hidden="true" eyebrow="Stop 06" />);
+    render(<Ticket as="div" tone="lilac" tilt="back" aria-hidden="true" eyebrow="2022 to 2024" />);
     const ticket = document.querySelector(".ticket");
     expect(ticket).toHaveAttribute("data-tone", "lilac");
     expect(ticket).toHaveAttribute("data-tilt", "back");
@@ -104,7 +106,7 @@ describe("Ticket", () => {
   });
 
   it("marks side notches for a ticket without a stub", () => {
-    render(<Ticket as="div" notches="side" eyebrow="Stop 06" />);
+    render(<Ticket as="div" notches="side" eyebrow="2022 to 2024" />);
     expect(document.querySelector(".ticket")).toHaveAttribute("data-notches", "side");
   });
 });

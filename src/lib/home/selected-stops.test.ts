@@ -25,6 +25,7 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
     startYear: 2020,
     endYear: 2022,
     via: null,
+    role: "Senior Software Engineer",
     summary: `About ${slug}.`,
     stack: [],
     outcomes: [chip],
@@ -33,9 +34,14 @@ function stop(slug: string, number: number, more: Partial<Stop> = {}): Stop {
 }
 
 const access = stop("access-bank", 2);
-const optty = stop("optty", 4, { name: "Optty", via: "Deimos" });
-const hbk = stop("hbk", 7, { name: "HBK", endYear: null });
-const mukuru = stop("mukuru", 6, { name: "Mukuru", via: "Deimos", endYear: 2024 });
+const optty = stop("optty", 4, { name: "Optty", via: "Deimos", startYear: 2022, endYear: 2024 });
+const hbk = stop("hbk", 7, {
+  name: "HBK",
+  role: "Backend Software Engineer",
+  startYear: 2024,
+  endYear: null,
+});
+const mukuru = stop("mukuru", 6, { name: "Mukuru", via: "Deimos", startYear: 2022, endYear: 2024 });
 const all = [access, optty, hbk, mukuru];
 
 const pagesLive: PageEntry[] = [{ flag: "page.work", href: "/work", label: "Work", status: "live" }];
@@ -47,11 +53,17 @@ const caseLive: CaseStudyEntry[] = [
 const on = (...keys: string[]): FeatureFlags => Object.fromEntries(keys.map((key) => [key, "on" as const]));
 
 describe("stopEyebrow", () => {
-  it("follows the information architecture naming", () => {
-    expect(stopEyebrow(hbk)).toBe("Stop 07 · Now");
-    expect(stopEyebrow(optty)).toBe("Stop 04 · via Deimos");
-    expect(stopEyebrow(optty, { withName: true })).toBe("Stop 04 · Optty · via Deimos");
-    expect(stopEyebrow(access)).toBe("Stop 02");
+  it("is role, via and years, from the owner's CV", () => {
+    expect(stopEyebrow(hbk)).toEqual({ role: "Backend Software Engineer", meta: "2024 to now" });
+    expect(stopEyebrow(optty)).toEqual({
+      role: "Senior Software Engineer",
+      meta: "via Deimos · 2022 to 2024",
+    });
+    expect(stopEyebrow(access)).toEqual({ role: "Senior Software Engineer", meta: "2020 to 2022" });
+  });
+
+  it("shows the years only when the stop has no role", () => {
+    expect(stopEyebrow({ ...optty, role: null })).toEqual({ role: null, meta: "2022 to 2024" });
   });
 });
 
@@ -60,7 +72,7 @@ describe("buildSelectedStops", () => {
     const model = buildSelectedStops(success(all), {}, "public");
     expect(model?.tickets.map((ticket) => ticket.slug)).toEqual(["mukuru", "optty", "access-bank"]);
     expect(model?.tickets.at(0)).toMatchObject({
-      eyebrow: "Stop 06 · via Deimos",
+      eyebrow: { role: "Senior Software Engineer", meta: "via Deimos · 2022 to 2024" },
       summary: "About mukuru.",
       outcome: chip,
     });
@@ -135,7 +147,7 @@ describe("buildSelectedStops", () => {
     });
   });
 
-  describe("See the whole route", () => {
+  describe("See all work", () => {
     it("links /work only while the Work page is visible", () => {
       expect(buildSelectedStops(success(all), on("page.work"), "public")?.routeLink).toBe("/work");
       expect(buildSelectedStops(success(all), {}, "public")?.routeLink).toBeNull();

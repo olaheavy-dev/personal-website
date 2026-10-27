@@ -1,10 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { defaultFlags, fakeUrl } from "./fixtures/fake-constants.mjs";
 import {
   allPages,
   applyFlags,
   control,
+  expectStatus,
   flagsWithout,
   resetFlags,
   revalidate,
@@ -155,7 +156,7 @@ test("@flags Preview is treated as Off until Auth: no page, no link, no sitemap 
   // out as Supabase does; the visibility rule also hides it from the public viewer.
   await control(request, { flags: { ...flagsWithout("page.about"), "page.about": "preview" }, status: null });
   expect((await revalidate(request, "203.0.113.5")).status()).toBe(200);
-  expect((await request.get("/about")).status()).toBe(404);
+  await expectStatus(request, "/about", 404);
   expect(await sitemapPaths(request)).not.toContain("/about");
 });
 
@@ -292,7 +293,7 @@ test("@flags a failed read during a revalidation keeps the last good pages, with
   await control(request, { status: null });
   const again = await revalidate(request, "203.0.113.12");
   expect(again.status()).toBe(200);
-  expect((await request.get("/work")).status()).toBe(404);
+  await expectStatus(request, "/work", 404);
 });
 
 test("@flags /api/revalidate refuses the wrong caller", async ({ request }) => {
@@ -323,8 +324,9 @@ test("@flags /api/revalidate refuses the wrong caller", async ({ request }) => {
 test("@flags /api/revalidate allows 30 wrong attempts a minute from one address, then 429, and never limits the right secret", async ({
   request,
 }, testInfo) => {
-  // One address per project, because the window is a minute and the projects run back to back.
-  const own = `203.0.114.${testInfo.project.name.length}`;
+  // One address per project, repeat and retry, because the window is a minute and the projects,
+  // and a retry of this test, run back to back inside it.
+  const own = addressFor(testInfo, 0);
   const wrong = () =>
     request.post("/api/revalidate", {
       headers: { authorization: "Bearer not-the-secret", "x-forwarded-for": own },
@@ -338,6 +340,16 @@ test("@flags /api/revalidate allows 30 wrong attempts a minute from one address,
   expect((await revalidate(request, own)).status()).toBe(200);
   expect((await revalidate(request, "203.0.113.201")).status()).toBe(200);
 });
+
+// A distinct address per project, repeat and retry, so /api/revalidate's one minute window of
+// wrong attempts never carries over. The index, not the name length: "mobile" and "tablet" are
+// both six letters.
+function addressFor(testInfo: TestInfo, base: number) {
+  const project = testInfo.config.projects.findIndex((candidate) => candidate.name === testInfo.project.name);
+  return `10.${testInfo.repeatEachIndex}.${testInfo.retry}.${base + project}`;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const pagePaths = ["/work", "/lab", "/writing", "/travel", "/about"] as const;
 const pageKeys: Record<(typeof pagePaths)[number], string> = {
@@ -354,23 +366,22 @@ const pageKeys: Record<(typeof pagePaths)[number], string> = {
 // bound before the gate"). Each check reads the status of a plain GET, the robots header or tag, and
 // the Wrong turn page a visitor sees.
 // After /api/revalidate the NEXT request is the first one rebuilt from the new flags, except
-// when it arrives while a render that began before the revalidation is still running for the
-// same page (the previous test's browser prefetches the other pages). It then shares that
-// render and gets the old answer once, and the request after it is rebuilt (measured in CI run
-// 40361033845 and locally, 3 failures in 30 runs: first 200 with x-nextjs-cache MISS, 250 ms
-// later 404). So a journey waits for the new status by condition, never by a fixed sleep, and
-// then requires it to hold for the requests that follow. See docs/flags.md.
+// for a page whose render began before the revalidation and was still running when it arrived
+// (the previous test's browser prefetches the other pages, and the server keeps rendering after
+// the browser has gone). Next.js stamps that page with the time it finished, so it counts as
+// newer than the revalidation and keeps answering the old status until the tag is revalidated
+// again. The route therefore revalidates a second time 5 s later (src/app/api/revalidate/
+// route.ts), and the "straddled" journey below proves it with a deliberately slow flag read.
+// So a journey waits for the new status by condition, never by a fixed sleep: up to 15 s, which
+// is the 5 s pause plus a render on a slow runner, then requires the status to hold for the
+// requests that follow. See docs/flags.md. CI failures before this: runs 40361033845 (/lab),
+// 40388116289 (/about) and 40410151428 (/writing), each stuck on 200 for the whole 5 s window.
 async function expectStatusToSettle(
   request: Parameters<typeof revalidate>[0],
   path: string,
   expected: number,
 ) {
-  await expect
-    .poll(async () => (await request.get(path)).status(), {
-      message: `${path} should settle on ${expected} after the revalidation`,
-      timeout: 5000,
-    })
-    .toBe(expected);
+  await expectStatus(request, path, expected);
   for (let i = 0; i < 3; i++) {
     expect((await request.get(path)).status(), `${path} stays ${expected}`).toBe(expected);
   }
@@ -416,6 +427,50 @@ for (const path of pagePaths) {
     await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Looks like a wrong turn");
   });
 }
+
+test("@flags in a quiet state the very next request after a flip is already right", async ({
+  request,
+}, testInfo) => {
+  // The guard for the FIRST expiry. The other journeys poll, so a broken first revalidateTag
+  // would still pass them after the 5 s second pass. Here nothing can straddle: resetFlags has
+  // just rebuilt every page one request at a time and awaited each, no browser is open (so no
+  // prefetching), and the only requests are the ones below. So the next request must already be
+  // right, and well inside the 5 s of the second pass.
+  const address = addressFor(testInfo, 80);
+  await resetFlags(request, address);
+  await control(request, { flags: flagsWithout("page.lab"), status: null });
+  const flippedAt = Date.now();
+  expect((await revalidate(request, address)).status()).toBe(200);
+  expect((await request.get("/lab")).status()).toBe(404);
+  expect(Date.now() - flippedAt).toBeLessThan(2000);
+  await applyFlags(request, defaultFlags, address);
+});
+
+test("@flags a page whose render straddled the change is corrected within seconds, not kept as fresh", async ({
+  request,
+}, testInfo) => {
+  // The failure behind the CI runs listed above, made on purpose: /lab starts rebuilding while
+  // Lab is On, the flag goes Off and the webhook arrives, then the slow rebuild finishes. Without
+  // the second revalidation in the route, that page stays 200 until the next revalidation.
+  const address = addressFor(testInfo, 60);
+  await resetFlags(request, address);
+  try {
+    await control(request, { delay: 1500 });
+    expect((await revalidate(request, address)).status()).toBe(200);
+    const slow = request.get("/lab"); // reads the flags now (Lab On), but the reply is held back
+    await sleep(300);
+    await control(request, { flags: flagsWithout("page.lab"), delay: 0 });
+    expect((await revalidate(request, address)).status()).toBe(200);
+    expect((await slow).status()).toBe(200); // the straddling render, answered with the old flags
+    const changedAt = Date.now();
+    await expectStatusToSettle(request, "/lab", 404);
+    // The second pass comes 5 s after the change, so the fix shows within about that, not later.
+    expect(Date.now() - changedAt, "corrected within the second pass").toBeLessThan(8000);
+    expect(await sitemapPaths(request)).not.toContain("/lab");
+  } finally {
+    await control(request, { reset: true });
+  }
+});
 
 test("@flags the site reads its flags from the fake, never from .env.local", async ({ request }) => {
   // A build or server that fell back to the hosted project (.env.local) would ignore the fake

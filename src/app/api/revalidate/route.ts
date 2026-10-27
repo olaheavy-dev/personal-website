@@ -1,8 +1,9 @@
 // Called by the Supabase Database Webhook when a row of `feature_flags` changes, so a flag
-// switch reaches every page within a second or two (decision 0018, docs/database.md).
+// switch reaches every page on the next request (decision 0018, docs/flags.md), and a page
+// that was in the middle of a rebuild at that moment within 5 seconds.
 // POST only. The caller proves itself with `Authorization: Bearer <REVALIDATE_SECRET>`.
 import { createHash, timingSafeEqual } from "node:crypto";
-import { revalidateTag } from "next/cache";
+import { expireTag } from "@/lib/db/expire-tag";
 import { createRateLimiter } from "@/lib/security/rate-limit";
 
 // Only these tags can be refreshed from outside. Each maps a Supabase table name (what the
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     return reply(400, { error: "Unknown tag" });
   }
 
-  // { expire: 0 }: stale pages are never served after this, so the next request rebuilds.
-  revalidateTag(named, { expire: 0 });
+  // Expires the tag now and again 5 s later, for a page that was mid rebuild (src/lib/db/expire-tag.ts).
+  expireTag(named);
   return reply(200, { revalidated: named });
 }

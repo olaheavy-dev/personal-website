@@ -6,8 +6,9 @@
 //   GET  /rest/v1/feature_flags   the rows, or an error status while one is set
 //   GET  /rest/v1/stops           the stops with their outcomes (fake-content.mjs)
 //   GET  /rest/v1/lab_projects    the lab projects with their outcomes
-//   GET  /__control               { flags, status, content, reads }
-//   POST /__control               { flags?: { key: "on" }, status?: 500, content?: "ok" | "empty" | "error", reset?: true }
+//   GET  /__control               { flags, status, content, reads, delay }
+//   POST /__control               { flags?: { key: "on" }, status?: 500, content?: "ok" | "empty" | "error", delay?: <ms>, reset?: true }
+//                                  delay holds back every REST reply by that long (the answer itself is decided on arrival)
 //
 // Run on its own with `node e2e/fixtures/fake-supabase.mjs` (FAKE_PORT=<port> to change the port), or wrapped around a command
 // with `node e2e/fixtures/with-fake-supabase.mjs <command>`. It listens on 127.0.0.1 only
@@ -32,12 +33,19 @@ export function startFakeSupabase({ port = fakePort } = {}) {
   let status = null;
   let content = "ok";
   let reads = 0;
+  let delayMs = 0;
 
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
     const send = (code, body) => {
-      response.writeHead(code, { "Content-Type": "application/json", "Cache-Control": "no-store" });
-      response.end(JSON.stringify(body));
+      // The answer is decided when the request arrives; `delay` only holds back the reply, so a
+      // slow read that began before a flag change still carries the flags from before it.
+      const reply = () => {
+        response.writeHead(code, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+        response.end(JSON.stringify(body));
+      };
+      if (delayMs > 0 && url.pathname.startsWith("/rest/v1/")) setTimeout(reply, delayMs);
+      else reply();
     };
 
     if (url.pathname === "/rest/v1/feature_flags" && request.method === "GET") {
@@ -56,7 +64,7 @@ export function startFakeSupabase({ port = fakePort } = {}) {
     if (answer) return send(answer.status, answer.body);
 
     if (url.pathname === "/__control") {
-      if (request.method === "GET") return send(200, { flags, status, content, reads });
+      if (request.method === "GET") return send(200, { flags, status, content, reads, delay: delayMs });
       if (request.method === "POST") {
         let text = "";
         request.on("data", (chunk) => (text += chunk));
@@ -67,7 +75,9 @@ export function startFakeSupabase({ port = fakePort } = {}) {
               flags = startingFlags();
               status = null;
               content = "ok";
+              delayMs = 0;
             }
+            if (typeof body.delay === "number") delayMs = body.delay;
             if (body.flags) flags = { ...body.flags };
             if ("status" in body) status = body.status;
             if (body.content) content = body.content;

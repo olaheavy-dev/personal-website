@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 
-// "Read more" / "Show less" for compact tickets. The height animates by growing a
+// "Read more" / "Show less" for a ticket's details (every Work ticket that has some). The height animates by growing a
 // grid row from 0fr to 1fr (see ".ticket-expander" in globals.css), so nothing is
 // measured. Without JavaScript the content is open and the button is hidden; before hydration
 // the head script's deep link rule (openDeepLinkedTicket in src/lib/theme-script.ts) and a

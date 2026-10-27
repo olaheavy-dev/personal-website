@@ -73,7 +73,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 ### Work `/work`
 1. Title "Work" + one-line intro ("Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.", approved 27 Oct 2026) + filter chips.
 2. Timeline, newest first, in two columns from md (owner decision, 27 Oct 2026). Left, a rail: the dotted route line, one pin per entry (teal for the current stop, lilac for the first, paper with an ink ring for the rest), then the years in mono and the role. Right, the tickets (at most 760 px; the rail is 200 px at md and 300 px from lg), every company name in one title size, no role or years eyebrow on a ticket (the rail shows them). Below md the rail collapses: pin, years and role above each ticket, the dotted line down the left edge. Order: HBK (2024 to now) → one Deimos entry (rail "2022 to 2024 · Senior Software Engineer · Deimos, 3 clients") with its clients Mukuru, uLesson, Optty stacked beside it, each ticket "via Deimos" → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
-3. Flagship tickets (HBK, Optty, Access) open case studies; compact tickets (Mukuru, uLesson, Stanbic, Galooli) expand inline: context, what he built, outcome (per claims policy). Per stop stacks are dropped; one Toolkit section covers tools.
+3. Every ticket expands inline with "Read more" (all seven): the approved detail lines, then a "Sources" row of public links where there are any (per claims policy). A flagship ticket (HBK, Optty, Access) also links to its case study once that is live; compact tickets (Mukuru, uLesson, Stanbic, Galooli) also show their outcome inside. Per stop stacks are dropped; one Toolkit section covers tools.
 4. Toolkit: six groups of tools (languages and frameworks, AI, data, cloud and infrastructure, testing and evaluation, delivery) as chips on one large ticket, in the same two columns as the timeline, after it, with the rail label "Toolkit". Below lg a group name sits above its chips; from lg it sits in a side column. Logos only where the brand's rules allow it; otherwise a real abbreviation or the group icon.
 5. What's next contact band. (No Lab cross-link on Work: owner decision, 27 Oct 2026.)
 
@@ -194,6 +194,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | Card representing a stop | **Ticket** (internal name) | UI shows the stop name, not "ticket" |
 | Full write-up | **Case study** | Clear to recruiters; don't call it "story" |
 | Short inline write-up | (no label); an expanding ticket | "Read more" / "Show less" |
+| Public links behind a ticket's detail lines | "Sources" | Mono label, then each link with the external arrow; opens in a new tab, and says so in its accessible name |
 | Personal projects section | **Lab** | Not "Playground" or "Side quests" |
 | Project status | **In progress** (tag) | Lab cards carry only a small "In progress" tag while the work is unfinished; no Live or Coming soon badges. "Try it" appears only while a live URL is set |
 | Blog | **Writing** | Posts are "posts", not "articles" |
@@ -214,7 +215,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 | `SiteShell` (pill nav, footer, assistant launcher, ⌘K, passport provider) | All public pages | Admin uses separate `AdminShell` |
 | `AdminShell` (sidebar, auth guard) | All `/admin/*` | Owner only |
 | `Route` (dotted path + pins) | Home stations, Work list, About career, Travel arcs (3D variant), What's next band | Vertical (Work/About; Home stations on phones), horizontal strip (Home stations from md), inline (inside a sentence), 3D arcs (Travel) |
-| `Ticket` | Home selected work, Work list, About career, Lab (project variant) | Sizes: large / compact / mini; compact expands inline |
+| `Ticket` | Home selected work, Work list, About career, Lab (project variant) | Sizes: large / compact / mini; any Work ticket with details expands inline |
 | `MetricChip` | Tickets, case-study TL;DR & results, Lab cards | Source shown as tooltip (desktop) / tap sheet (mobile) |
 | `PageHeader` (eyebrow mono label + display title + intro) | Work, Lab, Writing, Travel, About, case studies | Case study adds meta grid |
 | `CaseStudyLayout` (TOC + numbered sections) | `/work/[slug]` | HBK uses conceptual diagram variant |

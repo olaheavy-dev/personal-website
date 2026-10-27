@@ -23,6 +23,7 @@ export type FakeRow = {
   via: string | null;
   role: string | null;
   details: string[];
+  detail_sources: { label: string; url: string }[];
   in_progress: boolean;
   repo_url: string | null;
   live_url: string | null;

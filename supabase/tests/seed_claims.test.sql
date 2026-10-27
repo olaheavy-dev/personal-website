@@ -74,13 +74,24 @@ select results_eq(
 -- The approved Work details (issue #10, 27 Oct 2026): four stops, in order, none for the others.
 select results_eq(
   $$select slug, cardinality(details) from public.stops order by number$$,
-  $$values ('galooli', 2), ('access-bank', 0), ('stanbic-ibtc', 4), ('optty', 0), ('ulesson', 3), ('mukuru', 2), ('hbk', 0)$$,
-  'the approved Work details are seeded: Galooli 2, Stanbic IBTC 4, uLesson 3, Mukuru 2, the rest none'
+  $$values ('galooli', 2), ('access-bank', 4), ('stanbic-ibtc', 4), ('optty', 3), ('ulesson', 3), ('mukuru', 2), ('hbk', 1)$$,
+  'the approved Work details are seeded: Galooli 2, Access Bank 4, Stanbic IBTC 4, Optty 3, uLesson 3, Mukuru 2, HBK 1'
 );
 select is(
   (select details[1] from public.stops where slug = 'mukuru'),
   'Integrated mobile wallet providers and Malawi''s national payment switch so remittances reach wallets.',
   'Mukuru''s first detail line is the approved wording'
+);
+
+select results_eq(
+  $$select slug, jsonb_array_length(detail_sources) from public.stops order by number$$,
+  $$values ('galooli', 0), ('access-bank', 2), ('stanbic-ibtc', 0), ('optty', 0), ('ulesson', 0), ('mukuru', 0), ('hbk', 0)$$,
+  'only Access Bank has detail sources: the Device Finance launch (BusinessPost) and the Konga partnership'
+);
+select is(
+  (select detail_sources from public.stops where slug = 'access-bank'),
+  '[{"label": "Device Finance launch (BusinessPost)", "url": "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]'::jsonb,
+  'Access Bank''s sources are the approved labels and links'
 );
 
 select results_eq(

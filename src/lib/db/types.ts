@@ -28,6 +28,9 @@ export type Outcome = {
   asOfYear: number | null;
 };
 
+/** A public page that supports a stop's detail lines. The link is always https. */
+export type DetailSource = { label: string; url: string };
+
 export type Stop = {
   id: string;
   slug: string;
@@ -45,6 +48,8 @@ export type Stop = {
   summary: string | null;
   /** Up to four short lines shown when the ticket on /work expands. Empty when there are none. */
   details: string[];
+  /** Public pages that back the detail lines, shown as a "Sources" row. Empty when there are none. */
+  detailSources: DetailSource[];
   stack: string[];
   outcomes: Outcome[];
 };

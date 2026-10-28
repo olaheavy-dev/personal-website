@@ -68,3 +68,5 @@ Their Toolkit chips use the group's line icon instead.
 A logo that is the name itself (a wordmark, today only Redis) stands alone in its chip, with the name as its alt text and no text name beside it (owner's rule, 27 Oct 2026).
 
 Trademark symbols: the PSF's policy asks that its logos carry a trademark symbol, so the Python chip shows ™ after the name (the notice also names the PSF); Redis's policy asks for ®, so the Redis chip shows it.
+
+The notice under the Toolkit (28 Oct 2026) is three required sentences plus one general line. The Vercel, Python and Redis sentences stay word for word because each brand's policy asks for them (see the rows above). The general line was shortened to "Names and logos are trademarks of their owners, shown only to name the tools I use." It still covers the tool names shown without a logo. It no longer says "do not imply endorsement": no policy requires that sentence, and the rules against implying endorsement (TypeScript, Redis) are met by how the marks are used, not by a notice.

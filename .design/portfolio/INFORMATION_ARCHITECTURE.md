@@ -50,7 +50,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 - **Utility (right cluster):** ⌘K icon button · theme toggle icon button · **Email me** solid ink pill (primary CTA, copies email + opens mailto menu).
 - **Assistant launcher:** avatar bubble fixed bottom-right on every public page (except when its flag is off); opens the Ask Sunkanmi panel. Not in the nav.
 - **Secondary navigation:**
-  - Work: filter chips (All · AI · Payments & banking · Data & IoT · Edtech; each stop belongs to at least one: HBK is AI and Data & IoT, Galooli is Data & IoT, uLesson is Edtech, Optty, Access Bank, Stanbic IBTC and Mukuru are Payments & banking), sticky under the page title.
+  - Work: no filters (owner decision, 27 Oct 2026: seven tickets make lopsided filters). Small non interactive area labels per ticket instead (#141).
   - Case study: sticky "On this page" TOC with scroll-spy (side column ≥1280px; top disclosure below) + "Next stop" footer linking the next case study in route order.
   - Travel: timeline scrubber + country list (also the accessible alternative to the globe).
   - Writing: tag chips (when enabled) and older/newer pagination.
@@ -71,7 +71,7 @@ Every public page sits behind a feature flag (see *Feature flags & discoverabili
 6. **What's next (contact band):** eyebrow "What's next", title "Yours?". Email (copy + mailto) and résumé. *Closes on the primary CTA.*
 
 ### Work `/work`
-1. Title "Work" + one-line intro ("Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.", approved 27 Oct 2026) + filter chips.
+1. Title "Work" + one-line intro ("Where I have worked, newest first: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.", reworded 28 Oct 2026 at the owner's go ahead on the Work review).
 2. Timeline, newest first, in two columns from md (owner decision, 27 Oct 2026). Left, a rail: the dotted route line, one pin per entry (teal for the current stop, lilac for the first, paper with an ink ring for the rest), then the years in mono and the role. Right, the tickets (at most 760 px; the rail is 200 px at md and 240 px from lg, narrowed from 300 by the owner on 27 Oct 2026 so the rail reads as part of each ticket), every company name in one title size, no role or years eyebrow on a ticket (the rail shows them). Below md the rail collapses: pin, years and role above each ticket, the dotted line down the left edge. Order: HBK (2024 to now) → one Deimos entry (rail "2022 to 2024 · Senior Software Engineer · Deimos, 3 clients") with its clients Mukuru, uLesson, Optty stacked beside it, each ticket "via Deimos" → Stanbic IBTC (2021–22) → Access Bank (2018–21) → Galooli (2016–18).
 3. Every ticket expands inline with "Read more" (all seven): the approved detail lines, then a "Sources" row of public links where there are any (per claims policy). A flagship ticket (HBK, Optty, Access) also links to its case study once that is live; compact tickets (Mukuru, uLesson, Stanbic, Galooli) also show their outcome inside. Per stop stacks are dropped; one Toolkit section covers tools.
 4. Toolkit: six groups of tools (languages and frameworks, AI, data, cloud and infrastructure, testing and evaluation, delivery) as chips on one large ticket, in the same two columns as the timeline, after it, with the rail label "Toolkit". Below lg a group name sits above its chips; from lg it sits in a side column. Logos only where the brand's rules allow it; otherwise a real abbreviation or the group icon.

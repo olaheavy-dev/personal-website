@@ -25,12 +25,12 @@ test.describe("work page", () => {
     await expect(page).toHaveTitle(/^Work \|/);
     await expect(
       page.getByText(
-        "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.",
+        "Where I have worked, newest first: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
       ),
     ).toBeVisible();
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
-      "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, from Galooli to HBK.",
+      "Where I have worked, from Galooli to HBK: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/work$/);
   });

@@ -243,7 +243,7 @@ Flags: `page.home` (locked on), `page.work`, `page.lab`, `page.writing`, `page.t
 - **Pattern:** `/section/item-slug` (max 3 segments: `/travel/[country]/[trip]`). Lowercase, hyphenated, ASCII, no trailing slash, no spaces.
 - **Dynamic segments:** `[slug]` (case study, post), `[country]` (lowercase English country name slug), `[trip]` (`city-year`), `[tag]`.
 - **Anchors:** case-study sections use stable IDs (`#context`, `#design`, `#architecture`, `#production`, `#tradeoffs`, `#results`, `#reflection`) so assistant citations and TOC links never break; compact stops use company slugs on `/work`.
-- **Query parameters:** `?filter=ai|payments|data-iot|edtech` (Work), `?page=n` (Writing), `?photo=[id]` (lightbox), `?ref=` (assistant citation highlight). Filters are shareable; default state has no params.
+- **Query parameters:** `?page=n` (Writing), `?photo=[id]` (lightbox), `?ref=` (assistant citation highlight). Default state has no params.
 - **Canonical & SEO:** every page has its own canonical, title, description and dynamic OG image (`/og/...`); Hashnode posts canonical to `/writing/[slug]`; flagged-off pages 404 and are excluded from the sitemap.
 - **Redirects:** slugs are permanent; renames create 308 redirects managed in admin. `/blog/*` → `/writing/*`, `/projects` → `/lab`, `/cv` → `/resume.pdf`.
 - **Hard refresh safety:** all routes are server-rendered/ISR, with no client-only routes (avoids the SPA 404s seen in the inspiration set).

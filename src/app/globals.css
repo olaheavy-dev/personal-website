@@ -517,10 +517,6 @@
     /* Clear of the bus disc on phones, which overhangs the pin by half the size difference. */
     top: calc(var(--vehicle-pin-size) / 2 + var(--space-2) + var(--route-plane-length) / 2);
   }
-  /* Filter hook: a later filter sets data-vehicles="hidden" on the route. */
-  .route[data-vehicles="hidden"] :is(.route-parked, .route-vehicle) {
-    display: none;
-  }
   .route-parked {
     position: absolute;
     display: block;

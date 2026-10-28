@@ -1,7 +1,7 @@
 import { failure, success } from "@/lib/db/result";
 import type { FeatureFlags, Outcome, Stop } from "@/lib/db/types";
 import type { CaseStudyEntry } from "@/lib/flags/registry";
-import { buildWorkRoute, parseWorkFilter, ukFromStopNumber, workFilterOptions } from "./route";
+import { buildWorkRoute, ukFromStopNumber, workAreaLabels } from "./route";
 
 const chip: Outcome = {
   id: "o1",
@@ -119,18 +119,6 @@ describe("buildWorkRoute", () => {
     });
   });
 
-  it("gives the Deimos group the union of its tickets' areas, in chip order", () => {
-    const group = route(success(all), {}, "public").entries[1]!;
-    expect(group.type === "group" && group.filters).toEqual(["payments", "edtech"]);
-    const mixed = route(
-      success([hbk, { ...mukuru, filters: ["data-iot"] }, { ...optty, filters: ["ai", "data-iot"] }]),
-
-      {},
-      "public",
-    ).entries[1]!;
-    expect(mixed.type === "group" && mixed.filters).toEqual(["ai", "data-iot"]);
-  });
-
   it("names the handover leg: the newest Lagos stop to HBK, or none when a side was not read", () => {
     expect(route(success(all), {}, "public").handover).toEqual({ fromSlug: "mukuru", toSlug: "hbk" });
     expect(route(success([hbk, galooli]), {}, "public").handover).toEqual({
@@ -203,17 +191,23 @@ describe("buildWorkRoute", () => {
     expect(first.type === "stop" && first.ticket.sources).toEqual([]);
   });
 
-  it("offers All plus only the areas that have a stop, in the fixed order", () => {
-    const model = route(success(all), {}, "public");
-    expect(model.chips.map((c) => [c.param, c.label, c.href])).toEqual([
-      [null, "All", "/work"],
-      ["ai", "AI", "/work?filter=ai"],
-      ["payments", "Payments & banking", "/work?filter=payments"],
-      ["data-iot", "Data & IoT", "/work?filter=data-iot"],
-      ["edtech", "Edtech", "/work?filter=edtech"],
-    ]);
-    const partial = route(success([accessBank, stanbic]), {}, "public");
-    expect(partial.chips.map((c) => c.label)).toEqual(["All", "Payments & banking"]);
+  it("gives each ticket its areas as the register's words, in the stored order", () => {
+    const tickets = route(success(all), {}, "public").entries.flatMap((entry) =>
+      entry.type === "stop" ? [entry.ticket] : entry.tickets,
+    );
+    expect(Object.fromEntries(tickets.map((ticket) => [ticket.slug, ticket.areas]))).toEqual({
+      hbk: ["AI", "Data & IoT"],
+      mukuru: ["Payments & banking"],
+      ulesson: ["Edtech"],
+      optty: ["Payments & banking"],
+      "stanbic-ibtc": ["Payments & banking"],
+      "access-bank": ["Payments & banking"],
+      galooli: ["Data & IoT"],
+    });
+  });
+
+  it("names exactly the four areas", () => {
+    expect(Object.values(workAreaLabels)).toEqual(["AI", "Payments & banking", "Data & IoT", "Edtech"]);
   });
 
   it("keeps a partial read: only the stops that were read", () => {
@@ -226,23 +220,5 @@ describe("buildWorkRoute", () => {
       unavailable: true,
     });
     expect(buildWorkRoute(success([]), {}, "public")).toEqual({ unavailable: true });
-  });
-});
-
-describe("parseWorkFilter", () => {
-  it("accepts each of the four areas", () => {
-    for (const { param } of workFilterOptions) expect(parseWorkFilter(param)).toBe(param);
-  });
-
-  it("is All (null) for missing, empty, unknown or wrongly cased values", () => {
-    for (const value of [undefined, null, "", "all", "AI", "data_iot", "payments ", "nope"]) {
-      expect(parseWorkFilter(value), String(value)).toBeNull();
-    }
-  });
-
-  it("uses the first value of a repeated key", () => {
-    expect(parseWorkFilter(["edtech", "ai"])).toBe("edtech");
-    expect(parseWorkFilter(["nope", "ai"])).toBeNull();
-    expect(parseWorkFilter([])).toBeNull();
   });
 });

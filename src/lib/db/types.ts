@@ -12,7 +12,7 @@ export type StopKind = Database["public"]["Enums"]["stop_kind"];
 export type SectionAnchor = Database["public"]["Enums"]["section_anchor"];
 export type ClaimScope = Database["public"]["Enums"]["claim_scope"];
 
-/** The `?filter=` values on /work. The database spells data-iot as data_iot. */
+/** The areas a Work stop belongs to, shown as small labels on /work. The database spells data-iot as data_iot. */
 export type WorkFilter = "ai" | "payments" | "data-iot" | "edtech";
 
 export type Outcome = {

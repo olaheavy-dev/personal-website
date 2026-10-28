@@ -4,8 +4,6 @@ import { success } from "@/lib/db/result";
 import type { Stop } from "@/lib/db/types";
 import { WorkRoute } from "@/components/work/WorkRoute";
 import { buildWorkRoute } from "@/lib/work/route";
-import { Route } from "./Route";
-import { RoutePin } from "./RoutePin";
 import { ParkedVehicle, VehicleSprites } from "./Vehicles";
 
 type Callback = (entries: Partial<IntersectionObserverEntry>[]) => void;
@@ -167,17 +165,6 @@ describe("WorkRoute vehicles", () => {
     expect(container.querySelectorAll("[data-route] :is(a[href], button, [tabindex])").length).toBe(
       container.querySelectorAll("[data-route] .ticket a[href], [data-route] button").length,
     );
-  });
-
-  it("offers a hook for filters: the route says whether its vehicles are shown", () => {
-    const { container } = renderWork();
-    expect(container.querySelector("[data-route]")!.getAttribute("data-vehicles")).toBe("shown");
-    const hidden = render(
-      <Route variant="vertical" vehicles="hidden">
-        <RoutePin id="a" />
-      </Route>,
-    );
-    expect(hidden.container.querySelector("[data-route]")!.getAttribute("data-vehicles")).toBe("hidden");
   });
 });
 

@@ -1,5 +1,6 @@
 import { MetricChip } from "@/components/ticket/MetricChip";
 import { Ticket } from "@/components/ticket/Ticket";
+import { TicketAreas } from "@/components/ticket/TicketAreas";
 import { TicketEyebrow } from "@/components/ticket/TicketEyebrow";
 import { TicketExpander } from "@/components/ticket/TicketExpander";
 import type { WorkTicketModel } from "@/lib/work/route";
@@ -135,11 +136,17 @@ export function WorkStopTicket({
         {said}
         {summary}
         {ticket.details.length > 0 ? (
-          <TicketExpander anchorId={ticket.slug} subject={ticket.title}>
+          <TicketExpander
+            anchorId={ticket.slug}
+            subject={ticket.title}
+            aside={<TicketAreas areas={ticket.areas} />}
+          >
             <DetailLines lines={ticket.details} />
             <Sources ticket={ticket} />
           </TicketExpander>
-        ) : null}
+        ) : (
+          <TicketAreas areas={ticket.areas} className="mt-3" />
+        )}
       </Ticket>
     );
   }
@@ -158,7 +165,11 @@ export function WorkStopTicket({
       {said}
       {summary}
       {hasMore ? (
-        <TicketExpander anchorId={ticket.slug} subject={ticket.title}>
+        <TicketExpander
+          anchorId={ticket.slug}
+          subject={ticket.title}
+          aside={<TicketAreas areas={ticket.areas} />}
+        >
           {ticket.details.length > 0 ? <DetailLines lines={ticket.details} /> : null}
           <Sources ticket={ticket} />
           {ticket.outcome ? (
@@ -167,7 +178,9 @@ export function WorkStopTicket({
             </div>
           ) : null}
         </TicketExpander>
-      ) : null}
+      ) : (
+        <TicketAreas areas={ticket.areas} className="mt-3" />
+      )}
     </Ticket>
   );
 }

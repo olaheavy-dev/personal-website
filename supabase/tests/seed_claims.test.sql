@@ -17,9 +17,9 @@ select results_eq(
 );
 
 select results_eq(
-  $$select slug, filters::text from public.stops where slug in ('hbk','galooli','ulesson') order by slug$$,
-  $$values ('galooli','{data_iot}'),('hbk','{ai,data_iot}'),('ulesson','{edtech}')$$,
-  'filters follow the owner decision'
+  $$select slug, filters::text from public.stops order by slug$$,
+  $$values ('access-bank','{payments}'),('galooli','{data_iot}'),('hbk','{ai,data_iot}'),('mukuru','{payments}'),('optty','{payments}'),('stanbic-ibtc','{payments}'),('ulesson','{edtech}')$$,
+  'every stop has the area labels the owner decided'
 );
 
 select is(

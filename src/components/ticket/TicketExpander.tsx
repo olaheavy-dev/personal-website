@@ -42,6 +42,7 @@ export function TicketExpander({
   moreLabel = "Read more",
   lessLabel = "Show less",
   subject,
+  aside,
 }: {
   /** The id of the ticket (or section) this expands, matched against the URL hash. */
   anchorId?: string;
@@ -54,6 +55,12 @@ export function TicketExpander({
    * identical "Read more".
    */
   subject?: string;
+  /**
+   * A quiet line on the same row as the button, at the far end (a work ticket's areas). It is
+   * built on the server and passed in, so it adds no client code. It stays visible when the
+   * ticket is closed or open, because it sits outside the collapsing region.
+   */
+  aside?: ReactNode;
 }) {
   const regionId = useId();
   const hydrated = useSyncExternalStore(subscribeNever, isHydrated, notHydrated);
@@ -96,16 +103,19 @@ export function TicketExpander({
       >
         <div inert={hydrated && !open}>{children}</div>
       </div>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={regionId}
-        aria-label={subject ? `${label} about ${subject}` : undefined}
-        onClick={() => setChoice({ open: !open, visit })}
-        className="ticket-expander-toggle mt-3 inline-flex min-h-11 items-center text-sm font-medium text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
-      >
-        {label}
-      </button>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={regionId}
+          aria-label={subject ? `${label} about ${subject}` : undefined}
+          onClick={() => setChoice({ open: !open, visit })}
+          className="ticket-expander-toggle inline-flex min-h-11 items-center text-sm font-medium text-lilac-text underline decoration-1 underline-offset-4 hover:no-underline"
+        >
+          {label}
+        </button>
+        {aside}
+      </div>
     </div>
   );
 }

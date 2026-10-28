@@ -105,6 +105,79 @@ test.describe("work page", () => {
     await expect(list(page).locator("li[id] .ticket")).toHaveCount(7);
   });
 
+  test("each ticket shows its areas beside Read more, as plain text", async ({ page }) => {
+    await page.goto("/work");
+    const expected: Record<string, string> = {
+      hbk: "AI · Data & IoT",
+      mukuru: "Payments & banking",
+      ulesson: "Edtech",
+      optty: "Payments & banking",
+      "stanbic-ibtc": "Payments & banking",
+      "access-bank": "Payments & banking",
+      galooli: "Data & IoT",
+    };
+    for (const [slug, text] of Object.entries(expected)) {
+      const areas = page.locator(`li#${slug} [data-ticket-areas]`);
+      await expect(areas.locator("[aria-hidden='true']"), slug).toHaveText(text);
+      await expect(areas.locator(".sr-only"), slug).toHaveText(`Areas: ${text.replaceAll(" · ", ", ")}`);
+      await expect(areas.locator("a, button, [tabindex]"), slug).toHaveCount(0);
+    }
+    await expect(page.locator("[data-ticket-areas]")).toHaveCount(7);
+  });
+
+  for (const width of [320, 375]) {
+    test(`at ${width} px the area label never overlaps Read more or leaves the card`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/work");
+      for (const slug of ["hbk", "mukuru", "optty", "access-bank", "galooli"]) {
+        const item = page.locator(`li#${slug}`);
+        const [button, label, card] = await Promise.all([
+          item.getByRole("button", { name: /^Read more about / }).boundingBox(),
+          item.locator("[data-ticket-areas] [aria-hidden='true']").boundingBox(),
+          item.locator(".ticket").first().boundingBox(),
+        ]);
+        expect(button && label && card, slug).toBeTruthy();
+        const apart = label!.x >= button!.x + button!.width || label!.y >= button!.y + button!.height;
+        expect(apart, `${slug} label overlaps Read more`).toBe(true);
+        expect(label!.x + label!.width, `${slug} label past the card`).toBeLessThanOrEqual(
+          card!.x + card!.width - 16,
+        );
+        expect(label!.x, `${slug} label before the card`).toBeGreaterThanOrEqual(card!.x + 16);
+      }
+      expect(await overflow(page)).toBeLessThanOrEqual(0);
+    });
+  }
+
+  test("the area label sits beside Read more, never touches it or the card edge, and stays when opened", async ({
+    page,
+  }) => {
+    await page.goto("/work");
+    const phone = (page.viewportSize()?.width ?? 1280) < 640;
+    for (const slug of ["hbk", "mukuru", "optty", "galooli"]) {
+      for (const open of [false, true]) {
+        const item = page.locator(`li#${slug}`);
+        if (open) await item.getByRole("button", { name: /^Read more about / }).click();
+        const [button, label, card] = await Promise.all([
+          item.getByRole("button", { name: /about / }).boundingBox(),
+          item.locator("[data-ticket-areas] [aria-hidden='true']").boundingBox(),
+          item.locator(".ticket").first().boundingBox(),
+        ]);
+        expect(button && label && card, slug).toBeTruthy();
+        const apart =
+          label!.x >= button!.x + button!.width ||
+          label!.y >= button!.y + button!.height ||
+          label!.x + label!.width <= button!.x;
+        expect(apart, `${slug} label overlaps Read more`).toBe(true);
+        expect(label!.x + label!.width, `${slug} label past the card`).toBeLessThanOrEqual(
+          card!.x + card!.width - 16,
+        );
+        expect(label!.x, `${slug} label before the card`).toBeGreaterThanOrEqual(card!.x + 16);
+        // Beside the button on a wide card; the button's own row on a phone may wrap beneath it.
+        if (!phone) expect(label!.x, slug).toBeGreaterThan(button!.x + button!.width);
+      }
+    }
+  });
+
   test("/work#access-bank opens with its four lines and two source links that open in a new tab", async ({
     page,
   }) => {

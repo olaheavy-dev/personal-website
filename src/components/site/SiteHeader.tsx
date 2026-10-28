@@ -20,8 +20,7 @@ import { ThemeToggle } from "./ThemeToggle";
 // bar, so the header ignores the pointer and only its three children take it.
 //
 // Three heights exist: the box (76 px phone, 98 px md), the visible scrolled bar
-// (60 or 66 px) and --nav-height. A future sticky element (Work filter chips, a
-// case study TOC) should sit below the visible scrolled bar, not the box.
+// (60 or 66 px) and --nav-height. A future sticky element (a case study TOC) should sit below the visible scrolled bar, not the box.
 export function SiteHeader({ items }: { items: readonly NavItem[] }) {
   const [scrolled, setScrolled] = useState(false);
 

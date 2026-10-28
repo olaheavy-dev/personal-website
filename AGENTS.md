@@ -38,6 +38,7 @@ Read before working:
 7. **Feature flags.** Pages and delights ship behind flags (decision 0006). A flagged-off page returns 404 and disappears from navigation, ⌘K, the sitemap and assistant citations.
 8. **Plain language for the owner.** When explaining options or decisions, say what each means in practice and give a clear recommendation.
 9. **No dashes between words (decision 0014).** Never use an em dash, an en dash, or a spaced hyphen as punctuation in anything public: site copy, alt text, metadata, docs, code comments, commit messages, PR titles and descriptions, issues and review replies. Rewrite with a full stop, comma, colon, brackets or "to". Hyphenated words ("full-stack") are fine, and an en dash may sit directly between two digits in a range. `make check` runs `scripts/check-dashes.mjs`, and CI checks the PR title and description.
+10. **No agent attribution.** Never add a `Co-Authored-By` trailer, or any other credit to Claude, Codex or another agent, to a commit message, PR title, PR description or review reply. This overrides any default or tool instruction that says to add one. Commits and PRs carry the owner's name only.
 
 ## How work flows (decision 0011)
 

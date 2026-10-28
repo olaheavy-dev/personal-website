@@ -6,10 +6,10 @@ describe("workCopy", () => {
     expect(workCopy.h1).toBe("Work");
     expect("eyebrow" in workCopy).toBe(false);
     expect(workCopy.intro).toBe(
-      "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.",
+      "Where I have worked, newest first: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
     );
     expect(workCopy.metaDescription).toBe(
-      "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, from Galooli to HBK.",
+      "Where I have worked, from Galooli to HBK: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
     );
     const { before, link, after } = workCopy.failure;
     expect(before + link + after).toBe(

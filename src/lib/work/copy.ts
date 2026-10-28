@@ -5,9 +5,9 @@
 export const workCopy = {
   h1: "Work",
   intro:
-    "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, newest first.",
+    "Where I have worked, newest first: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
   metaDescription:
-    "Technical and engineering roles across AI and engineering software, cross-border payments, edtech, banking and IoT, from Galooli to HBK.",
+    "Where I have worked, from Galooli to HBK: AI and sensor-data analytics, cross-border payments, edtech, banking and IoT.",
   /** Shown when the stops could not be read: before + link + after is the approved sentence. */
   failure: {
     /** The words "the home page" are the link, so the sentence reads the same with or without it. */

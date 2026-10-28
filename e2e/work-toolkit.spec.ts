@@ -104,7 +104,7 @@ test.describe("work toolkit", () => {
   test("shows every trademark sentence, and the Python and Redis symbols", async ({ page }) => {
     await page.goto("/work");
     for (const sentence of [
-      "Logos are trademarks of their owners, shown only to name the tools I use.",
+      "Names and logos are trademarks of their owners, shown only to name the tools I use.",
       "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
       "Python and the Python logos are trademarks or registered trademarks of the Python Software Foundation.",
       "Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd.",

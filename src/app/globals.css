@@ -28,7 +28,7 @@
      stub, each masked on its own: the body cuts half notches at its corners on the
      stub side and the stub cuts the other halves, so together they make whole
      notches exactly on the tear line whatever the content height. The outline and
-     the hard shadow (or lilac glow) sit on the wrapper as a drop-shadow filter,
+     the hard shadow (deep lilac in dark) sit on the wrapper as a drop-shadow filter,
      because a mask would clip a box-shadow; the filter traces the joined shape. */
   .ticket {
     position: relative;

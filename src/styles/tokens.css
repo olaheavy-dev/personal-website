@@ -148,7 +148,9 @@
   --shadow-sm: 0 1px 2px rgb(20 20 24 / 0.06);
   --shadow-md: 0 4px 14px -4px rgb(20 20 24 / 0.12), 0 1px 3px rgb(20 20 24 / 0.06);
   --shadow-lg: 0 20px 40px -16px rgb(20 20 24 / 0.22), 0 2px 6px rgb(20 20 24 / 0.06);
-  --shadow-ticket: 4px 4px 0 0 var(--ink-900); /* hard offset, tactile */
+  --ticket-edge: var(--ink-900); /* the ticket outline (lilac in dark) */
+  --ticket-shade: var(--ink-900); /* the hard offset shadow (a deep lilac in dark) */
+  --shadow-ticket: 4px 4px 0 0 var(--ticket-shade); /* hard offset, tactile */
   --shadow-ticket-hover: 6px 8px 0 0 var(--ink-900);
   /* Filter form of --shadow-ticket (masks clip box-shadow): a 1px ink outline
      traced round the whole shape, notches included, then the hard offset. */
@@ -176,7 +178,7 @@
 /* --------------------------------------------------------------------------
    3. Semantic tokens: DARK "night route"
    Not an inversion: deep violet-ink ground, softer text, lilac/teal glow,
-   hard ticket shadows become lilac outlines + soft glow.
+   hard ticket shadows become a lilac outline and a hard deep lilac offset.
    -------------------------------------------------------------------------- */
 [data-theme="dark"] {
   color-scheme: dark;
@@ -246,9 +248,7 @@
   --ticket-drop: drop-shadow(1px 0 0 var(--ticket-edge)) drop-shadow(-1px 0 0 var(--ticket-edge))
     drop-shadow(0 1px 0 var(--ticket-edge)) drop-shadow(0 -1px 0 var(--ticket-edge))
     drop-shadow(4px 4px 0 var(--ticket-shade));
-  --vehicle-drop: drop-shadow(
-    0 0 1px rgb(205 184 255 / 0.7)
-  ); /* side views of the Work vehicles: the tickets' shadow, smaller */
+  --vehicle-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(2px 2px 0 var(--ticket-shade)); /* side views of the Work vehicles: the tickets' dark outline and hard offset, smaller */
   --ticket-tear-angle: 1deg; /* a wider tear so the lift reads on the dark surface */
   --ticket-drop-hover: drop-shadow(1px 0 0 var(--ticket-edge)) drop-shadow(-1px 0 0 var(--ticket-edge))
     drop-shadow(0 1px 0 var(--ticket-edge)) drop-shadow(0 -1px 0 var(--ticket-edge))
@@ -322,9 +322,7 @@
     --ticket-drop: drop-shadow(1px 0 0 var(--ticket-edge)) drop-shadow(-1px 0 0 var(--ticket-edge))
       drop-shadow(0 1px 0 var(--ticket-edge)) drop-shadow(0 -1px 0 var(--ticket-edge))
       drop-shadow(4px 4px 0 var(--ticket-shade));
-    --vehicle-drop: drop-shadow(
-      0 0 1px rgb(205 184 255 / 0.7)
-    ); /* side views of the Work vehicles: the tickets' shadow, smaller */
+    --vehicle-drop: drop-shadow(0 0 1px rgb(205 184 255 / 0.7)) drop-shadow(2px 2px 0 var(--ticket-shade)); /* side views of the Work vehicles: the tickets' dark outline and hard offset, smaller */
     --ticket-tear-angle: 1deg; /* a wider tear so the lift reads on the dark surface */
     --ticket-drop-hover: drop-shadow(1px 0 0 var(--ticket-edge)) drop-shadow(-1px 0 0 var(--ticket-edge))
       drop-shadow(0 1px 0 var(--ticket-edge)) drop-shadow(0 -1px 0 var(--ticket-edge))

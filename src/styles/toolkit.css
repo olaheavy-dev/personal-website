@@ -5,10 +5,10 @@
    cards that lift onto a deeper shadow on hover and focus. Every value comes from the tokens. */
 @layer components {
   .toolkit-ticket {
-    border: var(--toolkit-border) solid var(--color-border-strong);
+    border: var(--toolkit-border) solid var(--ticket-edge);
     border-radius: var(--border-radius-lg);
     background: var(--color-bg-elevated);
-    /* The work tickets' shadow: hard ink offset in light, lilac glow in dark. */
+    /* The work tickets' shadow: a hard offset, ink in light and deep lilac in dark. */
     box-shadow: var(--shadow-ticket);
   }
 
@@ -37,7 +37,7 @@
     width: calc(2 * var(--ticket-notch));
     height: calc(2 * var(--ticket-notch));
     box-sizing: border-box;
-    border: var(--toolkit-border) solid var(--color-border-strong);
+    border: var(--toolkit-border) solid var(--ticket-edge);
     border-radius: var(--border-radius-full);
     background: var(--color-bg-primary);
   }

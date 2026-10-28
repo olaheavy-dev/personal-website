@@ -5,6 +5,11 @@ import { fakeUrl } from "./e2e/fixtures/fake-constants.mjs";
 // `next build` (`pnpm serve`), the same artefact the Docker image ships.
 const port = Number(process.env.E2E_PORT ?? 3210);
 const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
+// A server already on a port is never reused unless asked for (E2E_REUSE=1, for a dev loop that
+// keeps its own servers running). Otherwise a leftover server from another worktree or an earlier
+// run would answer in place of this build, and the run would silently test the wrong thing (#126).
+// Without the opt in, a busy port is a clear error: "http://127.0.0.1:3210 is already used".
+const reuseExistingServer = process.env.E2E_REUSE === "1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -47,7 +52,7 @@ export default defineConfig({
           // the same server). Tests change its answer through /__control (e2e/flags.spec.ts).
           command: "node e2e/fixtures/fake-supabase.mjs",
           url: `${fakeUrl}/__control`,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer,
           timeout: 15_000,
         },
         {
@@ -61,7 +66,7 @@ export default defineConfig({
             REVALIDATE_SECRET: "e2e-revalidate-secret",
           },
           url: baseURL,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer,
           timeout: 60_000,
         },
       ],

@@ -28,20 +28,20 @@ Only the new Supabase keys are supported. The code refuses the legacy `anon` and
 
 ## Tables
 
-| Table                          | Holds                                                                                                                                             | Public read                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `settings`                     | Name, one liner, availability, time zone, social links (key and JSON value)                                                                       | All rows                          |
-| `feature_flags`                | `page.*`, `case.*`, `feature.*` with state on, preview or off. `page.home` is locked on                                                           | Rows that are `on`                |
-| `stops`                        | Jobs and engagements, numbered 01 to 07, with role, years, up to four `details` lines with optional public `detail_sources`, and the Work filters | Published                         |
-| `case_studies`                 | Long write-ups, TL;DR bullets. Publishing needs 1 to 4 bullets and at least 3 sourced outcomes                                                    | Published                         |
-| `case_study_sections`          | The seven fixed sections (`context` to `reflection`)                                                                                              | With a published case study       |
-| `outcomes`                     | Figures with their source. One parent (stop, case study or lab project)                                                                           | With a published parent           |
-| `lab_projects`                 | Personal projects, evidence links, `in_progress`. `raglab` is refused                                                                             | Published                         |
-| `media`                        | Images and video. Alt text needed to publish; AI generated images need a caption                                                                  | Published                         |
-| `countries`, `trips`, `photos` | Travel. One home country. Photos carry no coordinates                                                                                             | Published, with published parents |
-| `posts_cache`                  | Hashnode posts cached for Writing                                                                                                                 | Published                         |
-| `kb_chunks`                    | Assistant knowledge: `vector(1024)` embeddings (HNSW cosine), generated `fts` (GIN)                                                               | Never (server only)               |
-| `assistant_evals`              | Questions the assistant is scored against                                                                                                         | Never (server only)               |
+| Table                          | Holds                                                                                                                                                                              | Public read                       |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `settings`                     | Name, one liner, availability, time zone, social links (key and JSON value)                                                                                                        | All rows                          |
+| `feature_flags`                | `page.*`, `case.*`, `feature.*` with state on, preview or off. `page.home` is locked on                                                                                            | Rows that are `on`                |
+| `stops`                        | Jobs and engagements, numbered 01 to 07, with role, years, up to four `details` lines with optional public `detail_sources`, and the Work areas (`filters`, shown as small labels) | Published                         |
+| `case_studies`                 | Long write-ups, TL;DR bullets. Publishing needs 1 to 4 bullets and at least 3 sourced outcomes                                                                                     | Published                         |
+| `case_study_sections`          | The seven fixed sections (`context` to `reflection`)                                                                                                                               | With a published case study       |
+| `outcomes`                     | Figures with their source. One parent (stop, case study or lab project)                                                                                                            | With a published parent           |
+| `lab_projects`                 | Personal projects, evidence links, `in_progress`. `raglab` is refused                                                                                                              | Published                         |
+| `media`                        | Images and video. Alt text needed to publish; AI generated images need a caption                                                                                                   | Published                         |
+| `countries`, `trips`, `photos` | Travel. One home country. Photos carry no coordinates                                                                                                                              | Published, with published parents |
+| `posts_cache`                  | Hashnode posts cached for Writing                                                                                                                                                  | Published                         |
+| `kb_chunks`                    | Assistant knowledge: `vector(1024)` embeddings (HNSW cosine), generated `fts` (GIN)                                                                                                | Never (server only)               |
+| `assistant_evals`              | Questions the assistant is scored against                                                                                                                                          | Never (server only)               |
 
 ### The claims policy in constraints
 

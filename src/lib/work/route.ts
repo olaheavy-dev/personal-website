@@ -14,19 +14,13 @@ export type WorkEra = "lagos" | "uk";
 /** The first stop number in the UK: HBK, stop 07. Every earlier stop is Lagos. One constant. */
 export const ukFromStopNumber = 7;
 
-/** The `?filter=` values and their chip labels, in chip order. */
-export const workFilterOptions: readonly { param: WorkFilter; label: string }[] = [
-  { param: "ai", label: "AI" },
-  { param: "payments", label: "Payments & banking" },
-  { param: "data-iot", label: "Data & IoT" },
-  { param: "edtech", label: "Edtech" },
-];
-
-/** A `?filter=` value to a filter, or null (All) for anything else, including a repeated key. */
-export function parseWorkFilter(value: string | readonly string[] | null | undefined): WorkFilter | null {
-  const first = typeof value === "string" || value == null ? value : value[0];
-  return workFilterOptions.find((option) => option.param === first)?.param ?? null;
-}
+/** The area names shown on a Work ticket, in the register's words (decision register, "Work area labels"). */
+export const workAreaLabels: Record<WorkFilter, string> = {
+  ai: "AI",
+  payments: "Payments & banking",
+  "data-iot": "Data & IoT",
+  edtech: "Edtech",
+};
 
 export type WorkTicketModel = {
   slug: string;
@@ -44,8 +38,8 @@ export type WorkTicketModel = {
   sources: DetailSource[];
   /** The stop's first outcome. Null when it has none: the ticket then shows no chip. */
   outcome: Outcome | null;
-  /** The stop's areas, for the filter chips. */
-  filters: WorkFilter[];
+  /** The stop's areas as the words shown beside "Read more", in the order stored on the stop. */
+  areas: string[];
   /** The case study when it is live and visible, else null (no link). */
   href: `/work/${string}` | null;
   era: WorkEra;
@@ -64,16 +58,7 @@ export type WorkRouteEntry =
       role: string | null;
       years: string | null;
       tickets: WorkTicketModel[];
-      /** The union of its tickets' areas: a filter hides the heading when none of them match. */
-      filters: WorkFilter[];
     };
-
-export type WorkChip = {
-  /** Null is "All". */
-  param: WorkFilter | null;
-  label: string;
-  href: "/work" | `/work?filter=${WorkFilter}`;
-};
 
 export type WorkRouteModel =
   | { unavailable: true }
@@ -86,8 +71,6 @@ export type WorkRouteModel =
        * route's last leg. Null when either side was not read.
        */
       handover: { fromSlug: string; toSlug: string } | null;
-      /** "All" plus an area only when at least one stop has it. */
-      chips: WorkChip[];
     };
 
 type Registries = {
@@ -122,7 +105,7 @@ export function buildWorkRoute(
       .slice(0, 4),
     sources: stop.detailSources.map(({ label, url }) => ({ label, url })),
     outcome: stop.outcomes[0] ?? null,
-    filters: [...stop.filters],
+    areas: stop.filters.map((filter) => workAreaLabels[filter]),
     href: caseStudyHref(
       caseStudies.find((entry) => entry.stopSlug === stop.slug),
       flags,
@@ -152,7 +135,6 @@ export function buildWorkRoute(
         role: null,
         years: null,
         tickets: [],
-        filters: [],
       };
       groups.set(stop.via, group);
       entries.push(group);
@@ -163,9 +145,6 @@ export function buildWorkRoute(
     const rows = rowsByVia.get(via)!;
     group.heading = deimosGroupHeading(rows);
     ({ role: group.role, years: group.years } = deimosGroupParts(rows));
-    group.filters = workFilterOptions
-      .map((option) => option.param)
-      .filter((param) => group.tickets.some((ticket) => ticket.filters.includes(param)));
   }
 
   const tickets = entries.flatMap((entry) => (entry.type === "stop" ? [entry.ticket] : entry.tickets));
@@ -173,22 +152,9 @@ export function buildWorkRoute(
   const firstUk = [...tickets].reverse().find((candidate) => candidate.era === "uk");
   const handover = lastLagos && firstUk ? { fromSlug: lastLagos.slug, toSlug: firstUk.slug } : null;
 
-  const present = new Set(ordered.flatMap((stop) => stop.filters));
-  const chips: WorkChip[] = [
-    { param: null, label: "All", href: "/work" },
-    ...workFilterOptions
-      .filter((option) => present.has(option.param))
-      .map((option) => ({
-        param: option.param,
-        label: option.label,
-        href: `/work?filter=${option.param}` as const,
-      })),
-  ];
-
   return {
     unavailable: false,
     entries,
     handover,
-    chips,
   };
 }

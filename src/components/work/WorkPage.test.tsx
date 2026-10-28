@@ -41,11 +41,13 @@ const stop = (slug: string, number: number, more: Partial<Stop> = {}): Stop => (
 const deimos = { via: "Deimos", role: "Senior Software Engineer", startYear: 2022, endYear: 2024 } as const;
 const stops = [
   stop("galooli", 1, {
+    filters: ["data-iot"],
     details: ["Deployed it.", "Built dashboards."],
     outcomes: [outcome({ figure: "~11%" })],
   }),
   stop("access", 2, {
     kind: "flagship",
+    filters: ["ai", "data-iot"],
     details: ["Built it.", "Later extended."],
     detailSources: [
       { label: "Device Finance FAQ", url: "https://example.com/faq" },
@@ -56,7 +58,12 @@ const stops = [
   stop("ulesson", 5, { ...deimos, details: ["Redesigned it."] }),
   stop("mukuru", 6, { ...deimos, details: ["Integrated wallets."] }),
   stop("bare", 3, { summary: null }),
-  stop("hbk", 7, { kind: "flagship", endYear: null, startYear: 2024, outcomes: [] }),
+  stop("hbk", 7, {
+    kind: "flagship",
+    endYear: null,
+    startYear: 2024,
+    outcomes: [],
+  }),
 ];
 
 const noCases: CaseStudyEntry[] = [];
@@ -129,6 +136,17 @@ describe("WorkPageView", () => {
       (p) => p.textContent,
     );
     expect(eyebrows).toEqual(["via Deimos", "via Deimos"]);
+  });
+
+  it("shows each ticket's areas beside Read more, as plain text that leaves the button name alone", () => {
+    render(<WorkPageView model={model()} />);
+    const access = screen.getByRole("button", { name: "Read more about Access" });
+    expect(within(access.parentElement!).getByText("Areas: AI, Data & IoT")).toBeInTheDocument();
+    const galooli = screen.getByRole("button", { name: "Read more about Galooli" });
+    expect(within(galooli.parentElement!).getByText("Areas: Data & IoT")).toBeInTheDocument();
+    expect(access).toHaveAccessibleName("Read more about Access");
+    // A stop with no areas shows no label at all.
+    expect(screen.getAllByText(/^Areas: /)).toHaveLength(2);
   });
 
   it("shows no Lab band and no link to /lab", () => {

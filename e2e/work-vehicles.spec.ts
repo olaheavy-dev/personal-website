@@ -216,17 +216,6 @@ test.describe("work vehicles", () => {
     const results = await new AxeBuilder({ page }).withTags(tags).analyze();
     expect(results.violations).toEqual([]);
   });
-
-  test("offers a hook for filters: data-vehicles hidden removes every vehicle", async ({ page }) => {
-    await page.goto("/work");
-    await page.evaluate(() =>
-      document.querySelector("[data-route]")!.setAttribute("data-vehicles", "hidden"),
-    );
-    const shown = await page
-      .locator(".route-parked, .route-vehicle")
-      .evaluateAll((els) => els.map((el) => getComputedStyle(el).display));
-    expect(new Set(shown)).toEqual(new Set(["none"]));
-  });
 });
 
 test.describe("work vehicles on first load", () => {

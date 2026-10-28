@@ -7,6 +7,17 @@ afterEach(() => {
 });
 
 describe("TicketExpander", () => {
+  it("shows the aside beside the button, outside the collapsing region, closed or open", async () => {
+    const user = userEvent.setup();
+    render(<TicketExpander aside={<p>Aside text</p>}>Details</TicketExpander>);
+    const button = screen.getByRole("button", { name: "Read more" });
+    const aside = screen.getByText("Aside text");
+    expect(aside.parentElement).toBe(button.parentElement);
+    expect(aside.closest("[inert]")).toBeNull();
+    await user.click(button);
+    expect(screen.getByText("Aside text").closest("[inert]")).toBeNull();
+  });
+
   it("starts closed, with the content out of reach", () => {
     render(
       <TicketExpander anchorId="mukuru">

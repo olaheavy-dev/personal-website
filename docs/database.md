@@ -49,6 +49,7 @@ The database refuses what the claims policy forbids, so a mistake in the admin c
 
 - An outcome has exactly one parent.
 - A `link` source needs an `https://` URL, a label, the day it was last checked (`checked_on`) and no note. An `own` source needs a note and no URL.
+- A link source may carry a `source_phrase`, a Wayback `source_archive_url` and a `source_broken_on` day for the weekly source link checker; an own measurement carries none, and a broken day needs an archive address (`docs/source-links.md`).
 - A `company` claim needs an `attribution` and an `as_of_year`.
 - Lab links must start with `https://`. The slug and name `raglab` are refused.
 
@@ -98,6 +99,8 @@ Content changes are migrations too (decision 0019), because the seed does not re
 1. Write the migration so it can run twice and on a fresh database: `update ... where slug = '...'`, and for outcomes `delete from public.outcomes where stop_id = (select id from public.stops where slug = '...')` then `insert ... select ... from public.stops where slug = '...'`, which inserts nothing when the stop does not exist yet.
 2. Put the same values in `supabase/seed.sql`, so a local reset gives the same content.
 3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP tests `supabase/tests/content_migration.test.sql` (26 Oct) and `supabase/tests/stops_role_migration.test.sql` (27 Oct roles) and `supabase/tests/work_copy_migration.test.sql` (27 Oct Work copy) and `supabase/tests/ticket_details_migration.test.sql` (27 Oct flagship details) replay a content migration on seeded data and check nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
+
+A content migration that deletes and re-inserts a stop's outcomes starts those rows with no `source_phrase`, `source_archive_url` or `source_broken_on`: set them again in the insert (or use `update`), or the weekly source link checker loses the phrase and archive copy (`docs/source-links.md`).
 
 When the admin (#26, #27) ships, content migrations stop: content is edited in the admin, and migrations are for structure only.
 

@@ -30,7 +30,14 @@ export function mapOutcome(row: Row<"outcomes">): Outcome | null {
   let source: Outcome["source"];
   if (row.source_kind === "link") {
     if (!row.source_url || !row.source_label) return null;
-    source = { kind: "link", label: row.source_label, url: row.source_url };
+    source = {
+      kind: "link",
+      label: row.source_label,
+      url: row.source_url,
+      // The phrase stays in the database: only the checker reads it.
+      ...(row.source_archive_url ? { archiveUrl: row.source_archive_url } : {}),
+      ...(row.source_archive_url && row.source_broken_on ? { brokenOn: row.source_broken_on } : {}),
+    };
   } else {
     if (!row.source_note) return null;
     source = { kind: "own", note: row.source_note };
@@ -57,13 +64,35 @@ function mapOutcomes(rows: Row<"outcomes">[]): Result<Outcome[]> {
   return success(outcomes);
 }
 
+// `phrase` is read by the source link checker only. The checker's keys are tolerant (`.catch`): a bad
+// value is dropped, never a reason to take a page down. The database constraints already refuse them.
 const detailSourcesSchema = z.array(
-  z.object({ label: z.string().min(1), url: z.string().regex(/^https:\/\/.+/) }),
+  z.object({
+    label: z.string().min(1),
+    url: z.string().regex(/^https:\/\/.+/),
+    phrase: z.unknown().optional(),
+    archive_url: z
+      .string()
+      .regex(/^https:\/\/web\.archive\.org\/web\/[0-9]{14}\/https:\/\//)
+      .optional()
+      .catch(undefined),
+    broken_on: z
+      .string()
+      .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
+      .optional()
+      .catch(undefined),
+  }),
 );
 
 function mapDetailSources(value: Json): DetailSource[] | null {
   const parsed = detailSourcesSchema.safeParse(value);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) return null;
+  return parsed.data.map((item) => ({
+    label: item.label,
+    url: item.url,
+    ...(item.archive_url ? { archiveUrl: item.archive_url } : {}),
+    ...(item.archive_url && item.broken_on ? { brokenOn: item.broken_on } : {}),
+  }));
 }
 
 export function mapStop(row: Row<"stops"> & { outcomes: Row<"outcomes">[] }): Result<Stop> {

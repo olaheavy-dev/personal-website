@@ -25,6 +25,9 @@ const outcomeRow = (over: Partial<Row<"outcomes">> = {}): Row<"outcomes"> => ({
   claim_scope: "company",
   attribution: "Google Play listing",
   as_of_year: 2026,
+  source_phrase: null,
+  source_archive_url: null,
+  source_broken_on: null,
   created_at: "",
   updated_at: "",
   ...over,
@@ -69,6 +72,31 @@ describe("mapOutcome", () => {
     expect(outcome?.source).toEqual({ kind: "own", note: "Lighthouse" });
   });
 
+  it("adds the archive copy and broken day, and never the phrase", () => {
+    const archive = "https://web.archive.org/web/20261029213726/https://play.google.com/x";
+    const source = mapOutcome(
+      outcomeRow({
+        source_phrase: "1,000,000+",
+        source_archive_url: archive,
+        source_broken_on: "2026-11-02",
+      }),
+    )?.source;
+    expect(source).toEqual({
+      kind: "link",
+      label: "Google Play listing",
+      url: "https://play.google.com/x",
+      archiveUrl: archive,
+      brokenOn: "2026-11-02",
+    });
+    expect(JSON.stringify(source)).not.toContain("1,000,000");
+    expect(mapOutcome(outcomeRow({ source_archive_url: archive }))?.source).toEqual({
+      kind: "link",
+      label: "Google Play listing",
+      url: "https://play.google.com/x",
+      archiveUrl: archive,
+    });
+  });
+
   it("refuses a row without a usable source", () => {
     expect(mapOutcome(outcomeRow({ source_url: null }))).toBeNull();
     expect(mapOutcome(outcomeRow({ source_kind: "own", source_note: null }))).toBeNull();
@@ -107,6 +135,43 @@ describe("mapStop", () => {
       "https://example.com",
     ]) {
       expect(mapStop(stopRow({ detail_sources: bad }))).toMatchObject({ ok: false, reason: "invalid_data" });
+    }
+  });
+
+  it("accepts the optional phrase, archive_url and broken_on keys and maps the last two", () => {
+    const archive = "https://web.archive.org/web/20261029213726/https://brandcom.ng/x/";
+    const result = mapStop(
+      stopRow({
+        detail_sources: [
+          { label: "A", url: "https://brandcom.ng/x/", phrase: "installment payments" },
+          { label: "B", url: "https://brandcom.ng/y/", archive_url: archive, broken_on: "2026-11-02" },
+        ],
+      }),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      data: {
+        detailSources: [
+          { label: "A", url: "https://brandcom.ng/x/" },
+          { label: "B", url: "https://brandcom.ng/y/", archiveUrl: archive, brokenOn: "2026-11-02" },
+        ],
+      },
+    });
+    expect(result.ok && result.data.detailSources[0]).not.toHaveProperty("phrase");
+  });
+
+  it("drops a malformed phrase, archive_url or broken_on instead of failing the page", () => {
+    for (const bad of [
+      { phrase: 3 },
+      { archive_url: "https://example.com/a" },
+      { archive_url: 3 },
+      { broken_on: "yesterday" },
+    ]) {
+      const sources = [{ label: "A", url: "https://example.com/a", ...bad }];
+      expect(mapStop(stopRow({ detail_sources: sources }))).toMatchObject({
+        ok: true,
+        data: { detailSources: [{ label: "A", url: "https://example.com/a" }] },
+      });
     }
   });
 

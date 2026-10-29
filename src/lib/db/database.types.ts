@@ -346,9 +346,12 @@ export type Database = {
           id: string;
           lab_project_id: string | null;
           position: number;
+          source_archive_url: string | null;
+          source_broken_on: string | null;
           source_kind: Database["public"]["Enums"]["source_kind"];
           source_label: string | null;
           source_note: string | null;
+          source_phrase: string | null;
           source_url: string | null;
           stop_id: string | null;
           updated_at: string;
@@ -366,9 +369,12 @@ export type Database = {
           id?: string;
           lab_project_id?: string | null;
           position?: number;
+          source_archive_url?: string | null;
+          source_broken_on?: string | null;
           source_kind: Database["public"]["Enums"]["source_kind"];
           source_label?: string | null;
           source_note?: string | null;
+          source_phrase?: string | null;
           source_url?: string | null;
           stop_id?: string | null;
           updated_at?: string;
@@ -385,9 +391,12 @@ export type Database = {
           id?: string;
           lab_project_id?: string | null;
           position?: number;
+          source_archive_url?: string | null;
+          source_broken_on?: string | null;
           source_kind?: Database["public"]["Enums"]["source_kind"];
           source_label?: string | null;
           source_note?: string | null;
+          source_phrase?: string | null;
           source_url?: string | null;
           stop_id?: string | null;
           updated_at?: string;

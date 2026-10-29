@@ -6,10 +6,12 @@ select * from no_plan();
 -- The CLI records each applied migration's statements, so the test replays those.
 -- Timestamps are left out: a re-run touches updated_at and recreates the outcome row.
 
+-- The later source_phrases_content migration adds phrases and archive copies; replaying this older
+-- one resets them, so they are left out of the comparison (source_phrases_migration.test.sql covers them).
 create temporary table before_content as
   select
     (select coalesce(jsonb_agg(to_jsonb(s) - 'created_at' - 'updated_at' order by s.slug), '[]') from public.stops s) as stops,
-    (select coalesce(jsonb_agg(to_jsonb(o) - 'id' - 'created_at' - 'updated_at' order by o.figure, o.stop_id), '[]') from public.outcomes o) as outcomes;
+    (select coalesce(jsonb_agg(to_jsonb(o) - 'id' - 'created_at' - 'updated_at' - 'source_phrase' - 'source_archive_url' order by o.figure, o.stop_id), '[]') from public.outcomes o) as outcomes;
 
 select is(
   (select count(*) from supabase_migrations.schema_migrations where name = 'selected_stops_content'),
@@ -43,7 +45,7 @@ select is(
 
 select is(
   (select outcomes from before_content),
-  (select coalesce(jsonb_agg(to_jsonb(o) - 'id' - 'created_at' - 'updated_at' order by o.figure, o.stop_id), '[]') from public.outcomes o),
+  (select coalesce(jsonb_agg(to_jsonb(o) - 'id' - 'created_at' - 'updated_at' - 'source_phrase' - 'source_archive_url' order by o.figure, o.stop_id), '[]') from public.outcomes o),
   'running the content migration again leaves the outcomes unchanged'
 );
 

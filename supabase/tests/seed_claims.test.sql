@@ -89,7 +89,7 @@ select results_eq(
   'only Access Bank has detail sources: the Device Finance launch (BusinessPost) and the Konga partnership'
 );
 select is(
-  (select detail_sources from public.stops where slug = 'access-bank'),
+  (select jsonb_agg(item - 'phrase' - 'archive_url' order by ord) from public.stops s, jsonb_array_elements(s.detail_sources) with ordinality as t(item, ord) where s.slug = 'access-bank'),
   '[{"label": "Device Finance launch (BusinessPost)", "url": "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/"}, {"label": "Konga partnership", "url": "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/"}]'::jsonb,
   'Access Bank''s sources are the approved labels and links'
 );

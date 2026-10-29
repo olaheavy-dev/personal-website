@@ -336,12 +336,22 @@ describe("checkOne behaviour (A1 to A3)", () => {
     const { sleep } = recorder();
     expect((await checkOne(source, { fetchImpl, sleep })).state).toBe("broken");
   });
-  it("429 with Retry-After 5 sleeps 5000", async () => {
+  it("429 with Retry-After 5 sleeps 5000 (HEAD only)", async () => {
     const { fetchImpl } = stub(() => new Response(null, { status: 429, headers: { "retry-after": "5" } }));
     const { slept, sleep } = recorder();
     const r = await checkOne(source, { fetchImpl, sleep });
     expect(slept).toEqual([5000, 5000]);
     expect(r.state).toBe("unverified");
+  });
+  it("does not fall back to GET on a 429, so the retry loop applies Retry-After", async () => {
+    const { fetchImpl, calls } = stub(
+      () => new Response(null, { status: 429, headers: { "retry-after": "5" } }),
+    );
+    const { slept, sleep } = recorder();
+    await checkOne(source, { fetchImpl, sleep });
+    expect(calls.every((c) => c.method === "HEAD")).toBe(true);
+    expect(calls).toHaveLength(3);
+    expect(slept).toEqual([5000, 5000]);
   });
   it("HEAD 405 then GET 200 is ok", async () => {
     const { fetchImpl, calls } = stub(
@@ -464,5 +474,21 @@ describe("renderIssueBody links", () => {
       report([result({ url: "https://a.example/gone", state: "broken", reason: "HTTP 404" })]),
     );
     expect(body).toContain("<https://a.example/gone>");
+  });
+});
+
+describe("digest", () => {
+  it("ignores a newly archived copy but not a failed save", () => {
+    const base = report([result({ url: "https://a.example/ok" })]);
+    const archived = {
+      ...base,
+      archived: [
+        { url: "https://a.example/ok", snapshotUrl: "https://web.archive.org/web/20261102000000/x" },
+      ],
+    };
+    expect(digestOf(archived)).toBe(digestOf(base));
+    expect(digestOf({ ...base, archiveFailures: [{ url: "https://a.example/ok", reason: "x" }] })).not.toBe(
+      digestOf(base),
+    );
   });
 });

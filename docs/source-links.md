@@ -29,13 +29,13 @@ A HEAD request is tried first. Any HEAD answer of 400 or above (or 405, 501) is 
 
 ## The issue
 
-| Situation                                               | Action                                                    |
-| ------------------------------------------------------- | --------------------------------------------------------- |
-| A broken source and no open issue                       | Create it                                                 |
-| Same entries as last week                               | Update the description only                               |
-| Any entry changed (including informational ones)        | Update the description and comment                        |
-| No broken source and an open issue                      | Comment and close                                         |
-| Database read failed, empty tables, or no sources found | Change nothing, and the run fails so the owner is emailed |
+| Situation                                                                                                   | Action                                                    |
+| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| A broken source and no open issue                                                                           | Create it                                                 |
+| Same entries as last week                                                                                   | Update the description only                               |
+| Any entry changed (broken, could not verify, moved or archive failed; a newly archived copy does not count) | Update the description and comment                        |
+| No broken source and an open issue                                                                          | Comment and close                                         |
+| Database read failed, empty tables, or no sources found                                                     | Change nothing, and the run fails so the owner is emailed |
 
 The `links` label is created up front so no run creates it. The workflow token has `contents: read` and `issues: write` only.
 
@@ -54,7 +54,7 @@ SUPABASE_URL=... SUPABASE_KEY=<publishable key> node scripts/check-source-links.
 - The official SPN2 public API document (<https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA>, updated 2026-07-22) allows anonymous use, with lower limits: 3 captures a minute, 200 a day, and 5 a day for one URL (its error table says 10). A capture may take up to 50 seconds of page time and 2 minutes in total. The checker saves 25 seconds apart (under 3 a minute), at most 10 a run.
 - The checker uses the plain `GET /save/<url>` and reads the snapshot address from the `Content-Location` header (or a `rel="memento"` Link header, or the final URL). The document shows the GET form with cookies; reading the address that way is observed behaviour, used by palewire/savepagenow, and is not part of the published API. The first manual `workflow_dispatch` run is the evidence that it works anonymously. A refusal only lands under "Archive save failed" and breaks nothing else.
 - The Internet Archive terms of use page (<https://archive.org/about/terms.php>) could not be read when this was built, so the terms were not checked.
-- A run can take up to about 25 minutes if every save is slow, so the job allows 60 minutes.
+- A run can take about 40 minutes when everything is slow (the archive phase about 27 minutes plus up to about 11 minutes of link checks), inside the 60 minute limit of the job.
 - GitHub disables scheduled workflows on a public repository after 60 days without activity. Re-enable it from the Actions tab.
 
 ## Pausing and removing it

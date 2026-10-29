@@ -235,7 +235,6 @@ function digestLines(report) {
     else if (r.movedTo) lines.push(`moved ${r.url}`);
   }
   for (const a of report.archiveFailures ?? []) lines.push(`archive-failed ${a.url}`);
-  for (const a of report.archived ?? []) lines.push(`archived ${a.url}`);
   return lines.sort();
 }
 
@@ -364,7 +363,7 @@ export async function checkOne(source, { throttle, sleep = defaultSleep, fetchIm
         headers,
         signal: AbortSignal.timeout(20000),
       });
-      if (res.status >= 400) {
+      if (res.status >= 400 && res.status !== 429) {
         await throttle?.wait(source.url);
         res = await fetchImpl(source.url, {
           method: "GET",
@@ -467,11 +466,11 @@ async function applyPlan(plan, report) {
   else if (plan.action === "update_comment") {
     await post(`/issues/${plan.number}`, "PATCH", { body });
     await post(`/issues/${plan.number}/comments`, "POST", {
-      body: "The list of problems changed. The description is updated.",
+      body: "The list changed. The description is updated.",
     });
   } else if (plan.action === "comment_close") {
     await post(`/issues/${plan.number}/comments`, "POST", {
-      body: "Every source link checked clean this week. Closing.",
+      body: "No broken source this week. Closing. Could not verify and archive entries stay in the job summary.",
     });
     await post(`/issues/${plan.number}`, "PATCH", { state: "closed", state_reason: "completed" });
   }

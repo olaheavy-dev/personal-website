@@ -23,6 +23,8 @@ export const USER_AGENT: string;
 export const REQUEST_GAP_MS: number;
 export const ARCHIVE_GAP_MS: number;
 export const RETRY_CAP_MS: number;
+export const MAX_ARCHIVE_PER_RUN: number;
+export const SNAPSHOT_MAX_AGE_DAYS: number;
 export const STATIC_SOURCES: { url: string; label: string; kind: "claim" | "own"; owner: Owner }[];
 export function collectSources(
   rows: Rows,
@@ -60,3 +62,27 @@ export function planIssueAction(input: {
   number?: number;
   reason?: string;
 };
+type FetchImpl = typeof fetch;
+export function checkOne(
+  source: Source,
+  options?: {
+    throttle?: { wait(url: string): Promise<void> };
+    sleep?: (ms: number) => Promise<void>;
+    fetchImpl?: FetchImpl;
+  },
+): Promise<Result>;
+export function latestSnapshot(
+  url: string,
+  fetchImpl?: FetchImpl,
+): Promise<{ timestamp: string; url: string } | null>;
+export function saveSnapshot(url: string, fetchImpl?: FetchImpl): Promise<string>;
+export function archiveClaims(
+  results: Result[],
+  options?: { sleep?: (ms: number) => Promise<void>; fetchImpl?: FetchImpl },
+): Promise<{
+  archived: { url: string; snapshotUrl: string }[];
+  archiveFailures: { url: string; reason: string }[];
+}>;
+export function findIssue(
+  fetchImpl?: FetchImpl,
+): Promise<{ number: number; title: string; body?: string | null } | null>;

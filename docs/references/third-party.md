@@ -51,13 +51,13 @@ Before using a package's API, read the official documentation for the **pinned**
 
 Node built-ins only (`fetch`, `AbortSignal.timeout`, `node:crypto`); no package added.
 
-| Item                                        | Pinned                                                 | Official documentation                                                                                    |
-| ------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Node `fetch` (undici)                       | Node 24 (`.nvmrc`)                                     | https://nodejs.org/docs/latest-v24.x/api/globals.html#fetch                                               |
-| Wayback Availability API                    | n/a                                                    | https://archive.org/help/wayback_api.php                                                                  |
-| Wayback Save Page Now 2                     | n/a (the checker uses the anonymous `GET /save/<url>`) | https://web.archive.org/save                                                                              |
-| GitHub REST: issues                         | API version 2022-11-28                                 | https://docs.github.com/en/rest/issues/issues                                                             |
-| GitHub Actions `schedule` and `permissions` | n/a                                                    | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule |
+| Item                                        | Pinned                                                                                         | Official documentation                                                                                    |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Node `fetch` (undici)                       | Node 24 (`.nvmrc`)                                                                             | https://nodejs.org/docs/latest-v24.x/api/globals.html#fetch                                               |
+| Wayback Availability API                    | n/a                                                                                            | https://archive.org/help/wayback_api.php                                                                  |
+| Wayback Save Page Now 2                     | n/a (anonymous: 3 a minute, 200 a day; the checker uses `GET /save/<url>`, observed behaviour) | https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA                           |
+| GitHub REST: issues                         | API version 2022-11-28                                                                         | https://docs.github.com/en/rest/issues/issues                                                             |
+| GitHub Actions `schedule` and `permissions` | n/a                                                                                            | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule |
 
 ## Runtime image
 

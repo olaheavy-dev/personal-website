@@ -7,8 +7,9 @@
 //
 // Classification:
 //   broken            404, 410, DNS failure, or a 5xx on every attempt within the run
-//   could not verify  401, 403, 429, any other 4xx, and errors that persist after retries
+//   could not verify  401, 403, 429, other 4xx, unusual codes, and errors that persist after retries
 //   moved             the final host differs (a note only, never a problem)
+// Only "broken" opens (or keeps open) the issue. The other sections are informational.
 //
 // Usage (the workflow sets the environment):
 //   node scripts/check-source-links.mjs            full run
@@ -124,10 +125,12 @@ export function classifyResponse({ status, url, finalUrl, lastAttempt = false })
   const movedTo = finalUrl && hostOf(finalUrl) && hostOf(finalUrl) !== hostOf(url) ? finalUrl : null;
   if (status === 404 || status === 410)
     return { state: "broken", reason: `HTTP ${status}`, retry: false, movedTo };
-  if (status >= 500) return { state: "broken", reason: `HTTP ${status}`, retry: !lastAttempt, movedTo };
+  if (status >= 500 && status <= 599)
+    return { state: "broken", reason: `HTTP ${status}`, retry: !lastAttempt, movedTo };
   if (status === 429) return { state: "unverified", reason: "HTTP 429", retry: !lastAttempt, movedTo };
-  if (status >= 400) return { state: "unverified", reason: `HTTP ${status}`, retry: false, movedTo };
-  return { state: "ok", reason: `HTTP ${status}`, retry: false, movedTo };
+  if (status >= 200 && status <= 399) return { state: "ok", reason: `HTTP ${status}`, retry: false, movedTo };
+  // 401, 403, other 4xx and unusual codes (for example 999) say nothing about the page itself.
+  return { state: "unverified", reason: `HTTP ${status}`, retry: false, movedTo };
 }
 
 /** What a failed request (no answer) means. DNS "not found" is broken; everything else is not verifiable. */
@@ -224,22 +227,26 @@ export function shouldArchive({ kind, storedArchiveUrl, snapshotTimestamp, now =
 
 const where = (usage) => `${usage.owner.name} (${usage.owner.type}), ${usage.label}`;
 
-function problemLines(report) {
+// Everything the issue body lists, so any change while an issue is open earns a comment.
+function digestLines(report) {
   const lines = [];
   for (const r of report.results) {
     if (r.state === "broken" || r.state === "unverified") lines.push(`${r.state} ${r.url}`);
+    else if (r.movedTo) lines.push(`moved ${r.url}`);
   }
-  for (const a of report.archiveFailures ?? []) lines.push(`archive ${a.url}`);
+  for (const a of report.archiveFailures ?? []) lines.push(`archive-failed ${a.url}`);
+  for (const a of report.archived ?? []) lines.push(`archived ${a.url}`);
   return lines.sort();
 }
 
-/** A short fingerprint of the current problems, so an unchanged list does not post a new comment. */
+/** A short fingerprint of what the body lists, so an unchanged list does not post a new comment. */
 export function digestOf(report) {
-  return createHash("sha256").update(problemLines(report).join("\n")).digest("hex").slice(0, 16);
+  return createHash("sha256").update(digestLines(report).join("\n")).digest("hex").slice(0, 16);
 }
 
+/** Only a broken source is a problem that opens, or keeps open, the issue. */
 export function hasProblems(report) {
-  return problemLines(report).length > 0;
+  return report.results.some((r) => r.state === "broken");
 }
 
 function section(title, intro, items) {
@@ -253,13 +260,13 @@ function section(title, intro, items) {
  */
 export function renderIssueBody(report) {
   const entry = (r) =>
-    `- ${r.url}: ${r.reason}${r.movedTo ? `, now at ${r.movedTo}` : ""}\n` +
+    `- <${r.url}>: ${r.reason}${r.movedTo ? `, now at <${r.movedTo}>` : ""}\n` +
     r.usages.map((u) => `  - ${where(u)}`).join("\n");
   const broken = report.results.filter((r) => r.state === "broken").map(entry);
   const unverified = report.results.filter((r) => r.state === "unverified").map(entry);
   const moved = report.results.filter((r) => r.state === "ok" && r.movedTo).map(entry);
-  const archiveFailed = (report.archiveFailures ?? []).map((a) => `- ${a.url}: ${a.reason}`);
-  const archived = (report.archived ?? []).map((a) => `- ${a.url}: ${a.snapshotUrl}`);
+  const archiveFailed = (report.archiveFailures ?? []).map((a) => `- <${a.url}>: ${a.reason}`);
+  const archived = (report.archived ?? []).map((a) => `- <${a.url}>: <${a.snapshotUrl}>`);
   const checked = `${report.results.length} sources checked on ${report.date}.`;
   return (
     `${checked}\n\n` +
@@ -270,16 +277,16 @@ export function renderIssueBody(report) {
     ) +
     section(
       "Could not verify",
-      "The site refused or limited an automated request, or the check failed. Open these by hand. Not counted as broken.",
+      "Informational. The site refused or limited an automated request, or the check failed. Open these by hand. Not counted as broken.",
       unverified,
     ) +
     section(
       "Archive save failed",
-      "The Internet Archive did not save these. Never counted as broken.",
+      "Informational. The Internet Archive did not save these. Never counted as broken.",
       archiveFailed,
     ) +
-    section("Moved", "The final host differs from the stored link. A note only.", moved) +
-    section("Archived this run", "Copies saved to the Internet Archive.", archived) +
+    section("Moved", "Informational. The final host differs from the stored link.", moved) +
+    section("Archived this run", "Informational. Copies saved to the Internet Archive.", archived) +
     `<!-- ${DIGEST_MARKER}: ${digestOf(report)} -->\n`
   );
 }
@@ -322,30 +329,47 @@ async function readDatabase(base, key) {
       "outcomes?select=figure,source_kind,source_label,source_url,stop_id,case_study_id,lab_project_id&source_kind=eq.link",
     ),
   ]);
+  // The site always has stops, Lab projects and sourced figures. An empty answer means the read
+  // was blocked or the project is wrong, so it must never look like "all clean".
+  for (const [name, rows] of [
+    ["stops", stops],
+    ["lab_projects", labProjects],
+    ["outcomes", outcomes],
+  ]) {
+    if (!Array.isArray(rows) || rows.length === 0)
+      throw new Error(`Database read returned no rows for ${name}`);
+  }
+  console.log(
+    `Read ${stops.length} stops, ${caseStudies.length} case studies, ${labProjects.length} Lab projects, ${outcomes.length} sourced figures.`,
+  );
   return { stops, caseStudies, labProjects, outcomes };
 }
 
-async function checkOne(source, throttle, sleep) {
+/**
+ * Checks one source: up to three attempts. HEAD first; GET whenever HEAD says 405, 501 or any
+ * 4xx or 5xx, because some hosts answer HEAD wrongly, and the verdict comes from the GET.
+ */
+export async function checkOne(source, { throttle, sleep = defaultSleep, fetchImpl = fetch } = {}) {
   const maxAttempts = 3;
+  const headers = { "user-agent": USER_AGENT };
   let verdict;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const lastAttempt = attempt === maxAttempts;
     let retryAfter = null;
-    await throttle.wait(source.url);
+    await throttle?.wait(source.url);
     try {
-      let res = await fetch(source.url, {
+      let res = await fetchImpl(source.url, {
         method: "HEAD",
         redirect: "follow",
-        headers: { "user-agent": USER_AGENT },
+        headers,
         signal: AbortSignal.timeout(20000),
       });
-      // Some hosts refuse HEAD; ask again with GET before judging.
-      if (res.status === 405 || res.status === 501) {
-        await throttle.wait(source.url);
-        res = await fetch(source.url, {
+      if (res.status >= 400) {
+        await throttle?.wait(source.url);
+        res = await fetchImpl(source.url, {
           method: "GET",
           redirect: "follow",
-          headers: { "user-agent": USER_AGENT },
+          headers,
           signal: AbortSignal.timeout(20000),
         });
         await res.body?.cancel();
@@ -361,31 +385,38 @@ async function checkOne(source, throttle, sleep) {
   return { ...source, ...verdict };
 }
 
-async function latestSnapshot(url) {
-  const res = await fetch(`https://archive.org/wayback/available?url=${encodeURIComponent(url)}`, {
+/** The newest usable snapshot (available and a 2xx capture), or null. */
+export async function latestSnapshot(url, fetchImpl = fetch) {
+  const res = await fetchImpl(`https://archive.org/wayback/available?url=${encodeURIComponent(url)}`, {
     headers: { "user-agent": USER_AGENT },
     signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error(`Availability API HTTP ${res.status}`);
-  const json = await res.json();
-  return json?.archived_snapshots?.closest ?? null;
+  const closest = (await res.json())?.archived_snapshots?.closest;
+  return closest?.available === true && /^2\d\d$/.test(String(closest.status)) ? closest : null;
 }
 
-// Anonymous Save Page Now: GET https://web.archive.org/save/<url>. The snapshot address comes
-// back in Content-Location (or as the final URL). Any failure is reported, never fatal.
-async function saveSnapshot(url) {
-  const res = await fetch(`https://web.archive.org/save/${url}`, {
+// Anonymous Save Page Now: GET https://web.archive.org/save/<url>. The published SPN2 document
+// shows this request with cookies; reading the snapshot address from Content-Location (or the
+// Link header's rel="memento", or the final URL) is observed behaviour, not published API, and
+// the first manual run is the evidence. Any failure is reported, never fatal.
+export async function saveSnapshot(url, fetchImpl = fetch) {
+  const res = await fetchImpl(`https://web.archive.org/save/${url}`, {
     headers: { "user-agent": USER_AGENT },
     signal: AbortSignal.timeout(120000),
   });
   await res.body?.cancel();
-  const location = res.headers.get("content-location");
-  const candidate = location ? new URL(location, "https://web.archive.org").href : res.url;
-  if (!res.ok || !/\/web\/\d{14}/.test(candidate)) throw new Error(`HTTP ${res.status}, no snapshot address`);
-  return candidate;
+  const memento = /<([^>]+)>;\s*rel="[^"]*memento[^"]*"/.exec(res.headers.get("link") ?? "")?.[1];
+  const candidates = [res.headers.get("content-location"), memento, res.url].filter(Boolean);
+  const found = candidates
+    .map((c) => new URL(c, "https://web.archive.org").href)
+    .find((c) => /\/web\/\d{14}/.test(c));
+  if (!res.ok || !found) throw new Error(`HTTP ${res.status}, no snapshot address`);
+  return found;
 }
 
-async function archiveClaims(results, sleep) {
+/** Saves claim sources that have no recent snapshot: 25 s apart, at most 10 a run. */
+export async function archiveClaims(results, { sleep = defaultSleep, fetchImpl = fetch } = {}) {
   const archived = [];
   const archiveFailures = [];
   let saves = 0;
@@ -393,11 +424,11 @@ async function archiveClaims(results, sleep) {
     if (r.kind !== "claim" || r.state === "broken") continue;
     if (saves >= MAX_ARCHIVE_PER_RUN) break;
     try {
-      const snap = await latestSnapshot(r.url);
+      const snap = await latestSnapshot(r.url, fetchImpl);
       if (!shouldArchive({ kind: r.kind, snapshotTimestamp: snap?.timestamp })) continue;
       if (saves > 0) await sleep(ARCHIVE_GAP_MS);
       saves++;
-      archived.push({ url: r.url, snapshotUrl: await saveSnapshot(r.url) });
+      archived.push({ url: r.url, snapshotUrl: await saveSnapshot(r.url, fetchImpl) });
     } catch (error) {
       archiveFailures.push({ url: r.url, reason: error instanceof Error ? error.message : "failed" });
     }
@@ -405,8 +436,8 @@ async function archiveClaims(results, sleep) {
   return { archived, archiveFailures };
 }
 
-async function github(path, init = {}) {
-  const res = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}${path}`, {
+async function github(path, init = {}, fetchImpl = fetch) {
+  const res = await fetchImpl(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}${path}`, {
     ...init,
     headers: {
       accept: "application/vnd.github+json",
@@ -421,8 +452,9 @@ async function github(path, init = {}) {
   return res.status === 204 ? null : res.json();
 }
 
-async function findIssue() {
-  const issues = await github(`/issues?labels=${ISSUE_LABEL}&state=open&per_page=100`);
+/** The open issue with the exact title and label. Pull requests also appear in this list; skipped. */
+export async function findIssue(fetchImpl = fetch) {
+  const issues = await github(`/issues?labels=${ISSUE_LABEL}&state=open&per_page=100`, {}, fetchImpl);
   return issues.find((i) => !i.pull_request && i.title === ISSUE_TITLE) ?? null;
 }
 
@@ -455,16 +487,18 @@ async function main() {
 
   try {
     if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error("SUPABASE_URL and SUPABASE_KEY are required");
-    const sources = collectSources(await readDatabase(SUPABASE_URL, SUPABASE_KEY), STATIC_SOURCES);
+    const rows = await readDatabase(SUPABASE_URL, SUPABASE_KEY);
+    if (collectSources(rows).length === 0) throw new Error("The database held no source links");
+    const sources = collectSources(rows, STATIC_SOURCES);
     console.log(`Checking ${sources.length} sources.`);
     const throttle = createHostThrottle();
     const results = [];
     for (const source of sources) {
-      const result = await checkOne(source, throttle, sleep);
+      const result = await checkOne(source, { throttle, sleep });
       console.log(`${result.state.padEnd(10)} ${result.url} (${result.reason})`);
       results.push(result);
     }
-    const archive = await archiveClaims(results, sleep);
+    const archive = await archiveClaims(results, { sleep });
     report = { results, date, ...archive };
   } catch (error) {
     readFailed = true;

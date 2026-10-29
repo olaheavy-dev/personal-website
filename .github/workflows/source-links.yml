@@ -2,7 +2,7 @@
 # Reads the source URLs from the hosted database with the publishable key (public by design),
 # requests each politely, saves claim sources to the Internet Archive, and opens, updates or
 # closes one issue titled "Source links: weekly check" with the label `links`. It never writes
-# to the database. The `links` label must exist (create it once); the token has no label rights.
+# to the database. The `links` label is created up front so no run creates it.
 # GitHub disables scheduled workflows on a public repository after 60 days without activity;
 # re-enable it from the Actions tab, or run it by hand. Runbook: docs/source-links.md.
 name: Source links
@@ -22,7 +22,7 @@ jobs:
   check:
     name: Check the cited sources
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: read
       issues: write

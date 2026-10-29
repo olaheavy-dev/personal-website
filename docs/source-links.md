@@ -13,24 +13,33 @@ Every external source the site shows must stay valid (claims policy, decision 00
 
 ## What the results mean
 
-| Result              | When                                             | What to do                                                                                                                  |
-| ------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| Broken              | 404, 410, DNS failure, or a 5xx on every attempt | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration. |
-| Could not verify    | 401, 403, 429, other 4xx, or errors that persist | Open the link by hand. Many publishers block automated requests; this is not a failure of the source.                       |
-| Archive save failed | The Internet Archive refused or timed out        | Usually transient. Retried next week.                                                                                       |
-| Moved               | The final host differs                           | A note. Update the stored link when convenient.                                                                             |
+Only **Broken** opens, or keeps open, the issue. The other sections are informational: they appear in the issue body while it is open, and always in the run's job summary.
+
+| Result              | When                                                                        | What to do                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Broken              | 404, 410, DNS failure, or a 5xx (500 to 599) on every attempt               | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration. |
+| Could not verify    | 401, 403, 429, other 4xx, unusual codes such as 999, or errors that persist | Informational. Open the link by hand. Many publishers block automated requests; this is not a failure of the source.        |
+| Archive save failed | The Internet Archive refused, or returned no snapshot address               | Informational. Usually transient. Retried next week.                                                                        |
+| Moved               | The final host differs                                                      | Informational. Update the stored link when convenient.                                                                      |
+| Archived this run   | A new snapshot was saved                                                    | Informational.                                                                                                              |
+
+After the first run, review the Could not verify list by hand. The HBK release notes answer 403 to bots, so expect it there.
+
+A HEAD request is tried first. Any HEAD answer of 400 or above (or 405, 501) is repeated as a GET and the verdict comes from the GET.
 
 ## The issue
 
-| Situation                                 | Action                                                    |
-| ----------------------------------------- | --------------------------------------------------------- |
-| Problems and no open issue                | Create it                                                 |
-| Same problems as last week                | Update the description only                               |
-| Problems changed                          | Update the description and comment                        |
-| Clean and an open issue                   | Comment and close                                         |
-| Database read failed, or no sources found | Change nothing, and the run fails so the owner is emailed |
+| Situation                                               | Action                                                    |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| A broken source and no open issue                       | Create it                                                 |
+| Same entries as last week                               | Update the description only                               |
+| Any entry changed (including informational ones)        | Update the description and comment                        |
+| No broken source and an open issue                      | Comment and close                                         |
+| Database read failed, empty tables, or no sources found | Change nothing, and the run fails so the owner is emailed |
 
-The `links` label must exist (it does). The workflow token has `contents: read` and `issues: write` only, and no label rights.
+The `links` label is created up front so no run creates it. The workflow token has `contents: read` and `issues: write` only.
+
+If the second call of an update with a comment, or of a comment and close, fails, a comment can be skipped or repeated on the next run. That is harmless.
 
 ## Running it locally
 
@@ -42,8 +51,15 @@ SUPABASE_URL=... SUPABASE_KEY=<publishable key> node scripts/check-source-links.
 
 ## Limits to know
 
-- The Internet Archive's official Save Page Now 2 document says the API needs an account key and gives anonymous limits (6 concurrent, 4,000 a day, 10 saves of one URL a day). The checker uses the plain anonymous `GET /save/<url>`, spaced far below those limits. If the Archive refuses anonymous saves, the issue lists them under "Archive save failed" and nothing else breaks.
+- The official SPN2 public API document (<https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA>, updated 2026-07-22) allows anonymous use, with lower limits: 3 captures a minute, 200 a day, and 5 a day for one URL (its error table says 10). A capture may take up to 50 seconds of page time and 2 minutes in total. The checker saves 25 seconds apart (under 3 a minute), at most 10 a run.
+- The checker uses the plain `GET /save/<url>` and reads the snapshot address from the `Content-Location` header (or a `rel="memento"` Link header, or the final URL). The document shows the GET form with cookies; reading the address that way is observed behaviour, used by palewire/savepagenow, and is not part of the published API. The first manual `workflow_dispatch` run is the evidence that it works anonymously. A refusal only lands under "Archive save failed" and breaks nothing else.
+- The Internet Archive terms of use page (<https://archive.org/about/terms.php>) could not be read when this was built, so the terms were not checked.
+- A run can take up to about 25 minutes if every save is slow, so the job allows 60 minutes.
 - GitHub disables scheduled workflows on a public repository after 60 days without activity. Re-enable it from the Actions tab.
+
+## Pausing and removing it
+
+Pause: disable the workflow in the Actions tab. Remove: delete `.github/workflows/source-links.yml` and `scripts/source-links-workflow.test.ts` (and the script and its tests if the checker is dropped altogether), then close the open issue by hand.
 
 ## Tests
 

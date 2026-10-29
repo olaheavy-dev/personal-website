@@ -1,15 +1,18 @@
 import { checkText } from "./check-dashes.mjs";
 import {
-  ARCHIVE_GAP_MS,
+  archiveClaims,
+  checkOne,
   classifyError,
   classifyResponse,
   collectSources,
   containsPhrase,
   createHostThrottle,
   digestOf,
+  findIssue,
   planIssueAction,
   renderIssueBody,
   retryDelay,
+  saveSnapshot,
   shouldArchive,
   type Report,
   type Result,
@@ -39,6 +42,12 @@ describe("classifyResponse", () => {
       });
     }
   });
+  it("treats only 500 to 599 as the broken server range", () => {
+    expect(classifyResponse({ status: 599, url: "https://a.com/x", lastAttempt: true }).state).toBe("broken");
+    expect(classifyResponse({ status: 999, url: "https://a.com/x", lastAttempt: true }).state).toBe(
+      "unverified",
+    );
+  });
   it("treats a 5xx as broken only after the last attempt (A1)", () => {
     expect(classifyResponse({ status: 503, url: "https://a.com/x" })).toMatchObject({
       state: "broken",
@@ -50,7 +59,7 @@ describe("classifyResponse", () => {
     });
   });
   it("treats 401, 403, 429 and other 4xx as could not verify (A2)", () => {
-    for (const status of [401, 403, 429, 418]) {
+    for (const status of [401, 403, 429, 418, 999]) {
       expect(classifyResponse({ status, url: "https://a.com/x", lastAttempt: true })).toMatchObject({
         state: "unverified",
         retry: false,
@@ -148,9 +157,6 @@ describe("shouldArchive (A5)", () => {
   });
   it("saves again when the snapshot is old", () => {
     expect(shouldArchive({ kind: "claim", snapshotTimestamp: "20240101000000", now })).toBe(true);
-  });
-  it("spaces saves 25 s apart", () => {
-    expect(ARCHIVE_GAP_MS).toBe(25000);
   });
 });
 
@@ -269,11 +275,194 @@ describe("planIssueAction (A6, A7)", () => {
   it.each(rows)("%s", (_name, input, action) => {
     expect(planIssueAction(input).action).toBe(action);
   });
-  it("counts a failed archive save as a problem but never as broken", () => {
-    const r = report([result({ url: "https://a.example/ok" })], {
-      archiveFailures: [{ url: "https://a.example/ok", reason: "x" }],
-    });
-    expect(planIssueAction({ existing: null, report: r }).action).toBe("create");
+  it("does not open an issue for could not verify, a failed archive save or a moved link", () => {
+    const r = report(
+      [
+        result({ url: "https://a.example/ok", movedTo: "https://b.example/" }),
+        result({ url: "https://c.example/x", state: "unverified", reason: "HTTP 403" }),
+      ],
+      { archiveFailures: [{ url: "https://a.example/ok", reason: "x" }] },
+    );
+    expect(planIssueAction({ existing: null, report: r }).action).toBe("none");
     expect(renderIssueBody(r)).not.toContain("## Broken");
+  });
+  it("closes an open issue when only informational entries remain", () => {
+    const r = report([result({ url: "https://c.example/x", state: "unverified", reason: "HTTP 403" })]);
+    expect(planIssueAction({ existing: { number: 7, body: "" }, report: r }).action).toBe("comment_close");
+  });
+  it("comments when an informational entry changes while the issue stays open", () => {
+    const before = report([broken.results[0]!, result({ url: "https://c.example/x" })]);
+    const after = report([
+      broken.results[0]!,
+      result({ url: "https://c.example/x", state: "unverified", reason: "HTTP 403" }),
+    ]);
+    const body = `<!-- source-links-digest: ${digestOf(before)} -->`;
+    expect(planIssueAction({ existing: { number: 7, body }, report: after }).action).toBe("update_comment");
+  });
+});
+
+type Handler = (url: string, init: RequestInit) => Response | Promise<Response>;
+const stub = (handler: Handler) => {
+  const calls: { url: string; method: string }[] = [];
+  const fetchImpl = (async (input: string | URL | Request, init: RequestInit = {}) => {
+    const url = String(input);
+    calls.push({ url, method: init.method ?? "GET" });
+    return handler(url, init);
+  }) as typeof fetch;
+  return { fetchImpl, calls };
+};
+const withUrl = (res: Response, url: string) => Object.defineProperty(res, "url", { value: url });
+const source = { url: "https://a.example/page", kind: "claim" as const, usages: [] };
+const recorder = () => {
+  const slept: number[] = [];
+  return { slept, sleep: async (ms: number) => void slept.push(ms) };
+};
+
+describe("checkOne behaviour (A1 to A3)", () => {
+  it("503, 503, 200 is ok after sleeps of 2000 and 8000", async () => {
+    const answers = [503, 503, 200];
+    let current = 0;
+    const { fetchImpl } = stub((_u, init) => {
+      if (init.method === "HEAD") current = answers.shift()!;
+      return new Response(null, { status: current });
+    });
+    const { slept, sleep } = recorder();
+    const r = await checkOne(source, { fetchImpl, sleep });
+    expect(r.state).toBe("ok");
+    expect(slept).toEqual([2000, 8000]);
+  });
+  it("three 503 answers are broken", async () => {
+    const { fetchImpl } = stub(() => new Response(null, { status: 503 }));
+    const { sleep } = recorder();
+    expect((await checkOne(source, { fetchImpl, sleep })).state).toBe("broken");
+  });
+  it("429 with Retry-After 5 sleeps 5000", async () => {
+    const { fetchImpl } = stub(() => new Response(null, { status: 429, headers: { "retry-after": "5" } }));
+    const { slept, sleep } = recorder();
+    const r = await checkOne(source, { fetchImpl, sleep });
+    expect(slept).toEqual([5000, 5000]);
+    expect(r.state).toBe("unverified");
+  });
+  it("HEAD 405 then GET 200 is ok", async () => {
+    const { fetchImpl, calls } = stub(
+      (_u, init) => new Response(null, { status: init.method === "HEAD" ? 405 : 200 }),
+    );
+    const r = await checkOne(source, { fetchImpl, sleep: recorder().sleep });
+    expect(r.state).toBe("ok");
+    expect(calls.map((c) => c.method)).toEqual(["HEAD", "GET"]);
+  });
+  it("HEAD 404 then GET 200 is ok, and HEAD 404 then GET 404 is broken", async () => {
+    const ok = stub((_u, init) => new Response(null, { status: init.method === "HEAD" ? 404 : 200 }));
+    expect((await checkOne(source, { fetchImpl: ok.fetchImpl, sleep: recorder().sleep })).state).toBe("ok");
+    const gone = stub(() => new Response(null, { status: 404 }));
+    expect((await checkOne(source, { fetchImpl: gone.fetchImpl, sleep: recorder().sleep })).state).toBe(
+      "broken",
+    );
+  });
+  it("notes a redirect to another host", async () => {
+    const { fetchImpl } = stub(() => withUrl(new Response(null, { status: 200 }), "https://b.example/new"));
+    expect((await checkOne(source, { fetchImpl, sleep: recorder().sleep })).movedTo).toBe(
+      "https://b.example/new",
+    );
+  });
+});
+
+describe("archiveClaims behaviour (A5, A6, P3-5)", () => {
+  const snapshotUrl = "https://web.archive.org/web/20261102000000/https://a.example/";
+  const available = (closest: unknown) =>
+    new Response(JSON.stringify({ archived_snapshots: closest ? { closest } : {} }));
+  const saved = () =>
+    new Response("", {
+      status: 200,
+      headers: { "content-location": "/web/20261102000000/https://a.example/" },
+    });
+  const claims = (n: number) =>
+    Array.from(
+      { length: n },
+      (_, i) => ({ ...source, url: `https://a${i}.example/`, state: "ok" as const }) as unknown as Result,
+    );
+
+  it("saves the first at once, waits 25000 before the second, and skips the eleventh", async () => {
+    const { fetchImpl, calls } = stub((url) =>
+      url.includes("/wayback/available") ? available(null) : saved(),
+    );
+    const { slept, sleep } = recorder();
+    const out = await archiveClaims(claims(11), { fetchImpl, sleep });
+    expect(out.archived).toHaveLength(10);
+    expect(slept).toEqual(Array(9).fill(25000));
+    expect(calls.filter((c) => c.url.includes("web.archive.org/save/"))).toHaveLength(10);
+    expect(out.archived[0]!.snapshotUrl).toBe(snapshotUrl);
+  });
+  it("skips a source with a recent usable snapshot, and saves when the snapshot is not usable", async () => {
+    const recent = { available: true, status: "200", timestamp: "20991231000000", url: "x" };
+    const first = stub((url) => (url.includes("/wayback/available") ? available(recent) : saved()));
+    expect(
+      (await archiveClaims(claims(1), { fetchImpl: first.fetchImpl, sleep: recorder().sleep })).archived,
+    ).toHaveLength(0);
+    for (const bad of [
+      { ...recent, available: false },
+      { ...recent, status: "404" },
+    ]) {
+      const s = stub((url) => (url.includes("/wayback/available") ? available(bad) : saved()));
+      expect(
+        (await archiveClaims(claims(1), { fetchImpl: s.fetchImpl, sleep: recorder().sleep })).archived,
+      ).toHaveLength(1);
+    }
+  });
+  it("reports a 200 save without a snapshot address as an archive failure", async () => {
+    const { fetchImpl } = stub((url) =>
+      url.includes("/wayback/available") ? available(null) : new Response("", { status: 200 }),
+    );
+    const out = await archiveClaims(claims(1), { fetchImpl, sleep: recorder().sleep });
+    expect(out.archived).toEqual([]);
+    expect(out.archiveFailures).toHaveLength(1);
+  });
+  it("reads the address from a memento Link header", async () => {
+    const { fetchImpl } = stub(
+      () =>
+        new Response("", {
+          status: 200,
+          headers: { link: '<https://web.archive.org/web/20261102000000/https://a.example/>; rel="memento"' },
+        }),
+    );
+    expect(await saveSnapshot("https://a.example/", fetchImpl)).toBe(snapshotUrl);
+  });
+  it("never saves broken sources or own properties", async () => {
+    const { fetchImpl, calls } = stub(() => available(null));
+    const rows = [
+      { ...claims(1)[0]!, state: "broken" as const },
+      { ...claims(1)[0]!, kind: "own" as const },
+    ];
+    await archiveClaims(rows, { fetchImpl, sleep: recorder().sleep });
+    expect(calls).toEqual([]);
+  });
+});
+
+describe("findIssue (A7)", () => {
+  const prior = process.env.GITHUB_REPOSITORY;
+  beforeAll(() => void (process.env.GITHUB_REPOSITORY = "o/r"));
+  afterAll(() => void (process.env.GITHUB_REPOSITORY = prior));
+  const list = (items: unknown[]) => stub(() => new Response(JSON.stringify(items)));
+  it("ignores pull requests and needs the exact title", async () => {
+    const { fetchImpl, calls } = list([
+      { number: 1, title: "Source links: weekly check", pull_request: {} },
+      { number: 2, title: "Source links: weekly check (copy)" },
+      { number: 3, title: "Source links: weekly check" },
+    ]);
+    expect((await findIssue(fetchImpl))?.number).toBe(3);
+    expect(calls[0]!.url).toContain("labels=links");
+    expect(calls[0]!.url).toContain("state=open");
+  });
+  it("returns null when nothing matches", async () => {
+    expect(await findIssue(list([{ number: 2, title: "Other" }]).fetchImpl)).toBeNull();
+  });
+});
+
+describe("renderIssueBody links", () => {
+  it("wraps third party URLs in angle brackets", () => {
+    const body = renderIssueBody(
+      report([result({ url: "https://a.example/gone", state: "broken", reason: "HTTP 404" })]),
+    );
+    expect(body).toContain("<https://a.example/gone>");
   });
 });

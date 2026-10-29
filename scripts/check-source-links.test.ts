@@ -336,6 +336,40 @@ describe("checkOne behaviour (A1 to A3)", () => {
     const { sleep } = recorder();
     expect((await checkOne(source, { fetchImpl, sleep })).state).toBe("broken");
   });
+  const sequence = (answers: (number | Error)[]) =>
+    stub(() => {
+      const next = answers.shift()!;
+      if (next instanceof Error) throw next;
+      return new Response(null, { status: next });
+    });
+  const dns = () => Object.assign(new TypeError("fetch failed"), { cause: { code: "ENOTFOUND" } });
+  const timeout = () => Object.assign(new Error("t"), { name: "TimeoutError" });
+  it("429, 429, then 503 is could not verify, because the 5xx did not happen on every attempt", async () => {
+    // HEAD 503 falls back to GET, so the last attempt answers 503 twice.
+    const { fetchImpl } = sequence([429, 429, 503, 503]);
+    const r = await checkOne(source, { fetchImpl, sleep: recorder().sleep });
+    expect(r.state).toBe("unverified");
+    expect(r.reason).toBe("mixed failures: HTTP 429, HTTP 429, HTTP 503");
+  });
+  it("a timeout then two DNS failures is could not verify, and three DNS failures are broken", async () => {
+    const mixed = sequence([timeout(), dns(), dns()]);
+    expect((await checkOne(source, { fetchImpl: mixed.fetchImpl, sleep: recorder().sleep })).state).toBe(
+      "unverified",
+    );
+    const gone = sequence([dns(), dns(), dns()]);
+    expect((await checkOne(source, { fetchImpl: gone.fetchImpl, sleep: recorder().sleep })).state).toBe(
+      "broken",
+    );
+  });
+  it("503, then a DNS failure, then 503 is broken, since every attempt failed", async () => {
+    const { fetchImpl } = sequence([503, 503, dns(), 503, 503]);
+    expect((await checkOne(source, { fetchImpl, sleep: recorder().sleep })).state).toBe("broken");
+  });
+  it("429 then 404 is broken, because 404 is final at once", async () => {
+    const { fetchImpl } = sequence([429, 404, 404]);
+    const r = await checkOne(source, { fetchImpl, sleep: recorder().sleep });
+    expect(r).toMatchObject({ state: "broken", reason: "HTTP 404" });
+  });
   it("429 with Retry-After 5 sleeps 5000 (HEAD only)", async () => {
     const { fetchImpl } = stub(() => new Response(null, { status: 429, headers: { "retry-after": "5" } }));
     const { slept, sleep } = recorder();
@@ -478,6 +512,21 @@ describe("renderIssueBody links", () => {
 });
 
 describe("digest", () => {
+  it("changes when a moved link's destination or an entry's reason changes, not when the date does", () => {
+    const moved = (to: string) => report([result({ url: "https://a.example/ok", movedTo: to })]);
+    expect(digestOf(moved("https://b.example/"))).not.toBe(digestOf(moved("https://c.example/")));
+    const failing = (reason: string) =>
+      report([result({ url: "https://a.example/x", state: "unverified", reason })]);
+    expect(digestOf(failing("HTTP 403"))).not.toBe(digestOf(failing("HTTP 429")));
+    const failedSave = (reason: string) =>
+      report([result({ url: "https://a.example/ok" })], {
+        archiveFailures: [{ url: "https://a.example/ok", reason }],
+      });
+    expect(digestOf(failedSave("HTTP 520"))).not.toBe(digestOf(failedSave("timed out")));
+    expect(digestOf({ ...moved("https://b.example/"), date: "2026-11-09" })).toBe(
+      digestOf(moved("https://b.example/")),
+    );
+  });
   it("ignores a newly archived copy but not a failed save", () => {
     const base = report([result({ url: "https://a.example/ok" })]);
     const archived = {

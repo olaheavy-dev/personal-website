@@ -15,13 +15,13 @@ Every external source the site shows must stay valid (claims policy, decision 00
 
 Only **Broken** opens, or keeps open, the issue. The other sections are informational: they appear in the issue body while it is open, and always in the run's job summary.
 
-| Result              | When                                                                        | What to do                                                                                                                  |
-| ------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Broken              | 404, 410, DNS failure, or a 5xx (500 to 599) on every attempt               | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration. |
-| Could not verify    | 401, 403, 429, other 4xx, unusual codes such as 999, or errors that persist | Informational. Open the link by hand. Many publishers block automated requests; this is not a failure of the source.        |
-| Archive save failed | The Internet Archive refused, or returned no snapshot address               | Informational. Usually transient. Retried next week.                                                                        |
-| Moved               | The final host differs                                                      | Informational. Update the stored link when convenient.                                                                      |
-| Archived this run   | A new snapshot was saved                                                    | Informational.                                                                                                              |
+| Result              | When                                                                                                             | What to do                                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Broken              | 404 or 410, or a DNS failure or 5xx (500 to 599) on every attempt                                                | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration. |
+| Could not verify    | 401, 403, 429, other 4xx, unusual codes such as 999, errors that persist, or mixed attempts (429, 429, then 503) | Informational. Open the link by hand. Many publishers block automated requests; this is not a failure of the source.        |
+| Archive save failed | The Internet Archive refused, or returned no snapshot address                                                    | Informational. Usually transient. Retried next week.                                                                        |
+| Moved               | The final host differs                                                                                           | Informational. Update the stored link when convenient.                                                                      |
+| Archived this run   | A new snapshot was saved                                                                                         | Informational.                                                                                                              |
 
 After the first run, review the Could not verify list by hand. The HBK release notes answer 403 to bots, so expect it there.
 
@@ -29,13 +29,13 @@ A HEAD request is tried first. Any HEAD answer of 400 or above (or 405, 501) is 
 
 ## The issue
 
-| Situation                                                                                                   | Action                                                    |
-| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| A broken source and no open issue                                                                           | Create it                                                 |
-| Same entries as last week                                                                                   | Update the description only                               |
-| Any entry changed (broken, could not verify, moved or archive failed; a newly archived copy does not count) | Update the description and comment                        |
-| No broken source and an open issue                                                                          | Comment and close                                         |
-| Database read failed, empty tables, or no sources found                                                     | Change nothing, and the run fails so the owner is emailed |
+| Situation                                                                                                                                            | Action                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| A broken source and no open issue                                                                                                                    | Create it                                                 |
+| Same entries as last week                                                                                                                            | Update the description only                               |
+| Any entry changed (broken, could not verify, moved or archive failed, including its reason or new destination; a newly archived copy does not count) | Update the description and comment                        |
+| No broken source and an open issue                                                                                                                   | Comment and close                                         |
+| Database read failed, empty tables, or no sources found                                                                                              | Change nothing, and the run fails so the owner is emailed |
 
 The `links` label is created up front so no run creates it. The workflow token has `contents: read` and `issues: write` only.
 

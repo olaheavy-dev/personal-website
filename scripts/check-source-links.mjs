@@ -6,8 +6,9 @@
 // It never writes to the database.
 //
 // Classification:
-//   broken            404, 410, DNS failure, or a 5xx on every attempt within the run
-//   could not verify  401, 403, 429, other 4xx, unusual codes, and errors that persist after retries
+//   broken            404 or 410, or a DNS failure or 5xx on every attempt within the run
+//   could not verify  401, 403, 429, other 4xx, unusual codes, errors that persist after retries,
+//                     and mixed attempts (for example 429, 429, then 503)
 //   moved             the final host differs (a note only, never a problem)
 // Only "broken" opens (or keeps open) the issue. The other sections are informational.
 //
@@ -227,14 +228,16 @@ export function shouldArchive({ kind, storedArchiveUrl, snapshotTimestamp, now =
 
 const where = (usage) => `${usage.owner.name} (${usage.owner.type}), ${usage.label}`;
 
-// Everything the issue body lists, so any change while an issue is open earns a comment.
+// Everything the issue body lists (state, URL, reason and new destination), so any change while an
+// issue is open earns a comment. The run date and newly archived copies are left out on purpose.
 function digestLines(report) {
   const lines = [];
+  const tail = (r) => `${r.reason}${r.movedTo ? ` now at ${r.movedTo}` : ""}`;
   for (const r of report.results) {
-    if (r.state === "broken" || r.state === "unverified") lines.push(`${r.state} ${r.url}`);
-    else if (r.movedTo) lines.push(`moved ${r.url}`);
+    if (r.state === "broken" || r.state === "unverified") lines.push(`${r.state} ${r.url} ${tail(r)}`);
+    else if (r.movedTo) lines.push(`moved ${r.url} ${tail(r)}`);
   }
-  for (const a of report.archiveFailures ?? []) lines.push(`archive-failed ${a.url}`);
+  for (const a of report.archiveFailures ?? []) lines.push(`archive-failed ${a.url} ${a.reason}`);
   return lines.sort();
 }
 
@@ -352,9 +355,14 @@ export async function checkOne(source, { throttle, sleep = defaultSleep, fetchIm
   const maxAttempts = 3;
   const headers = { "user-agent": USER_AGENT };
   let verdict;
+  // 404 and 410 are final at once. A 5xx or DNS failure is broken only when every attempt failed
+  // that way, so a rate limit or timeout on an earlier attempt makes the result "could not verify".
+  let definitive = false;
+  const attempts = [];
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const lastAttempt = attempt === maxAttempts;
     let retryAfter = null;
+    definitive = false;
     await throttle?.wait(source.url);
     try {
       let res = await fetchImpl(source.url, {
@@ -375,11 +383,20 @@ export async function checkOne(source, { throttle, sleep = defaultSleep, fetchIm
       }
       retryAfter = res.headers.get("retry-after");
       verdict = classifyResponse({ status: res.status, url: source.url, finalUrl: res.url, lastAttempt });
+      definitive = res.status === 404 || res.status === 410;
     } catch (error) {
       verdict = classifyError(error, { lastAttempt });
     }
+    attempts.push(verdict);
     if (!verdict.retry) break;
     await sleep(retryDelay(attempt, retryAfter));
+  }
+  if (verdict.state === "broken" && !definitive && attempts.some((v) => v.state !== "broken")) {
+    verdict = {
+      ...verdict,
+      state: "unverified",
+      reason: `mixed failures: ${attempts.map((v) => v.reason).join(", ")}`,
+    };
   }
   return { ...source, ...verdict };
 }

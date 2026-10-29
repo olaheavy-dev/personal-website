@@ -24,6 +24,14 @@ const allowedLinks = new Set([
   "https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",
   "https://businesspost.ng/2019/08/14/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
   "https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
+  // Internet Archive copies of the sources above (issue #127).
+  "https://web.archive.org/web/20260825091438/https://play.google.com/store/apps/details?id=com.accessbankplc.quickbucks",
+  "https://web.archive.org/web/20260306171201/https://www.triple-a.io/newsroom/optty-partners-with-triple-a-to-expand-payment-architectures-into-digital-currencies",
+  "https://web.archive.org/web/20260614064147/https://galooli.com/case-studies/deep-dive-into-remote-site-energy-use/",
+  "https://web.archive.org/web/20250418013723/https://www.techzim.co.zw/2025/03/20years-mukuru-milestones-that-shaped-journey/",
+  "https://web.archive.org/web/20260218002429/https://www.hbkworld.com/en/products/support-resources/release-notes/advantage-insights",
+  "https://web.archive.org/web/20261029222411/https://businesspost.ng/banking/access-bank-boosts-lending-with-smartphone-device-financing-scheme/",
+  "https://web.archive.org/web/20261029213726/https://brandcom.ng/2023/05/24/access-bank-konga-partner-to-provide-installment-payments-through-pay-with-quickbucks/",
 ]);
 
 describe("supabase/seed.sql", () => {
@@ -272,5 +280,18 @@ describe("supabase/seed.sql", () => {
     );
     expect([...flags.matchAll(/'on'\)/g)]).toHaveLength(1);
     expect(flags).toContain("('page.home', 'on')");
+  });
+
+  it("holds the source phrase statements of the 29 Oct content migration word for word", () => {
+    const migrationFile = "supabase/migrations/20261029150000_source_phrases_content.sql";
+    expect(existsSync(migrationFile), `${migrationFile} must exist (renamed? update this path)`).toBe(true);
+    const migration = readFileSync(migrationFile, "utf8");
+    const statements = migration.split("\n").filter((line) => line.startsWith("update public."));
+    expect(statements).toHaveLength(7);
+    for (const statement of statements) expect(code).toContain(statement);
+    // No broken day is set anywhere, and the HBK outcome gets no phrase.
+    expect(migration).not.toContain("broken_on");
+    expect(migration).not.toContain("source_broken_on");
+    expect(statements.filter((line) => line.includes("'hbk'"))[0]).not.toContain("source_phrase");
   });
 });

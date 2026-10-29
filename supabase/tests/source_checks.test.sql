@@ -10,8 +10,16 @@ select col_is_null('public', 'outcomes', 'source_phrase', 'source_phrase is null
 select col_is_null('public', 'outcomes', 'source_archive_url', 'source_archive_url is nullable');
 select col_is_null('public', 'outcomes', 'source_broken_on', 'source_broken_on is nullable');
 select ok(
+  has_column_privilege('anon', 'public.outcomes', 'source_phrase', 'select'),
+  'anon can read the phrase'
+);
+select ok(
   has_column_privilege('anon', 'public.outcomes', 'source_archive_url', 'select'),
   'anon can read the archive address'
+);
+select ok(
+  has_column_privilege('anon', 'public.outcomes', 'source_broken_on', 'select'),
+  'anon can read the broken day'
 );
 
 -- Outcomes: a link source takes the three values.
@@ -23,6 +31,10 @@ select lives_ok(
 select throws_ok(
   $$update public.outcomes set source_phrase = '  ' where id = (select id from public.outcomes where source_kind = 'link' limit 1)$$,
   '23514', null, 'a blank phrase is rejected'
+);
+select throws_ok(
+  $$update public.outcomes set source_phrase = E' \t\n' where id = (select id from public.outcomes where source_kind = 'link' limit 1)$$,
+  '23514', null, 'a phrase of only white space is rejected'
 );
 select throws_ok(
   $$update public.outcomes set source_archive_url = 'https://example.com/x' where id = (select id from public.outcomes where source_kind = 'link' limit 1)$$,
@@ -63,6 +75,10 @@ select lives_ok(
 select throws_ok(
   $$update public.stops set detail_sources = '[{"label": "A", "url": "https://example.com/a", "phrase": "  "}]' where slug = 'hbk'$$,
   '23514', null, 'a blank phrase is rejected'
+);
+select throws_ok(
+  $$update public.stops set detail_sources = '[{"label": "A", "url": "https://example.com/a", "phrase": " \t "}]' where slug = 'hbk'$$,
+  '23514', null, 'a phrase of only white space is rejected'
 );
 select throws_ok(
   $$update public.stops set detail_sources = '[{"label": "A", "url": "https://example.com/a", "phrase": 3}]' where slug = 'hbk'$$,

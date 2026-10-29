@@ -64,20 +64,23 @@ function mapOutcomes(rows: Row<"outcomes">[]): Result<Outcome[]> {
   return success(outcomes);
 }
 
-// `phrase` is read by the source link checker only; it is accepted here and left out of the site type.
+// `phrase` is read by the source link checker only. The checker's keys are tolerant (`.catch`): a bad
+// value is dropped, never a reason to take a page down. The database constraints already refuse them.
 const detailSourcesSchema = z.array(
   z.object({
     label: z.string().min(1),
     url: z.string().regex(/^https:\/\/.+/),
-    phrase: z.string().optional(),
+    phrase: z.unknown().optional(),
     archive_url: z
       .string()
       .regex(/^https:\/\/web\.archive\.org\/web\/[0-9]{14}\/https:\/\//)
-      .optional(),
+      .optional()
+      .catch(undefined),
     broken_on: z
       .string()
       .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
-      .optional(),
+      .optional()
+      .catch(undefined),
   }),
 );
 

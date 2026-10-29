@@ -66,6 +66,7 @@ export function createHostThrottle(options?: {
   sleep?: (ms: number) => Promise<void>;
 }): { wait(url: string): Promise<void> };
 export function isCheckableContentType(contentType: string | null | undefined): boolean;
+export function needsPhraseCheck(result: { state: string; kind: string; phrases?: string[] }): boolean;
 export function checkPhrases(
   source: Source,
   options?: {

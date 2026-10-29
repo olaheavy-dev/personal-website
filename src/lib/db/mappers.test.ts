@@ -160,16 +160,17 @@ describe("mapStop", () => {
     expect(result.ok && result.data.detailSources[0]).not.toHaveProperty("phrase");
   });
 
-  it("fails on a malformed archive_url or broken_on", () => {
+  it("drops a malformed phrase, archive_url or broken_on instead of failing the page", () => {
     for (const bad of [
+      { phrase: 3 },
       { archive_url: "https://example.com/a" },
       { archive_url: 3 },
       { broken_on: "yesterday" },
     ]) {
       const sources = [{ label: "A", url: "https://example.com/a", ...bad }];
       expect(mapStop(stopRow({ detail_sources: sources }))).toMatchObject({
-        ok: false,
-        reason: "invalid_data",
+        ok: true,
+        data: { detailSources: [{ label: "A", url: "https://example.com/a" }] },
       });
     }
   });

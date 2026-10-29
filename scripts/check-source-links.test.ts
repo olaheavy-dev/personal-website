@@ -8,6 +8,7 @@ import {
   describeError,
   errorCode,
   isCheckableContentType,
+  needsPhraseCheck,
   isOwnUrl,
   collectSources,
   containsPhrase,
@@ -814,7 +815,7 @@ describe("collectSources phrases and stored archive copies", () => {
   const sources = collectSources(rows);
   it("gathers distinct phrases and the stored archive copy per URL", () => {
     const a = sources.find((s) => s.url === "https://news.example/a");
-    expect(a?.phrases).toEqual(["smartphone financing", "device financing"].sort().reverse());
+    expect(a?.phrases).toEqual(["smartphone financing", "device financing"]);
     expect(a?.archiveUrl).toBe(archive);
     expect(sources.find((s) => s.url === "https://news.example/b")).toMatchObject({
       phrases: [],
@@ -924,5 +925,17 @@ describe("archiveClaims with a stored archive copy", () => {
     const out = await archiveClaims([row], { fetchImpl, sleep: recorder().sleep, log: () => {} });
     expect(calls).toEqual([]);
     expect(out.skipped).toEqual([{ url: source.url, reason: "archive copy stored" }]);
+  });
+});
+
+describe("needsPhraseCheck", () => {
+  const base = { state: "ok", kind: "claim", phrases: ["a phrase"] };
+  it("is true only for a claim source that passed the status check and has a phrase", () => {
+    expect(needsPhraseCheck(base)).toBe(true);
+    expect(needsPhraseCheck({ ...base, state: "broken" })).toBe(false);
+    expect(needsPhraseCheck({ ...base, state: "unverified" })).toBe(false);
+    expect(needsPhraseCheck({ ...base, kind: "own" })).toBe(false);
+    expect(needsPhraseCheck({ ...base, phrases: [] })).toBe(false);
+    expect(needsPhraseCheck({ state: "ok", kind: "claim" })).toBe(false);
   });
 });

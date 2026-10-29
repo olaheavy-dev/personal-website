@@ -7,10 +7,10 @@ select * from no_plan();
 -- Timestamps are left out: a re-run touches updated_at and recreates the outcome row.
 
 -- The later source_phrases_content migration adds phrases and archive copies; replaying this older
--- one resets them, so they are left out of the comparison (source_phrases_migration.test.sql covers them).
+-- one resets them, so they are left out of the comparison (per detail source item for stops) (source_phrases_migration.test.sql covers them).
 create temporary table before_content as
   select
-    (select coalesce(jsonb_agg(to_jsonb(s) - 'created_at' - 'updated_at' - 'detail_sources' order by s.slug), '[]') from public.stops s) as stops,
+    (select coalesce(jsonb_agg((to_jsonb(s) - 'created_at' - 'updated_at') || jsonb_build_object('detail_sources', (select coalesce(jsonb_agg(i - 'phrase' - 'archive_url' - 'broken_on' order by ord), '[]'::jsonb) from jsonb_array_elements(s.detail_sources) with ordinality as t(i, ord))) order by s.slug), '[]') from public.stops s) as stops,
     (select coalesce(jsonb_agg(to_jsonb(o) - 'id' - 'created_at' - 'updated_at' - 'source_phrase' - 'source_archive_url' order by o.figure, o.stop_id), '[]') from public.outcomes o) as outcomes;
 
 select is(
@@ -39,7 +39,7 @@ $$;
 
 select is(
   (select stops from before_content),
-  (select coalesce(jsonb_agg(to_jsonb(s) - 'created_at' - 'updated_at' - 'detail_sources' order by s.slug), '[]') from public.stops s),
+  (select coalesce(jsonb_agg((to_jsonb(s) - 'created_at' - 'updated_at') || jsonb_build_object('detail_sources', (select coalesce(jsonb_agg(i - 'phrase' - 'archive_url' - 'broken_on' order by ord), '[]'::jsonb) from jsonb_array_elements(s.detail_sources) with ordinality as t(i, ord))) order by s.slug), '[]') from public.stops s),
   'running the ticket details migration again leaves the stops unchanged'
 );
 

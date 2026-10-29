@@ -100,6 +100,8 @@ Content changes are migrations too (decision 0019), because the seed does not re
 2. Put the same values in `supabase/seed.sql`, so a local reset gives the same content.
 3. Add the new values to the word for word check in `scripts/check-seed.test.ts`. The pgTAP tests `supabase/tests/content_migration.test.sql` (26 Oct) and `supabase/tests/stops_role_migration.test.sql` (27 Oct roles) and `supabase/tests/work_copy_migration.test.sql` (27 Oct Work copy) and `supabase/tests/ticket_details_migration.test.sql` (27 Oct flagship details) replay a content migration on seeded data and check nothing changes; a new content migration needs the same replay (copy that test with the migration's name).
 
+A content migration that deletes and re-inserts a stop's outcomes starts those rows with no `source_phrase`, `source_archive_url` or `source_broken_on`: set them again in the insert (or use `update`), or the weekly source link checker loses the phrase and archive copy (`docs/source-links.md`).
+
 When the admin (#26, #27) ships, content migrations stop: content is edited in the admin, and migrations are for structure only.
 
 ## Pushing to the hosted project

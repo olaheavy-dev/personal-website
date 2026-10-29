@@ -297,6 +297,11 @@ async function readCapped(res, maxBytes = PHRASE_MAX_BYTES) {
   return text + decoder.decode();
 }
 
+/** True when a source's phrases should be looked for: a claim source whose status check passed and which has a phrase. */
+export function needsPhraseCheck(result) {
+  return result.state === "ok" && result.kind === "claim" && (result.phrases?.length ?? 0) > 0;
+}
+
 /**
  * Looks for each stored phrase in the live page (read only, one GET). The answer is
  * "found", "missing" (informational, never broken) or "not_checkable" (not text, an error status,
@@ -701,7 +706,7 @@ async function main() {
     for (const source of sources) {
       const result = await checkOne(source, { throttle, sleep });
       console.log(`${result.state.padEnd(10)} ${result.url} (${result.reason})`);
-      if (result.state === "ok" && result.kind === "claim" && result.phrases?.length) {
+      if (needsPhraseCheck(result)) {
         result.phrase = await checkPhrases(result, { throttle });
         console.log(
           `phrase ${result.phrase.status} ${result.url}${result.phrase.reason ? ` (${result.phrase.reason})` : ""}`,

@@ -39,7 +39,9 @@ Three optional values per claim source (migration `20261029140000_source_checks.
 | `outcomes` (link sources only) | `source_phrase`, `source_archive_url`, `source_broken_on` | A short verbatim phrase from the public page that supports the claim, the Internet Archive copy, and the day the live page was found broken |
 | `stops.detail_sources` items   | `phrase`, `archive_url`, `broken_on`                      | The same three, as optional keys of each item                                                                                               |
 
-Rules the database enforces: a phrase is not blank; an archive address looks like `https://web.archive.org/web/<14 digits>/https://...`; a broken day needs an archive address; an own measurement carries none of the three. The owner's own repositories and Lab links never get a phrase or an archive copy.
+Rules the database enforces: a phrase has at least one non space character; an archive address looks like `https://web.archive.org/web/<14 digits>/https://...`; a broken day needs an archive address; an own measurement (`source_kind = 'own'`) carries none of the three. The owner's own repositories and Lab links never get a phrase or an archive copy, but that is the checker's rule (it ignores them) and not something the database enforces.
+
+When a content migration deletes and re-inserts a stop's outcomes (as the 26 Oct Mukuru migration does), the new rows start with no phrase or archive copy. Set `source_phrase` and `source_archive_url` (and `source_broken_on` if it was set) again in the same migration, or change the rows with `update` instead.
 
 What the checker does with them:
 

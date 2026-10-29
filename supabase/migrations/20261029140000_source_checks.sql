@@ -18,7 +18,7 @@ alter table public.outcomes
 
 alter table public.outcomes
   add constraint outcomes_source_phrase_not_blank check (
-    source_phrase is null or btrim(source_phrase) <> ''
+    source_phrase is null or source_phrase ~ '\S'
   ),
   add constraint outcomes_source_archive_url_shape check (
     source_archive_url is null
@@ -32,10 +32,11 @@ alter table public.outcomes
     or (source_phrase is null and source_archive_url is null and source_broken_on is null)
   );
 
--- A stop's detail sources may also carry phrase, archive_url and broken_on (all optional). A
--- phrase is a non empty string; archive_url has the Internet Archive shape; broken_on is a
--- YYYY-MM-DD day and needs an archive_url. The Posix class [.] stands for a literal dot because a
--- backslash inside a jsonpath string is an escape. Every item must pass the filter.
+-- A stop's detail sources may also carry phrase, archive_url and broken_on (all optional).
+-- phrase is text with at least one non space character (the same rule as the outcomes column).
+-- archive_url has the Internet Archive shape. broken_on is a YYYY-MM-DD day and needs an
+-- archive_url. In a jsonpath string a backslash must be doubled (PostgreSQL 17, sections 8.14.7
+-- and 9.16.2.4), so the pattern is "\\S"; [.] stands for a literal dot. Every item must pass.
 alter table public.stops
   drop constraint if exists stops_detail_sources_shape;
 alter table public.stops
@@ -45,7 +46,7 @@ alter table public.stops
         jsonb_array_length(detail_sources) = jsonb_array_length(
           jsonb_path_query_array(
             detail_sources,
-            '$[*] ? (@.type() == "object" && @.label.type() == "string" && @.label != "" && @.url.type() == "string" && @.url like_regex "^https://.+" && (!exists(@.phrase) || (@.phrase.type() == "string" && @.phrase like_regex "[^ \t\r\n]")) && (!exists(@.archive_url) || (@.archive_url.type() == "string" && @.archive_url like_regex "^https://web[.]archive[.]org/web/[0-9]{14}/https://")) && (!exists(@.broken_on) || (@.broken_on.type() == "string" && @.broken_on like_regex "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" && exists(@.archive_url))))'
+            '$[*] ? (@.type() == "object" && @.label.type() == "string" && @.label != "" && @.url.type() == "string" && @.url like_regex "^https://.+" && (!exists(@.phrase) || (@.phrase.type() == "string" && @.phrase like_regex "\\S")) && (!exists(@.archive_url) || (@.archive_url.type() == "string" && @.archive_url like_regex "^https://web[.]archive[.]org/web/[0-9]{14}/https://")) && (!exists(@.broken_on) || (@.broken_on.type() == "string" && @.broken_on like_regex "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" && exists(@.archive_url))))'
           )
         )
       else false

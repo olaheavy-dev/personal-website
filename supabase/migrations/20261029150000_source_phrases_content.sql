@@ -3,6 +3,8 @@
 -- A phrase is a short verbatim quote from the public page that supports the claim; the weekly
 -- source link checker looks for it. HBK's release notes answer 403 to bots, so it has an archive
 -- copy and no phrase. No broken day is set anywhere, and nothing on the site shows these yet.
+-- Some archive copies are of a redirect target, not the stored URL: BusinessPost moved to /banking/,
+-- and Triple-A and Techzim are on their www hosts. Each was read and shows the claim.
 -- Safe to run again, and a no-op where the stop or the URL is absent: every statement is keyed by
 -- the stop slug and the exact source URL. supabase/seed.sql holds the same statements.
 

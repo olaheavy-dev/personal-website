@@ -3,13 +3,19 @@ export type Owner = { type: string; name: string; slug?: string };
 export type Usage = { owner: Owner; label: string };
 export type Source = { url: string; kind: "claim" | "own"; usages: Usage[] };
 export type State = "ok" | "broken" | "unverified";
-export type Verdict = { state: State; reason: string; retry: boolean; movedTo: string | null };
+export type Verdict = {
+  state: State;
+  reason: string;
+  reasonCode?: string;
+  retry: boolean;
+  movedTo: string | null;
+};
 export type Result = Source & Verdict;
 export type Report = {
   date: string;
   results: Result[];
   archived?: { url: string; snapshotUrl: string }[];
-  archiveFailures?: { url: string; reason: string }[];
+  archiveFailures?: { url: string; reason: string; reasonCode?: string }[];
 };
 export type Rows = {
   stops?: Record<string, unknown>[];
@@ -31,6 +37,7 @@ export function collectSources(
   staticSources?: { url: string; label: string; kind: "claim" | "own"; owner: Owner }[],
 ): Source[];
 export function isOwnUrl(url: string): boolean;
+export function errorCode(error: unknown): string;
 export function describeError(error: unknown): string;
 export function classifyResponse(input: {
   status: number;
@@ -83,8 +90,8 @@ export function archiveClaims(
   options?: { sleep?: (ms: number) => Promise<void>; fetchImpl?: FetchImpl; log?: (line: string) => void },
 ): Promise<{
   archived: { url: string; snapshotUrl: string }[];
-  archiveFailures: { url: string; reason: string }[];
-  skipped: { url: string; reason: string }[];
+  archiveFailures: { url: string; reason: string; reasonCode?: string }[];
+  skipped: { url: string; reason: string; reasonCode?: string }[];
 }>;
 export function findIssue(
   fetchImpl?: FetchImpl,

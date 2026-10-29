@@ -30,6 +30,8 @@ export function collectSources(
   rows: Rows,
   staticSources?: { url: string; label: string; kind: "claim" | "own"; owner: Owner }[],
 ): Source[];
+export function isOwnUrl(url: string): boolean;
+export function describeError(error: unknown): string;
 export function classifyResponse(input: {
   status: number;
   url: string;
@@ -78,10 +80,11 @@ export function latestSnapshot(
 export function saveSnapshot(url: string, fetchImpl?: FetchImpl): Promise<string>;
 export function archiveClaims(
   results: Result[],
-  options?: { sleep?: (ms: number) => Promise<void>; fetchImpl?: FetchImpl },
+  options?: { sleep?: (ms: number) => Promise<void>; fetchImpl?: FetchImpl; log?: (line: string) => void },
 ): Promise<{
   archived: { url: string; snapshotUrl: string }[];
   archiveFailures: { url: string; reason: string }[];
+  skipped: { url: string; reason: string }[];
 }>;
 export function findIssue(
   fetchImpl?: FetchImpl,

@@ -44,9 +44,24 @@ export const STATIC_SOURCES = [
 
 // ---------------------------------------------------------------- collecting
 
+/**
+ * The owner's own properties (decision 0005, approved question 7): their GitHub repositories and
+ * olaheavy.dev hosts. They are checked but never archived, wherever the link is used.
+ */
+export function isOwnUrl(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (host === "olaheavy.dev" || host.endsWith(".olaheavy.dev")) return true;
+    return host === "github.com" && /^\/olaheavy-dev(\/|$)/i.test(u.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function addUsage(map, url, kind, usage) {
   const entry = map.get(url) ?? { url, kind: "own", usages: [] };
-  if (kind === "claim") entry.kind = "claim";
+  if (kind === "claim" && !isOwnUrl(url)) entry.kind = "claim";
   const key = `${usage.owner.type}:${usage.owner.name}:${usage.label}`;
   if (!entry.usages.some((u) => `${u.owner.type}:${u.owner.name}:${u.label}` === key))
     entry.usages.push(usage);
@@ -80,7 +95,11 @@ export function collectSources(
         : lab
           ? { type: "lab project", name: lab.name, slug: lab.slug }
           : { type: "outcome", name: "unknown parent" };
-    addUsage(map, o.source_url, "claim", { owner, label: o.source_label || o.figure || "source" });
+    // An outcome on a Lab project points at the owner's own work, so it is never a claim source.
+    addUsage(map, o.source_url, lab ? "own" : "claim", {
+      owner,
+      label: o.source_label || o.figure || "source",
+    });
   }
   for (const s of stops) {
     for (const item of Array.isArray(s.detail_sources) ? s.detail_sources : []) {
@@ -135,6 +154,15 @@ export function classifyResponse({ status, url, finalUrl, lastAttempt = false })
 }
 
 /** What a failed request (no answer) means. DNS "not found" is broken; everything else is not verifiable. */
+/** The error with its underlying cause, so "fetch failed" shows why (for example ECONNRESET). */
+export function describeError(error) {
+  const message = error instanceof Error ? error.message : String(error ?? "failed");
+  const cause = error?.cause;
+  if (!cause) return message;
+  const detail = [cause.code ?? cause.name, cause.message].filter(Boolean).join(": ");
+  return detail && detail !== message ? `${message} (${detail})` : message;
+}
+
 export function classifyError(error, { lastAttempt = false } = {}) {
   const code = error?.cause?.code ?? error?.code ?? "";
   if (code === "ENOTFOUND")
@@ -142,7 +170,7 @@ export function classifyError(error, { lastAttempt = false } = {}) {
   const timedOut = error?.name === "TimeoutError" || error?.name === "AbortError";
   return {
     state: "unverified",
-    reason: timedOut ? "timed out" : code || "request failed",
+    reason: timedOut ? "timed out" : describeError(error),
     retry: !lastAttempt,
     movedTo: null,
   };
@@ -431,25 +459,55 @@ export async function saveSnapshot(url, fetchImpl = fetch) {
   return found;
 }
 
-/** Saves claim sources that have no recent snapshot: 25 s apart, at most 10 a run. */
-export async function archiveClaims(results, { sleep = defaultSleep, fetchImpl = fetch } = {}) {
+/**
+ * Saves claim sources that have no recent snapshot: 25 s apart, at most 10 a run. Every outcome
+ * is logged on one line, so the run log alone shows what happened.
+ */
+export async function archiveClaims(
+  results,
+  { sleep = defaultSleep, fetchImpl = fetch, log = console.log } = {},
+) {
   const archived = [];
   const archiveFailures = [];
+  const skipped = [];
+  const skip = (url, reason) => {
+    skipped.push({ url, reason });
+    log(`archive skipped ${url} (${reason})`);
+  };
   let saves = 0;
   for (const r of results) {
-    if (r.kind !== "claim" || r.state === "broken") continue;
-    if (saves >= MAX_ARCHIVE_PER_RUN) break;
+    if (r.kind !== "claim") {
+      skip(r.url, "own source");
+      continue;
+    }
+    if (r.state === "broken") {
+      skip(r.url, "broken");
+      continue;
+    }
+    if (saves >= MAX_ARCHIVE_PER_RUN) {
+      skip(r.url, "cap reached");
+      continue;
+    }
+    const started = Date.now();
     try {
       const snap = await latestSnapshot(r.url, fetchImpl);
-      if (!shouldArchive({ kind: r.kind, snapshotTimestamp: snap?.timestamp })) continue;
+      log(`availability ${r.url}: ${snap ? `${snap.timestamp} ${snap.url}` : "no usable snapshot"}`);
+      if (!shouldArchive({ kind: r.kind, snapshotTimestamp: snap?.timestamp })) {
+        skip(r.url, "recent snapshot");
+        continue;
+      }
       if (saves > 0) await sleep(ARCHIVE_GAP_MS);
       saves++;
-      archived.push({ url: r.url, snapshotUrl: await saveSnapshot(r.url, fetchImpl) });
+      const snapshotUrl = await saveSnapshot(r.url, fetchImpl);
+      archived.push({ url: r.url, snapshotUrl });
+      log(`archive saved ${r.url} -> ${snapshotUrl}`);
     } catch (error) {
-      archiveFailures.push({ url: r.url, reason: error instanceof Error ? error.message : "failed" });
+      const reason = describeError(error);
+      archiveFailures.push({ url: r.url, reason });
+      log(`archive failed ${r.url}: ${reason} after ${Date.now() - started} ms`);
     }
   }
-  return { archived, archiveFailures };
+  return { archived, archiveFailures, skipped };
 }
 
 async function github(path, init = {}, fetchImpl = fetch) {

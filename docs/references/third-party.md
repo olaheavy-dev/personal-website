@@ -47,6 +47,18 @@ Before using a package's API, read the official documentation for the **pinned**
 | docker/build-push-action         | v7.4.0                   |
 | docker/login-action              | v4.7.0                   |
 
+## Source link checker (issue #127)
+
+Node built-ins only (`fetch`, `AbortSignal.timeout`, `node:crypto`); no package added.
+
+| Item                                        | Pinned                                                 | Official documentation                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Node `fetch` (undici)                       | Node 24 (`.nvmrc`)                                     | https://nodejs.org/docs/latest-v24.x/api/globals.html#fetch                                               |
+| Wayback Availability API                    | n/a                                                    | https://archive.org/help/wayback_api.php                                                                  |
+| Wayback Save Page Now 2                     | n/a (the checker uses the anonymous `GET /save/<url>`) | https://web.archive.org/save                                                                              |
+| GitHub REST: issues                         | API version 2022-11-28                                 | https://docs.github.com/en/rest/issues/issues                                                             |
+| GitHub Actions `schedule` and `permissions` | n/a                                                    | https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule |
+
 ## Runtime image
 
 | Item                      | Pinned                                                                       | Official documentation                                                                      |

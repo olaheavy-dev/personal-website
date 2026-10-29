@@ -1,0 +1,45 @@
+# Weekly check that every public source the site cites still works (issue #127, decision 0005).
+# Reads the source URLs from the hosted database with the publishable key (public by design),
+# requests each politely, saves claim sources to the Internet Archive, and opens, updates or
+# closes one issue titled "Source links: weekly check" with the label `links`. It never writes
+# to the database. The `links` label is created up front so no run creates it.
+# GitHub disables scheduled workflows on a public repository after 60 days without activity;
+# re-enable it from the Actions tab, or run it by hand. Runbook: docs/source-links.md.
+name: Source links
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: source-links
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check the cited sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js (version from .nvmrc)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Check the links and update the issue
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/check-source-links.mjs

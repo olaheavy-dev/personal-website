@@ -25,6 +25,7 @@ AGENTS.md                the rulebook for how work is done (CLAUDE.md links to i
 | [Third-party references](references/third-party.md)                          | Pinned versions and official docs                                                      | Current |
 | [Deploy runbook](deploy.md)                                                  | How a merge reaches staging, rollback, local image checks                              | Current |
 | [Database](database.md)                                                      | Supabase schema, row level security, keys, readers, the flag webhook, owner steps      | Current |
+| [Source link checker](source-links.md)                                       | The weekly check of every cited source, its issue and how to read it                   | Current |
 | [Feature flags](flags.md)                                                    | Every flag, what it controls, its state and how to switch it                           | Current |
 | [AGENTS.md](../AGENTS.md)                                                    | Planning, building, reviewing, merging, dependencies                                   | Current |
 

@@ -9,6 +9,7 @@ import {
   errorCode,
   isCheckableContentType,
   needsPhraseCheck,
+  PHRASE_MAX_BYTES,
   isOwnUrl,
   collectSources,
   containsPhrase,
@@ -874,6 +875,47 @@ describe("checkPhrases (phrase present, missing, not checkable)", () => {
     expect(await checkPhrases(withPhrases("hello"), { fetchImpl: failing.fetchImpl })).toMatchObject({
       status: "not_checkable",
       reason: "boom",
+    });
+  });
+  // A page delivered in several chunks, as a real network response is, so the cap cuts between them.
+  const streamed = (...chunks: string[]) => {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+        controller.close();
+      },
+    });
+    return new Response(body, { status: 200, headers: { "content-type": "text/html" } });
+  };
+
+  it("is not checkable, never missing, when the page passes the cap and the phrase is after the cut", async () => {
+    const { fetchImpl } = stub(() =>
+      streamed("<p>" + " ".repeat(PHRASE_MAX_BYTES), "access bank boosts lending</p>"),
+    );
+    const out = await checkPhrases(withPhrases("access bank boosts lending"), { fetchImpl });
+    expect(out).toEqual({
+      status: "not_checkable",
+      reason: "page larger than 3 MiB, phrase not in the part read",
+      missing: [],
+    });
+  });
+  it("is found when the phrase is before the cut of a page past the cap", async () => {
+    const { fetchImpl } = stub(() => streamed("<p>access bank boosts lending</p>", " ".repeat(200), "more"));
+    const out = await checkPhrases(withPhrases("access bank boosts lending"), { fetchImpl, maxBytes: 64 });
+    expect(out).toMatchObject({ status: "found", missing: [] });
+  });
+  it("is still missing when a page under the cap does not contain the phrase", async () => {
+    const { fetchImpl } = stub(() => page("<p>hello world</p>"));
+    const out = await checkPhrases(withPhrases("goodbye"), { fetchImpl, maxBytes: 1024 });
+    expect(out).toMatchObject({ status: "missing", missing: ["goodbye"] });
+  });
+  it("names the cap in bytes when it is not a whole number of MiB", async () => {
+    const { fetchImpl } = stub(() => streamed("<p>hello</p>" + " ".repeat(200), "goodbye"));
+    const out = await checkPhrases(withPhrases("goodbye"), { fetchImpl, maxBytes: 64 });
+    expect(out).toMatchObject({
+      status: "not_checkable",
+      reason: "page larger than 64 bytes, phrase not in the part read",
     });
   });
   it("waits on the host throttle before the request", async () => {

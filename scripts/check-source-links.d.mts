@@ -72,8 +72,10 @@ export function checkPhrases(
   options?: {
     throttle?: { wait(url: string): Promise<void> };
     fetchImpl?: typeof fetch;
+    maxBytes?: number;
   },
 ): Promise<PhraseCheck | null>;
+export const PHRASE_MAX_BYTES: number;
 export function containsPhrase(html: string, phrase: string): boolean;
 export function shouldArchive(input: {
   kind: string;

@@ -276,25 +276,33 @@ export function isCheckableContentType(contentType) {
   return /^\s*(text\/html|text\/plain)\s*(;|$)/i.test(String(contentType ?? ""));
 }
 
-const PHRASE_MAX_BYTES = 3 * 1024 * 1024;
+const MIB = 1024 * 1024;
+export const PHRASE_MAX_BYTES = 3 * MIB;
+const formatCap = (bytes) => (bytes % MIB === 0 ? `${bytes / MIB} MiB` : `${bytes} bytes`);
 
+/**
+ * Reads at most `maxBytes` of the body. `truncated` is true when the read stopped at the cap,
+ * so an unfound phrase may sit in the unread remainder.
+ */
 async function readCapped(res, maxBytes = PHRASE_MAX_BYTES) {
-  if (!res.body) return await res.text();
+  if (!res.body) return { text: await res.text(), truncated: false };
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let text = "";
   let bytes = 0;
+  let truncated = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     bytes += value.byteLength;
     text += decoder.decode(value, { stream: true });
     if (bytes >= maxBytes) {
+      truncated = true;
       await reader.cancel();
       break;
     }
   }
-  return text + decoder.decode();
+  return { text: text + decoder.decode(), truncated };
 }
 
 /** True when a source's phrases should be looked for: a claim source whose status check passed and which has a phrase. */
@@ -305,9 +313,13 @@ export function needsPhraseCheck(result) {
 /**
  * Looks for each stored phrase in the live page (read only, one GET). The answer is
  * "found", "missing" (informational, never broken) or "not_checkable" (not text, an error status,
- * or a failed request). It is only called for sources whose status check passed.
+ * a failed request, or a page larger than the read cap whose phrase was not in the part read).
+ * It is only called for sources whose status check passed.
  */
-export async function checkPhrases(source, { throttle, fetchImpl = fetch } = {}) {
+export async function checkPhrases(
+  source,
+  { throttle, fetchImpl = fetch, maxBytes = PHRASE_MAX_BYTES } = {},
+) {
   const phrases = source.phrases ?? [];
   if (!phrases.length) return null;
   try {
@@ -331,11 +343,17 @@ export async function checkPhrases(source, { throttle, fetchImpl = fetch } = {})
         missing: [],
       };
     }
-    const html = await readCapped(res);
+    const { text: html, truncated } = await readCapped(res, maxBytes);
     const missing = phrases.filter((p) => !containsPhrase(html, p));
-    return missing.length
-      ? { status: "missing", reason: "phrase not in the page", missing }
-      : { status: "found", reason: "", missing: [] };
+    if (!missing.length) return { status: "found", reason: "", missing: [] };
+    if (truncated) {
+      return {
+        status: "not_checkable",
+        reason: `page larger than ${formatCap(maxBytes)}, phrase not in the part read`,
+        missing: [],
+      };
+    }
+    return { status: "missing", reason: "phrase not in the page", missing };
   } catch (error) {
     return { status: "not_checkable", reason: describeError(error), missing: [] };
   }

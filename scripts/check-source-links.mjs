@@ -44,9 +44,24 @@ export const STATIC_SOURCES = [
 
 // ---------------------------------------------------------------- collecting
 
+/**
+ * The owner's own properties (decision 0005, approved question 7): their GitHub repositories and
+ * olaheavy.dev hosts. They are checked but never archived, wherever the link is used.
+ */
+export function isOwnUrl(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase().replace(/\.$/, "");
+    if (host === "olaheavy.dev" || host.endsWith(".olaheavy.dev")) return true;
+    return (host === "github.com" || host === "www.github.com") && /^\/olaheavy-dev(\/|$)/i.test(u.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function addUsage(map, url, kind, usage) {
   const entry = map.get(url) ?? { url, kind: "own", usages: [] };
-  if (kind === "claim") entry.kind = "claim";
+  if (kind === "claim" && !isOwnUrl(url)) entry.kind = "claim";
   const key = `${usage.owner.type}:${usage.owner.name}:${usage.label}`;
   if (!entry.usages.some((u) => `${u.owner.type}:${u.owner.name}:${u.label}` === key))
     entry.usages.push(usage);
@@ -122,7 +137,12 @@ const hostOf = (u) => {
  * on the last attempt is final ("broken") but on an earlier one is only provisional.
  * `movedTo` is set when the final host differs from the requested one.
  */
-export function classifyResponse({ status, url, finalUrl, lastAttempt = false }) {
+export function classifyResponse(input) {
+  const verdict = classifyStatus(input);
+  return { ...verdict, reasonCode: verdict.reason };
+}
+
+function classifyStatus({ status, url, finalUrl, lastAttempt = false }) {
   const movedTo = finalUrl && hostOf(finalUrl) && hostOf(finalUrl) !== hostOf(url) ? finalUrl : null;
   if (status === 404 || status === 410)
     return { state: "broken", reason: `HTTP ${status}`, retry: false, movedTo };
@@ -134,15 +154,36 @@ export function classifyResponse({ status, url, finalUrl, lastAttempt = false })
   return { state: "unverified", reason: `HTTP ${status}`, retry: false, movedTo };
 }
 
+/** The error with its underlying cause, so "fetch failed" shows why (for example ECONNRESET). */
+export function describeError(error) {
+  const message = error instanceof Error ? error.message : String(error ?? "failed");
+  const cause = error?.cause;
+  if (!cause) return message;
+  const detail = [cause.code ?? cause.name, cause.message].filter(Boolean).join(": ");
+  return detail && detail !== message ? `${message} (${detail})` : message;
+}
+
+/** A short stable code for an error (no addresses or ports), used in the digest. */
+export function errorCode(error) {
+  return String(error?.code ?? error?.cause?.code ?? error?.cause?.name ?? error?.name ?? "error");
+}
+
 /** What a failed request (no answer) means. DNS "not found" is broken; everything else is not verifiable. */
 export function classifyError(error, { lastAttempt = false } = {}) {
   const code = error?.cause?.code ?? error?.code ?? "";
   if (code === "ENOTFOUND")
-    return { state: "broken", reason: "DNS lookup failed", retry: !lastAttempt, movedTo: null };
+    return {
+      state: "broken",
+      reason: "DNS lookup failed",
+      reasonCode: "ENOTFOUND",
+      retry: !lastAttempt,
+      movedTo: null,
+    };
   const timedOut = error?.name === "TimeoutError" || error?.name === "AbortError";
   return {
     state: "unverified",
-    reason: timedOut ? "timed out" : code || "request failed",
+    reason: timedOut ? "timed out" : describeError(error),
+    reasonCode: timedOut ? "TIMEOUT" : errorCode(error),
     retry: !lastAttempt,
     movedTo: null,
   };
@@ -232,12 +273,14 @@ const where = (usage) => `${usage.owner.name} (${usage.owner.type}), ${usage.lab
 // issue is open earns a comment. The run date and newly archived copies are left out on purpose.
 function digestLines(report) {
   const lines = [];
-  const tail = (r) => `${r.reason}${r.movedTo ? ` now at ${r.movedTo}` : ""}`;
+  // Stable parts only: the human reason can carry addresses and ports that change every run.
+  const tail = (r) => `${r.reasonCode ?? r.reason}${r.movedTo ? ` now at ${r.movedTo}` : ""}`;
   for (const r of report.results) {
     if (r.state === "broken" || r.state === "unverified") lines.push(`${r.state} ${r.url} ${tail(r)}`);
     else if (r.movedTo) lines.push(`moved ${r.url} ${tail(r)}`);
   }
-  for (const a of report.archiveFailures ?? []) lines.push(`archive-failed ${a.url} ${a.reason}`);
+  for (const a of report.archiveFailures ?? [])
+    lines.push(`archive-failed ${a.url} ${a.reasonCode ?? a.reason}`);
   return lines.sort();
 }
 
@@ -407,7 +450,10 @@ export async function latestSnapshot(url, fetchImpl = fetch) {
     headers: { "user-agent": USER_AGENT },
     signal: AbortSignal.timeout(20000),
   });
-  if (!res.ok) throw new Error(`Availability API HTTP ${res.status}`);
+  if (!res.ok)
+    throw Object.assign(new Error(`Availability API HTTP ${res.status}`), {
+      code: `AVAILABILITY_HTTP_${res.status}`,
+    });
   const closest = (await res.json())?.archived_snapshots?.closest;
   return closest?.available === true && /^2\d\d$/.test(String(closest.status)) ? closest : null;
 }
@@ -427,29 +473,62 @@ export async function saveSnapshot(url, fetchImpl = fetch) {
   const found = candidates
     .map((c) => new URL(c, "https://web.archive.org").href)
     .find((c) => /\/web\/\d{14}/.test(c));
-  if (!res.ok || !found) throw new Error(`HTTP ${res.status}, no snapshot address`);
+  if (!res.ok || !found)
+    throw Object.assign(new Error(`HTTP ${res.status}, no snapshot address`), {
+      code: `SAVE_HTTP_${res.status}`,
+    });
   return found;
 }
 
-/** Saves claim sources that have no recent snapshot: 25 s apart, at most 10 a run. */
-export async function archiveClaims(results, { sleep = defaultSleep, fetchImpl = fetch } = {}) {
+/**
+ * Saves claim sources that have no recent snapshot: 25 s apart, at most 10 a run. Every outcome
+ * is logged on one line, so the run log alone shows what happened.
+ */
+export async function archiveClaims(
+  results,
+  { sleep = defaultSleep, fetchImpl = fetch, log = console.log } = {},
+) {
   const archived = [];
   const archiveFailures = [];
+  const skipped = [];
+  const skip = (url, reason) => {
+    skipped.push({ url, reason });
+    log(`archive skipped ${url} (${reason})`);
+  };
   let saves = 0;
   for (const r of results) {
-    if (r.kind !== "claim" || r.state === "broken") continue;
-    if (saves >= MAX_ARCHIVE_PER_RUN) break;
+    if (r.kind !== "claim") {
+      skip(r.url, "own source");
+      continue;
+    }
+    if (r.state === "broken") {
+      skip(r.url, "broken");
+      continue;
+    }
+    if (saves >= MAX_ARCHIVE_PER_RUN) {
+      skip(r.url, "cap reached");
+      continue;
+    }
+    const started = Date.now();
     try {
       const snap = await latestSnapshot(r.url, fetchImpl);
-      if (!shouldArchive({ kind: r.kind, snapshotTimestamp: snap?.timestamp })) continue;
+      log(`availability ${r.url}: ${snap ? `${snap.timestamp} ${snap.url}` : "no usable snapshot"}`);
+      if (!shouldArchive({ kind: r.kind, snapshotTimestamp: snap?.timestamp })) {
+        skip(r.url, "recent snapshot");
+        continue;
+      }
       if (saves > 0) await sleep(ARCHIVE_GAP_MS);
       saves++;
-      archived.push({ url: r.url, snapshotUrl: await saveSnapshot(r.url, fetchImpl) });
+      const snapshotUrl = await saveSnapshot(r.url, fetchImpl);
+      archived.push({ url: r.url, snapshotUrl });
+      log(`archive saved ${r.url} -> ${snapshotUrl}`);
     } catch (error) {
-      archiveFailures.push({ url: r.url, reason: error instanceof Error ? error.message : "failed" });
+      const reason = describeError(error);
+      archiveFailures.push({ url: r.url, reason, reasonCode: errorCode(error) });
+      log(`archive failed ${r.url}: ${reason} after ${Date.now() - started} ms`);
     }
   }
-  return { archived, archiveFailures };
+  return { archived, archiveFailures, skipped };
 }
 
 async function github(path, init = {}, fetchImpl = fetch) {

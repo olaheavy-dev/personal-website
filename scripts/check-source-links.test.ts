@@ -4,6 +4,9 @@ import {
   checkOne,
   classifyError,
   classifyResponse,
+  describeError,
+  errorCode,
+  isOwnUrl,
   collectSources,
   containsPhrase,
   createHostThrottle,
@@ -539,5 +542,237 @@ describe("digest", () => {
     expect(digestOf({ ...base, archiveFailures: [{ url: "https://a.example/ok", reason: "x" }] })).not.toBe(
       digestOf(base),
     );
+  });
+});
+
+const withCause = (code: string, message = "other side closed") =>
+  Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error(message), { code }) });
+
+describe("failure reasons carry the cause", () => {
+  it("describeError shows the underlying code and message", () => {
+    expect(describeError(withCause("UND_ERR_SOCKET", "other side closed"))).toBe(
+      "fetch failed (UND_ERR_SOCKET: other side closed)",
+    );
+    expect(describeError(new Error("plain"))).toBe("plain");
+  });
+  it("a link check names ECONNRESET instead of bare fetch failed", async () => {
+    const fetchImpl = (async () => {
+      throw withCause("ECONNRESET", "read ECONNRESET");
+    }) as typeof fetch;
+    const r = await checkOne(source, { fetchImpl, sleep: recorder().sleep });
+    expect(r.state).toBe("unverified");
+    expect(r.reason).toContain("ECONNRESET");
+  });
+  it("an archive failure names the cause and is logged", async () => {
+    const lines: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      if (String(url).includes("/wayback/available"))
+        return new Response(JSON.stringify({ archived_snapshots: {} }));
+      throw withCause("UND_ERR_SOCKET", "other side closed");
+    }) as typeof fetch;
+    const out = await archiveClaims([{ ...source, state: "ok" } as unknown as Result], {
+      fetchImpl,
+      sleep: recorder().sleep,
+      log: (l) => lines.push(l),
+    });
+    expect(out.archiveFailures[0]!.reason).toContain("UND_ERR_SOCKET");
+    expect(lines.some((l) => l.startsWith("availability https://a.example/page: no usable snapshot"))).toBe(
+      true,
+    );
+    expect(
+      lines.some((l) => l.startsWith("archive failed https://a.example/page: fetch failed (UND_ERR_SOCKET")),
+    ).toBe(true);
+  });
+});
+
+describe("archive log lines", () => {
+  const ok = (url: string, kind: "claim" | "own") =>
+    ({ ...source, url, kind, state: "ok" }) as unknown as Result;
+  it("logs saved, skipped for a recent snapshot, own source and cap reached", async () => {
+    const lines: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      const u = String(url);
+      if (u.includes("recent"))
+        return new Response(
+          JSON.stringify({
+            archived_snapshots: {
+              closest: {
+                available: true,
+                status: "200",
+                timestamp: "20991231000000",
+                url: "https://web.archive.org/web/20991231000000/x",
+              },
+            },
+          }),
+        );
+      if (u.includes("/wayback/available")) return new Response(JSON.stringify({ archived_snapshots: {} }));
+      return new Response("", { status: 200, headers: { "content-location": "/web/20261102000000/x" } });
+    }) as typeof fetch;
+    const results = [
+      ok("https://recent.example/", "claim"),
+      ok("https://own.example/", "own"),
+      ...Array.from({ length: 11 }, (_, i) => ok(`https://n${i}.example/`, "claim")),
+    ];
+    const out = await archiveClaims(results, {
+      fetchImpl,
+      sleep: recorder().sleep,
+      log: (l) => lines.push(l),
+    });
+    expect(lines).toContain("archive skipped https://recent.example/ (recent snapshot)");
+    expect(lines).toContain("archive skipped https://own.example/ (own source)");
+    expect(lines).toContain("archive skipped https://n10.example/ (cap reached)");
+    expect(
+      lines.some((l) =>
+        l.startsWith("archive saved https://n0.example/ -> https://web.archive.org/web/20261102000000/x"),
+      ),
+    ).toBe(true);
+    expect(out.skipped).toHaveLength(3);
+  });
+});
+
+describe("own sources are never archived", () => {
+  it("isOwnUrl covers the owner's GitHub and olaheavy.dev hosts only", () => {
+    for (const u of [
+      "https://github.com/olaheavy-dev/fastpilot",
+      "https://github.com/olaheavy-dev/Foresight",
+      "https://github.com/olaheavy-dev/homescout-platform",
+      "https://olaheavy.dev/work",
+      "https://staging.olaheavy.dev/",
+    ])
+      expect(isOwnUrl(u)).toBe(true);
+    for (const u of [
+      "https://github.com/other/fastpilot",
+      "https://notolaheavy.dev/",
+      "https://github.com/olaheavy-devx/a",
+    ])
+      expect(isOwnUrl(u)).toBe(false);
+  });
+  it("collectSources marks them own even when an outcome cites them, so archiveClaims skips them", async () => {
+    const rows = {
+      stops: [
+        {
+          id: "s1",
+          slug: "x",
+          name: "X",
+          detail_sources: [{ label: "Repo", url: "https://github.com/olaheavy-dev/fastpilot" }],
+        },
+      ],
+      labProjects: [
+        {
+          id: "l1",
+          slug: "homescout",
+          name: "HomeScout",
+          repo_url: "https://github.com/olaheavy-dev/homescout-platform",
+          live_url: "https://example.com/live",
+        },
+        { id: "l2", slug: "foresight", name: "Foresight", repo_url: null },
+      ],
+      outcomes: [
+        {
+          stop_id: "s1",
+          source_kind: "link",
+          source_label: "Repo",
+          source_url: "https://github.com/olaheavy-dev/Foresight",
+          figure: "f",
+        },
+        {
+          lab_project_id: "l1",
+          source_kind: "link",
+          source_label: "Demo",
+          source_url: "https://example.com/demo",
+          figure: "d",
+        },
+        {
+          stop_id: "s1",
+          source_kind: "link",
+          source_label: "Press",
+          source_url: "https://press.example/a",
+          figure: "p",
+        },
+      ],
+    };
+    const sources = collectSources(rows);
+    const kind = (u: string) => sources.find((s) => s.url === u)?.kind;
+    expect(kind("https://github.com/olaheavy-dev/fastpilot")).toBe("own");
+    expect(kind("https://github.com/olaheavy-dev/Foresight")).toBe("own");
+    expect(kind("https://github.com/olaheavy-dev/homescout-platform")).toBe("own");
+    expect(kind("https://example.com/live")).toBe("own");
+    expect(kind("https://example.com/demo")).toBe("claim");
+    expect(kind("https://press.example/a")).toBe("claim");
+    const calls: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      calls.push(String(url));
+      return new Response(JSON.stringify({ archived_snapshots: {} }));
+    }) as typeof fetch;
+    const results = sources.map((s) => ({ ...s, state: "ok" }) as unknown as Result);
+    await archiveClaims(results, { fetchImpl, sleep: recorder().sleep, log: () => {} });
+    expect(calls.filter((c) => /olaheavy-dev|example\.com%2Flive/.test(c))).toEqual([]);
+  });
+});
+
+describe("digest ignores changing error text", () => {
+  it("same code with different addresses gives the same digest", async () => {
+    const one = Object.assign(new TypeError("fetch failed"), {
+      cause: Object.assign(new Error("connect ETIMEDOUT 10.0.0.1:443"), { code: "ETIMEDOUT" }),
+    });
+    const two = Object.assign(new TypeError("fetch failed"), {
+      cause: Object.assign(new Error("connect ETIMEDOUT 10.9.9.9:8443"), { code: "ETIMEDOUT" }),
+    });
+    const run = async (error: unknown) =>
+      checkOne(source, {
+        fetchImpl: (async () => {
+          throw error;
+        }) as typeof fetch,
+        sleep: recorder().sleep,
+      });
+    const a = await run(one);
+    const b = await run(two);
+    expect(a.reason).not.toBe(b.reason);
+    expect(errorCode(one)).toBe("ETIMEDOUT");
+    expect(digestOf(report([a]))).toBe(digestOf(report([b])));
+    expect(digestOf(report([a]))).not.toBe(digestOf(report([{ ...a, reasonCode: "ECONNRESET" }])));
+  });
+  it("an archive failure digests by code, not text", () => {
+    const base = report([result({ url: "https://a.example/ok" })]);
+    const f = (reason: string) => ({
+      ...base,
+      archiveFailures: [{ url: "https://a.example/ok", reason, reasonCode: "UND_ERR_SOCKET" }],
+    });
+    expect(digestOf(f("x 1.2.3.4"))).toBe(digestOf(f("x 5.6.7.8")));
+  });
+});
+
+describe("isOwnUrl edge cases", () => {
+  it("rejects lookalikes and accepts host spellings of the same place", () => {
+    for (const u of [
+      "https://github.com.evil.com/olaheavy-dev/x",
+      "https://github.com/olaheavy-dev@evil.com",
+      "https://github.com@evil.com/olaheavy-dev/x",
+    ])
+      expect(isOwnUrl(u)).toBe(false);
+    for (const u of [
+      "https://GitHub.com/olaheavy-dev/x",
+      "https://github.com:443/olaheavy-dev/x",
+      "https://github.com./olaheavy-dev/x",
+      "https://www.github.com/olaheavy-dev/x",
+      "https://OlaHeavy.dev./",
+    ])
+      expect(isOwnUrl(u)).toBe(true);
+  });
+  it("never archives the three Lab repositories cited by outcomes", () => {
+    const repos = ["fastpilot", "Foresight", "homescout-platform"].map(
+      (n) => `https://github.com/olaheavy-dev/${n}`,
+    );
+    const rows = {
+      labProjects: [{ id: "l1", slug: "x", name: "X" }],
+      outcomes: repos.map((u) => ({
+        lab_project_id: "l1",
+        source_kind: "link",
+        source_label: "Repo",
+        source_url: u,
+        figure: "f",
+      })),
+    };
+    expect(collectSources(rows).map((s) => s.kind)).toEqual(["own", "own", "own"]);
   });
 });

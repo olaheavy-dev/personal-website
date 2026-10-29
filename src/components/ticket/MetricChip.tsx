@@ -11,6 +11,10 @@ export type MetricSource =
       /** Who published it, for example "Google Play listing". */
       label: string;
       url: string;
+      /** The Internet Archive copy of the page, when one is stored. Not shown yet. */
+      archiveUrl?: string;
+      /** The day the live page was found broken, as YYYY-MM-DD. Not shown yet. */
+      brokenOn?: string;
     }
   | {
       kind: "own";

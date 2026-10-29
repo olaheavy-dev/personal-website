@@ -2,10 +2,12 @@ import { checkText } from "./check-dashes.mjs";
 import {
   archiveClaims,
   checkOne,
+  checkPhrases,
   classifyError,
   classifyResponse,
   describeError,
   errorCode,
+  isCheckableContentType,
   isOwnUrl,
   collectSources,
   containsPhrase,
@@ -774,5 +776,153 @@ describe("isOwnUrl edge cases", () => {
       })),
     };
     expect(collectSources(rows).map((s) => s.kind)).toEqual(["own", "own", "own"]);
+  });
+});
+
+describe("collectSources phrases and stored archive copies", () => {
+  const archive = "https://web.archive.org/web/20261029213726/https://news.example/a";
+  const rows = {
+    stops: [
+      {
+        id: "s1",
+        slug: "hbk",
+        name: "HBK",
+        detail_sources: [
+          { label: "Press", url: "https://news.example/a", phrase: "device financing", archive_url: archive },
+          { label: "Own", url: "https://github.com/olaheavy-dev/x", phrase: "ignored" },
+        ],
+      },
+    ],
+    outcomes: [
+      {
+        stop_id: "s1",
+        source_kind: "link",
+        source_label: "Press",
+        source_url: "https://news.example/a",
+        source_phrase: "smartphone financing",
+        figure: "x",
+      },
+      {
+        stop_id: "s1",
+        source_kind: "link",
+        source_label: "Plain",
+        source_url: "https://news.example/b",
+        figure: "y",
+      },
+    ],
+  };
+  const sources = collectSources(rows);
+  it("gathers distinct phrases and the stored archive copy per URL", () => {
+    const a = sources.find((s) => s.url === "https://news.example/a");
+    expect(a?.phrases).toEqual(["smartphone financing", "device financing"].sort().reverse());
+    expect(a?.archiveUrl).toBe(archive);
+    expect(sources.find((s) => s.url === "https://news.example/b")).toMatchObject({
+      phrases: [],
+      archiveUrl: null,
+    });
+  });
+  it("ignores a phrase on the owner's own pages", () => {
+    expect(sources.find((s) => s.url === "https://github.com/olaheavy-dev/x")?.phrases).toEqual([]);
+  });
+});
+
+describe("isCheckableContentType", () => {
+  it("accepts text/html and text/plain only", () => {
+    expect(isCheckableContentType("text/html; charset=utf-8")).toBe(true);
+    expect(isCheckableContentType("TEXT/PLAIN")).toBe(true);
+    for (const t of ["application/pdf", "application/json", "image/png", "text/xml", "", null, undefined])
+      expect(isCheckableContentType(t)).toBe(false);
+  });
+});
+
+describe("checkPhrases (phrase present, missing, not checkable)", () => {
+  const withPhrases = (...phrases: string[]) => ({ ...source, phrases });
+  const page = (body: string, type = "text/html; charset=utf-8", status = 200) =>
+    new Response(body, { status, headers: { "content-type": type } });
+
+  it("is null when the source has no phrase and makes no request", async () => {
+    const { fetchImpl, calls } = stub(() => page("x"));
+    expect(await checkPhrases(withPhrases(), { fetchImpl })).toBeNull();
+    expect(calls).toEqual([]);
+  });
+  it("finds a phrase with one GET, ignoring tags and case", async () => {
+    const { fetchImpl, calls } = stub(() => page("<p>Access Bank <b>boosts lending</b></p>"));
+    const out = await checkPhrases(withPhrases("access bank boosts lending"), { fetchImpl });
+    expect(out).toMatchObject({ status: "found", missing: [] });
+    expect(calls.map((c) => c.method)).toEqual(["GET"]);
+  });
+  it("reports missing phrases, only the absent ones", async () => {
+    const { fetchImpl } = stub(() => page("<p>hello world</p>"));
+    const out = await checkPhrases(withPhrases("hello", "goodbye"), { fetchImpl });
+    expect(out).toMatchObject({ status: "missing", missing: ["goodbye"] });
+  });
+  it("is not checkable for other content types, error statuses and failed requests", async () => {
+    const pdf = stub(() => page("hello", "application/pdf"));
+    expect(await checkPhrases(withPhrases("hello"), { fetchImpl: pdf.fetchImpl })).toMatchObject({
+      status: "not_checkable",
+      reason: "content type application/pdf",
+    });
+    const gone = stub(() => page("hello", "text/html", 404));
+    expect(await checkPhrases(withPhrases("hello"), { fetchImpl: gone.fetchImpl })).toMatchObject({
+      status: "not_checkable",
+      reason: "HTTP 404",
+    });
+    const failing = stub(() => {
+      throw new Error("boom");
+    });
+    expect(await checkPhrases(withPhrases("hello"), { fetchImpl: failing.fetchImpl })).toMatchObject({
+      status: "not_checkable",
+      reason: "boom",
+    });
+  });
+  it("waits on the host throttle before the request", async () => {
+    const { fetchImpl } = stub(() => page("hello"));
+    const waited: string[] = [];
+    await checkPhrases(withPhrases("hello"), {
+      fetchImpl,
+      throttle: { wait: async (u) => void waited.push(u) },
+    });
+    expect(waited).toEqual([source.url]);
+  });
+});
+
+describe("phrase sections in the issue body", () => {
+  const missing = result({
+    url: "https://news.example/a",
+    phrase: { status: "missing", reason: "phrase not in the page", missing: ["device financing"] },
+  });
+  const uncheckable = result({
+    url: "https://news.example/b",
+    phrase: { status: "not_checkable", reason: "content type application/pdf", missing: [] },
+  });
+  const r = report([missing, uncheckable]);
+  it("lists them as informational sections without dashes", () => {
+    const body = renderIssueBody(r);
+    expect(body).toContain("## Phrase missing (1)");
+    expect(body).toContain('missing: "device financing"');
+    expect(body).toContain("## Phrase not checkable (1)");
+    expect(checkText("issue-body.md", body, ".md")).toEqual([]);
+  });
+  it("never opens or changes the issue, and is not part of the digest", () => {
+    expect(planIssueAction({ existing: null, report: r }).action).toBe("none");
+    expect(digestOf(r)).toBe(
+      digestOf(
+        report([result({ url: "https://news.example/a" }), result({ url: "https://news.example/b" })]),
+      ),
+    );
+  });
+});
+
+describe("archiveClaims with a stored archive copy", () => {
+  it("makes no request for a source that already has one", async () => {
+    const { fetchImpl, calls } = stub(() => new Response("{}"));
+    const row = {
+      ...source,
+      state: "ok" as const,
+      archiveUrl: "https://web.archive.org/web/20261029213726/https://a.example/page",
+    } as unknown as Result;
+    const out = await archiveClaims([row], { fetchImpl, sleep: recorder().sleep, log: () => {} });
+    expect(calls).toEqual([]);
+    expect(out.skipped).toEqual([{ url: source.url, reason: "archive copy stored" }]);
   });
 });

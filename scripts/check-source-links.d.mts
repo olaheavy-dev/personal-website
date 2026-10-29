@@ -1,7 +1,20 @@
 // Types for check-source-links.mjs, so its tests can import it from TypeScript.
 export type Owner = { type: string; name: string; slug?: string };
 export type Usage = { owner: Owner; label: string };
-export type Source = { url: string; kind: "claim" | "own"; usages: Usage[] };
+export type Source = {
+  url: string;
+  kind: "claim" | "own";
+  usages: Usage[];
+  /** Stored verbatim phrases to look for in the live page (claim sources only). */
+  phrases?: string[];
+  /** A stored Internet Archive copy, when there is one. */
+  archiveUrl?: string | null;
+};
+export type PhraseCheck = {
+  status: "found" | "missing" | "not_checkable";
+  reason: string;
+  missing: string[];
+};
 export type State = "ok" | "broken" | "unverified";
 export type Verdict = {
   state: State;
@@ -10,7 +23,7 @@ export type Verdict = {
   retry: boolean;
   movedTo: string | null;
 };
-export type Result = Source & Verdict;
+export type Result = Source & Verdict & { phrase?: PhraseCheck | null };
 export type Report = {
   date: string;
   results: Result[];
@@ -52,6 +65,14 @@ export function createHostThrottle(options?: {
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
 }): { wait(url: string): Promise<void> };
+export function isCheckableContentType(contentType: string | null | undefined): boolean;
+export function checkPhrases(
+  source: Source,
+  options?: {
+    throttle?: { wait(url: string): Promise<void> };
+    fetchImpl?: typeof fetch;
+  },
+): Promise<PhraseCheck | null>;
 export function containsPhrase(html: string, phrase: string): boolean;
 export function shouldArchive(input: {
   kind: string;

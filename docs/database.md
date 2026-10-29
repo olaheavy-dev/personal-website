@@ -49,6 +49,7 @@ The database refuses what the claims policy forbids, so a mistake in the admin c
 
 - An outcome has exactly one parent.
 - A `link` source needs an `https://` URL, a label, the day it was last checked (`checked_on`) and no note. An `own` source needs a note and no URL.
+- A link source may carry a `source_phrase`, a Wayback `source_archive_url` and a `source_broken_on` day for the weekly source link checker; an own measurement carries none, and a broken day needs an archive address (`docs/source-links.md`).
 - A `company` claim needs an `attribution` and an `as_of_year`.
 - Lab links must start with `https://`. The slug and name `raglab` are refused.
 

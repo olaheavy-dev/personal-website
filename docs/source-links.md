@@ -1,6 +1,6 @@
 # Source link checker
 
-Every external source the site shows must stay valid (claims policy, decision 0005). A weekly workflow checks them and keeps one GitHub issue up to date. Issue #127. This is the checker only: it does not store phrases or archive addresses and the site does not yet link to archived copies (later pull requests).
+Every external source the site shows must stay valid (claims policy, decision 0005). A weekly workflow checks them and keeps one GitHub issue up to date. Issue #127. The database can store, per claim source, a phrase to look for and an archive copy (see "Phrases and archive copies"). The site does not yet link to archived copies (a later pull request).
 
 ## What it does
 
@@ -8,24 +8,46 @@ Every external source the site shows must stay valid (claims policy, decision 00
 
 1. Reads the published sources from the hosted database with the publishable key, as the site does: outcome links, each stop's detail sources, and Lab project links. The HBK release notes link, which lives in code, comes from `STATIC_SOURCES` in the script. A test fails if a new hard-coded source URL appears in `src` without being listed there.
 2. Requests each URL: one at a time, at least 2 seconds between requests to one host, three attempts (2 s then 8 s backoff, `Retry-After` honoured up to 30 s), with an honest user agent that names this repository.
-3. Saves claim sources (not Lab links) to the Internet Archive when no snapshot newer than 180 days exists. Saves are 25 seconds apart, at most 10 a run. A failed save is listed, never counted as broken.
-4. Opens, updates or closes one issue titled **Source links: weekly check**, labelled `links`.
+3. Looks for the stored phrase of each claim source that has one (see below).
+4. Saves claim sources (not Lab links) to the Internet Archive when no archive copy is stored and no snapshot newer than 180 days exists. Saves are 25 seconds apart, at most 10 a run. A failed save is listed, never counted as broken.
+5. Opens, updates or closes one issue titled **Source links: weekly check**, labelled `links`.
 
 ## What the results mean
 
 Only **Broken** opens, or keeps open, the issue. The other sections are informational: they appear in the issue body while it is open, and always in the run's job summary.
 
-| Result              | When                                                                                                             | What to do                                                                                                                  |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Broken              | 404 or 410, or a DNS failure or 5xx (500 to 599) on every attempt                                                | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration. |
-| Could not verify    | 401, 403, 429, other 4xx, unusual codes such as 999, errors that persist, or mixed attempts (429, 429, then 503) | Informational. Open the link by hand. Many publishers block automated requests; this is not a failure of the source.        |
-| Archive save failed | The Internet Archive refused, or returned no snapshot address                                                    | Informational. Usually transient. Retried next week.                                                                        |
-| Moved               | The final host differs                                                                                           | Informational. Update the stored link when convenient.                                                                      |
-| Archived this run   | A new snapshot was saved                                                                                         | Informational.                                                                                                              |
+| Result               | When                                                                                                             | What to do                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Broken               | 404 or 410, or a DNS failure or 5xx (500 to 599) on every attempt                                                | Find another public source or the new location. Wording changes need the owner's approval; it ships as a content migration.    |
+| Could not verify     | 401, 403, 429, other 4xx, unusual codes such as 999, errors that persist, or mixed attempts (429, 429, then 503) | Informational. Open the link by hand. Many publishers block automated requests; this is not a failure of the source.           |
+| Phrase missing       | The page answered, is HTML or plain text, and no longer contains the stored phrase                               | Informational. Open the page and check the claim still stands. If the wording changed, a content migration updates the phrase. |
+| Phrase not checkable | The stored phrase could not be looked for: not HTML or plain text, an error status, or the request failed        | Informational.                                                                                                                 |
+| Archive save failed  | The Internet Archive refused, or returned no snapshot address                                                    | Informational. Usually transient. Retried next week.                                                                           |
+| Moved                | The final host differs                                                                                           | Informational. Update the stored link when convenient.                                                                         |
+| Archived this run    | A new snapshot was saved                                                                                         | Informational.                                                                                                                 |
 
 After the first run, review the Could not verify list by hand. The HBK release notes answer 403 to bots, so expect it there.
 
 A HEAD request is tried first. Any HEAD answer of 400 or above (or 405, 501) is repeated as a GET and the verdict comes from the GET.
+
+## Phrases and archive copies
+
+Three optional values per claim source (migration `20261029140000_source_checks.sql`, decision 0005):
+
+| Where                          | Columns or keys                                           | Meaning                                                                                                                                     |
+| ------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `outcomes` (link sources only) | `source_phrase`, `source_archive_url`, `source_broken_on` | A short verbatim phrase from the public page that supports the claim, the Internet Archive copy, and the day the live page was found broken |
+| `stops.detail_sources` items   | `phrase`, `archive_url`, `broken_on`                      | The same three, as optional keys of each item                                                                                               |
+
+Rules the database enforces: a phrase is not blank; an archive address looks like `https://web.archive.org/web/<14 digits>/https://...`; a broken day needs an archive address; an own measurement carries none of the three. The owner's own repositories and Lab links never get a phrase or an archive copy.
+
+What the checker does with them:
+
+- A source whose status check passed and which has a phrase is requested once more with GET (read only, same politeness) and the phrase is searched in the text, ignoring tags, case, entities and spacing. Only `text/html` and `text/plain` are searched; other types are "Phrase not checkable". Pages that answer bots with 403 or draw their text with JavaScript cannot carry a phrase: leave it unset.
+- A stored archive address means no save is attempted (the log shows `archive skipped <url> (archive copy stored)`).
+- "Phrase missing" and "Phrase not checkable" are informational: they never open the issue and are not part of its digest, so they do not trigger a comment. They appear in the issue body while it is open and always in the job summary.
+- The site types carry the archive address and broken day (`archiveUrl`, `brokenOn`) but nothing renders them yet. The phrase never reaches the site.
+- The checker selects the new columns, so the migration must be applied before the checker runs on a commit that includes this change. Merging applies it first (decision 0019).
 
 ## The issue
 
@@ -67,4 +89,4 @@ Pause: disable the workflow in the Actions tab. Remove: delete `.github/workflow
 
 ## Tests
 
-`scripts/check-source-links.test.ts` (classification, retries, throttle, archive rules, issue body and actions), `scripts/source-links-static.test.ts` (hard-coded URLs), `scripts/source-links-workflow.test.ts` (permissions, pins, no `${{` in `run`). No test calls the Internet Archive or GitHub.
+`scripts/check-source-links.test.ts` (classification, retries, throttle, phrases, archive rules, issue body and actions), `scripts/source-links-static.test.ts` (hard-coded URLs), `scripts/source-links-workflow.test.ts` (permissions, pins, no `${{` in `run`). No test calls the Internet Archive or GitHub.

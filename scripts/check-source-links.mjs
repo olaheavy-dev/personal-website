@@ -59,9 +59,16 @@ export function isOwnUrl(url) {
   }
 }
 
-function addUsage(map, url, kind, usage) {
-  const entry = map.get(url) ?? { url, kind: "own", usages: [] };
+function addUsage(map, url, kind, usage, extra = {}) {
+  const entry = map.get(url) ?? { url, kind: "own", usages: [], phrases: [], archiveUrl: null };
   if (kind === "claim" && !isOwnUrl(url)) entry.kind = "claim";
+  // Phrases and stored archive copies belong to claim sources only (never the owner's own pages).
+  if (entry.kind === "claim") {
+    const phrase = typeof extra.phrase === "string" ? extra.phrase.trim() : "";
+    if (phrase && !entry.phrases.includes(phrase)) entry.phrases.push(phrase);
+    if (!entry.archiveUrl && typeof extra.archiveUrl === "string" && extra.archiveUrl)
+      entry.archiveUrl = extra.archiveUrl;
+  }
   const key = `${usage.owner.type}:${usage.owner.name}:${usage.label}`;
   if (!entry.usages.some((u) => `${u.owner.type}:${u.owner.name}:${u.label}` === key))
     entry.usages.push(usage);
@@ -95,15 +102,27 @@ export function collectSources(
         : lab
           ? { type: "lab project", name: lab.name, slug: lab.slug }
           : { type: "outcome", name: "unknown parent" };
-    addUsage(map, o.source_url, "claim", { owner, label: o.source_label || o.figure || "source" });
+    addUsage(
+      map,
+      o.source_url,
+      "claim",
+      { owner, label: o.source_label || o.figure || "source" },
+      { phrase: o.source_phrase, archiveUrl: o.source_archive_url },
+    );
   }
   for (const s of stops) {
     for (const item of Array.isArray(s.detail_sources) ? s.detail_sources : []) {
       if (!item || !isHttps(item.url)) continue;
-      addUsage(map, item.url, "claim", {
-        owner: { type: "stop", name: s.name, slug: s.slug },
-        label: item.label || "detail source",
-      });
+      addUsage(
+        map,
+        item.url,
+        "claim",
+        {
+          owner: { type: "stop", name: s.name, slug: s.slug },
+          label: item.label || "detail source",
+        },
+        { phrase: item.phrase, archiveUrl: item.archive_url },
+      );
     }
   }
   for (const l of labProjects) {
@@ -250,6 +269,74 @@ export function containsPhrase(html, phrase) {
 }
 
 /**
+ * Which phrase answer to report. Only text pages can be searched: text/html and text/plain.
+ * Anything else (a PDF, JSON, an image) is "not checkable", never "missing".
+ */
+export function isCheckableContentType(contentType) {
+  return /^\s*(text\/html|text\/plain)\s*(;|$)/i.test(String(contentType ?? ""));
+}
+
+const PHRASE_MAX_BYTES = 3 * 1024 * 1024;
+
+async function readCapped(res, maxBytes = PHRASE_MAX_BYTES) {
+  if (!res.body) return await res.text();
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    text += decoder.decode(value, { stream: true });
+    if (bytes >= maxBytes) {
+      await reader.cancel();
+      break;
+    }
+  }
+  return text + decoder.decode();
+}
+
+/**
+ * Looks for each stored phrase in the live page (read only, one GET). The answer is
+ * "found", "missing" (informational, never broken) or "not_checkable" (not text, an error status,
+ * or a failed request). It is only called for sources whose status check passed.
+ */
+export async function checkPhrases(source, { throttle, fetchImpl = fetch } = {}) {
+  const phrases = source.phrases ?? [];
+  if (!phrases.length) return null;
+  try {
+    await throttle?.wait(source.url);
+    const res = await fetchImpl(source.url, {
+      method: "GET",
+      redirect: "follow",
+      headers: { "user-agent": USER_AGENT, accept: "text/html,text/plain;q=0.9" },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (res.status < 200 || res.status > 299) {
+      await res.body?.cancel();
+      return { status: "not_checkable", reason: `HTTP ${res.status}`, missing: [] };
+    }
+    const type = res.headers.get("content-type") ?? "";
+    if (!isCheckableContentType(type)) {
+      await res.body?.cancel();
+      return {
+        status: "not_checkable",
+        reason: `content type ${type.split(";")[0] || "unknown"}`,
+        missing: [],
+      };
+    }
+    const html = await readCapped(res);
+    const missing = phrases.filter((p) => !containsPhrase(html, p));
+    return missing.length
+      ? { status: "missing", reason: "phrase not in the page", missing }
+      : { status: "found", reason: "", missing: [] };
+  } catch (error) {
+    return { status: "not_checkable", reason: describeError(error), missing: [] };
+  }
+}
+
+/**
  * Whether to ask the Internet Archive to save a page. Only claim sources are saved, never when
  * an archive URL is already stored or a snapshot newer than 180 days exists.
  * `snapshotTimestamp` is the Availability API's YYYYMMDDhhmmss string.
@@ -310,6 +397,15 @@ export function renderIssueBody(report) {
   const broken = report.results.filter((r) => r.state === "broken").map(entry);
   const unverified = report.results.filter((r) => r.state === "unverified").map(entry);
   const moved = report.results.filter((r) => r.state === "ok" && r.movedTo).map(entry);
+  const phraseEntry = (r) =>
+    `- <${r.url}>: ${r.phrase.reason}\n` +
+    (r.phrase.missing ?? []).map((p) => `  - missing: "${p}"`).join("\n") +
+    ((r.phrase.missing ?? []).length ? "\n" : "") +
+    r.usages.map((u) => `  - ${where(u)}`).join("\n");
+  const phraseMissing = report.results.filter((r) => r.phrase?.status === "missing").map(phraseEntry);
+  const phraseUncheckable = report.results
+    .filter((r) => r.phrase?.status === "not_checkable")
+    .map(phraseEntry);
   const archiveFailed = (report.archiveFailures ?? []).map((a) => `- <${a.url}>: ${a.reason}`);
   const archived = (report.archived ?? []).map((a) => `- <${a.url}>: <${a.snapshotUrl}>`);
   const checked = `${report.results.length} sources checked on ${report.date}.`;
@@ -324,6 +420,16 @@ export function renderIssueBody(report) {
       "Could not verify",
       "Informational. The site refused or limited an automated request, or the check failed. Open these by hand. Not counted as broken.",
       unverified,
+    ) +
+    section(
+      "Phrase missing",
+      "Informational. The page answered but no longer contains the stored phrase. Open the page and check the claim still stands. Not counted as broken.",
+      phraseMissing,
+    ) +
+    section(
+      "Phrase not checkable",
+      "Informational. The stored phrase could not be looked for (not an HTML or text page, an error status, or the request failed).",
+      phraseUncheckable,
     ) +
     section(
       "Archive save failed",
@@ -371,7 +477,7 @@ async function readDatabase(base, key) {
     fetchRows(
       base,
       key,
-      "outcomes?select=figure,source_kind,source_label,source_url,stop_id,case_study_id,lab_project_id&source_kind=eq.link",
+      "outcomes?select=figure,source_kind,source_label,source_url,source_phrase,source_archive_url,stop_id,case_study_id,lab_project_id&source_kind=eq.link",
     ),
   ]);
   // The site always has stops, Lab projects and sourced figures. An empty answer means the read
@@ -505,6 +611,10 @@ export async function archiveClaims(
       skip(r.url, "broken");
       continue;
     }
+    if (r.archiveUrl) {
+      skip(r.url, "archive copy stored");
+      continue;
+    }
     if (saves >= MAX_ARCHIVE_PER_RUN) {
       skip(r.url, "cap reached");
       continue;
@@ -591,6 +701,12 @@ async function main() {
     for (const source of sources) {
       const result = await checkOne(source, { throttle, sleep });
       console.log(`${result.state.padEnd(10)} ${result.url} (${result.reason})`);
+      if (result.state === "ok" && result.kind === "claim" && result.phrases?.length) {
+        result.phrase = await checkPhrases(result, { throttle });
+        console.log(
+          `phrase ${result.phrase.status} ${result.url}${result.phrase.reason ? ` (${result.phrase.reason})` : ""}`,
+        );
+      }
       results.push(result);
     }
     const archive = await archiveClaims(results, { sleep });

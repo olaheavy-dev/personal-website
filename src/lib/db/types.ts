@@ -29,7 +29,14 @@ export type Outcome = {
 };
 
 /** A public page that supports a stop's detail lines. The link is always https. */
-export type DetailSource = { label: string; url: string };
+export type DetailSource = {
+  label: string;
+  url: string;
+  /** The Internet Archive copy of the page, when one is stored. Not shown yet. */
+  archiveUrl?: string;
+  /** The day the live page was found broken, as YYYY-MM-DD. Not shown yet. */
+  brokenOn?: string;
+};
 
 export type Stop = {
   id: string;
